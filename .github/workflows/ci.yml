@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches: [main, 'foundation/**', 'runtime/**', 'memory/**', 'remote/**', 'integrations/**']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: ${{ matrix.os }} / Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, windows-latest]
+        python: ['3.12', '3.13']
+    env:
+      UV_PYTHON: ${{ matrix.python }}
+      UV_PYTHON_DOWNLOADS: never
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          version: '0.12.23'
+          enable-cache: false
+      - name: Install locked dependencies
+        run: uv sync --locked
+      - name: Lint
+        run: uv run --locked ruff check .
+      - name: Format
+        run: uv run --locked ruff format --check .
+      - name: Test configuration and CLI
+        run: uv run --locked pytest
+      - name: Check repository documents and exclusions
+        run: uv run --locked python scripts/check_repository.py
+      - name: Validate example configuration
+        run: uv run --locked jangus config validate --config config/jangus.example.yaml
+      - name: Build wheel and source distribution
+        run: uv build --no-build-isolation
+      - name: Install and smoke-test the wheel in a fresh environment
+        run: uv run --locked python scripts/check_distribution.py
+      - name: Check whitespace
+        run: git diff --check
+      - name: Linux setup health check
+        if: runner.os == 'Linux'
+        run: bash scripts/linux/check-setup.sh
+      - name: Windows setup health check
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./scripts/windows/check-setup.ps1

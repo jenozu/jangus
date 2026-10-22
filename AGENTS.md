@@ -7,7 +7,7 @@ Read [rules.md](rules.md) before changing this repository. It is the canonical s
 1. Inspect the branch, existing changes, and any more-specific instructions. Preserve unrelated work.
 2. Read the relevant [PRD](docs/product/PRD.md), [MVP](docs/product/MVP.md), [architecture](docs/architecture/SYSTEM.md), and [phase scope](docs/planning/PHASES.md).
 3. Use the assigned Taskmaster task once Phase 3 is implemented. Before then, use the authorized phase and PR description as the assignment. Do not invent Taskmaster IDs or claim MCP is connected.
-4. Load relevant reviewed procedures from root `skills/` when implemented. No skill files or discovery mechanism exist in Phase 1. Record unavailable prerequisites honestly.
+4. Load relevant reviewed procedures from root `skills/` when implemented. No skill files or discovery mechanism exist through Phase 2. Record unavailable prerequisites honestly.
 5. Make scoped changes on a feature branch. Create source directories when concrete functionality or interfaces require them.
 6. Verify the acceptance criteria using actual outputs. Follow [contribution guidance](docs/development/CONTRIBUTING.md) for documentation-only changes.
 7. Review the full diff for regressions, secrets, personal data, broken links, and inaccurate capability claims.
@@ -21,6 +21,7 @@ Read [rules.md](rules.md) before changing this repository. It is the canonical s
 - Release gates: `docs/product/MVP.md`.
 - Reasons for significant choices: `docs/architecture/decisions/`.
 - Future procedures: root `skills/`; future loader: `src/jangus/skills/`.
-- Future configuration examples: `config/`; private operational configuration stays outside Git.
+- Configuration examples: `config/`; private operational configuration stays outside Git.
+- Package checks and dependency updates: `docs/development/TESTING.md`.
 
 Follow the current authorized phase. Later phases in the plan are not permission to implement them now. If a design change is needed, explain its effects and update the affected specifications and decision record together.

@@ -1,0 +1,51 @@
+# Python and development tooling
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+build/
+dist/
+node_modules/
+
+# Secrets and local configuration (examples are intentionally tracked)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+config/*.local.*
+config/local/
+credentials/
+secrets/
+
+# Runtime data belongs outside the checkout; these prevent common accidents
+runtime/
+artifacts/
+logs/
+exports/
+workspaces/
+downloads/
+vault/
+models/
+*.log
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+*.gguf
+*.safetensors
+
+# Local editor/OS state
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

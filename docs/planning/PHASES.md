@@ -1,6 +1,6 @@
 # Phased repository delivery
 
-This is the agreed delivery sequence, not a second development task backlog. Taskmaster will own detailed dependencies and task status from Phase 3. Current repository scope: Phase 1 documentation.
+This is the agreed delivery sequence, not a second development task backlog. Taskmaster will own detailed dependencies and task status from Phase 3. Current repository scope: Phase 2 package and development setup, built on Phase 1 documentation.
 
 | Phase | Branch example | Deliverables | Verification before submission |
 |---|---|---|---|
