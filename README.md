@@ -4,12 +4,12 @@ Jangus is a planned self-hosted agent system for coordinating bounded tasks acro
 
 ## Current status
 
-**Phase 1: specifications and repository rules only.** This branch contains documentation. There is no installable package, CLI, model integration, Taskmaster connection, memory service, or remote worker yet. No desktop or VPS runtime tests have been performed.
+**Phase 2: package and development setup.** The Python package installs and provides version reporting, a configuration schema, and read-only configuration validation. Model execution, Taskmaster, memory, and remote jobs remain planned. Setup validation is not an operational agent.
 
 | Capability | Status |
 |---|---|
 | Product requirements, MVP acceptance criteria, architecture, working rules | Documented |
-| Package, dependency locks, configuration, CI | Planned: Phase 2 |
+| Package, dependency lock, configuration validation, setup guides, CI workflow | Implemented: Phase 2; verification recorded on the phase PR |
 | Taskmaster MCP development workflow | Planned: Phase 3 |
 | Logging, deterministic tools, reliable execution | Planned: Phase 4 |
 | Local agents, skills, context handoffs | Planned: Phase 5 |
@@ -35,7 +35,22 @@ SSH will serve administration, with an SSH tunnel to a private VPS job service. 
 
 ## Start here
 
-There are no installation commands in this phase. Review these documents before implementation:
+With Python 3.12 or 3.13 and uv 0.12.23 available, run from the checkout:
+
+```console
+uv sync --locked
+uv run --locked jangus --version
+uv run --locked jangus config validate --config config/jangus.example.yaml
+```
+
+Validation creates no runtime directories and contacts no service. Use the OS guide for installation and private configuration:
+
+- [Windows PowerShell setup](docs/setup/WINDOWS.md)
+- [Linux/Ubuntu setup](docs/setup/LINUX.md)
+- [Configuration contract](config/README.md)
+- [Development checks and dependency updates](docs/development/TESTING.md)
+
+Project specifications:
 
 - [Product requirements](docs/product/PRD.md)
 - [MVP and acceptance scenarios](docs/product/MVP.md)

@@ -1,0 +1,29 @@
+# Portable example: ~ expands to the current user's home on Windows and Linux.
+# Copy to a private config directory outside this repository before customizing.
+schema_version: 1
+paths:
+  data_dir: ~/.jangus-data
+  workspace_dir: ~/.jangus-workspaces
+model:
+  provider: ollama
+  endpoint: http://127.0.0.1:11434
+  name: null # Chosen after benchmarking in Phase 5; no model is loaded here.
+  max_concurrent_inference: 1
+features:
+  remote_enabled: false
+  codex_enabled: false
+  astra_enabled: false
+permissions:
+  allowed_tools: []
+  allow_network: false
+limits:
+  max_actions: 20
+  max_attempts_per_task: 2
+  run_timeout_seconds: 300
+  context_tokens: 4096
+  response_tokens: 1024
+logging:
+  level: INFO
+  retention_days: 14
+  max_total_mb: 256
+  redact_secrets: true

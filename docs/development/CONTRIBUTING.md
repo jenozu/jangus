@@ -4,7 +4,7 @@ Read [AGENTS.md](../../AGENTS.md) and [rules.md](../../rules.md) first. Use the 
 
 ## Current development state
 
-Phase 1 contains Markdown specifications only. There is no package, test runner, CI workflow, Taskmaster installation, or application command to run. Package/OS setup arrives in Phase 2; Taskmaster MCP and the development backlog arrive in Phase 3.
+Phase 2 provides an installable Python package, configuration CLI, locked dependencies, tests, and CI. Follow [TESTING.md](TESTING.md) for the verified commands. Taskmaster MCP and the development backlog arrive in Phase 3; live agent execution remains planned.
 
 Do not report an installation, model workflow, or remote job as tested based on a document review.
 
@@ -23,7 +23,7 @@ Use small commits and synthetic fixtures. Do not add an arbitrary license. Keep 
 
 ## Documentation-only verification
 
-For this phase:
+For documentation changes:
 
 - Check Markdown relative links against tracked paths, including filename case.
 - Confirm `AGENTS.md` references lowercase `rules.md`.
@@ -42,6 +42,6 @@ Use deterministic provider fixtures for repeatable failure injection, but separa
 
 ## Dependencies and integrations
 
-Choose and lock supported dependencies in Phase 2 and Taskmaster tooling in Phase 3. Verify actual MCP schemas, minimal tool-selection support, and local-model compatibility then. Do not silently add a paid-provider credential or fallback to make a test pass.
+Python dependencies are locked in Phase 2; follow [TESTING.md](TESTING.md) for updates. Pin Taskmaster tooling in Phase 3 and verify actual MCP schemas, minimal tool-selection support, and local-model compatibility then. Do not silently add a paid-provider credential or fallback to make a test pass.
 
 Add tools through typed contracts, policy checks, observable intent/results, and independent verification. Add skills only when their procedure can be reviewed and its limits stated. Significant architecture changes require a decision record and corresponding requirement updates.
