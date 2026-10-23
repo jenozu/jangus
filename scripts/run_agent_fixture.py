@@ -22,7 +22,8 @@ def main() -> int:
     parser.add_argument("--workspace", type=Path, required=True)
     parser.add_argument("--manifest", type=Path, required=True)
     parser.add_argument(
-        "--coordinated", action="store_true",
+        "--coordinated",
+        action="store_true",
         help="Use isolated planner, worker, and verifier/diagnostician roles.",
     )
     parser.add_argument("--review-root", type=Path, default=Path(__file__).resolve().parents[1])

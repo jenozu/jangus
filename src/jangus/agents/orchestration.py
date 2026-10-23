@@ -14,7 +14,7 @@ from jangus.agents.context import ContextFailure, HandoffStore, estimate_tokens
 from jangus.agents.provider import Message, ModelFailure, ModelReply
 from jangus.agents.skills import SkillRegistry, load_rules
 from jangus.agents.workflow import PlanningFailure
-from jangus.execution.contracts import Manifest, compile_plan, encoded
+from jangus.execution.contracts import Manifest, compile_plan
 from jangus.execution.controller import RULES_HASH, Controller
 
 Role = Literal["planner", "worker", "verifier", "diagnostician"]
@@ -101,7 +101,11 @@ def _role_result(reply: ModelReply, role: Role, expected: list[str], fingerprint
 
 
 def _assignment(
-    role: Role, status: dict, plan, allowed: set[str], skill_hashes: dict[str, str],
+    role: Role,
+    status: dict,
+    plan,
+    allowed: set[str],
+    skill_hashes: dict[str, str],
     rules_sha: str,
 ) -> dict:
     known = [{"id": a.id, "tool": a.tool, "requires": a.dependencies} for a in plan.actions]
@@ -129,8 +133,15 @@ def _assignment(
 
 
 def _call(
-    controller: Controller, provider, run_id: str, role: Role, plan,
-    rules: str, rules_sha: str, skills: list, allowed: set[str],
+    controller: Controller,
+    provider,
+    run_id: str,
+    role: Role,
+    plan,
+    rules: str,
+    rules_sha: str,
+    skills: list,
+    allowed: set[str],
 ) -> RoleReceipt:
     status = controller.status(run_id)
     hashes = {item.name: item.sha256 for item in skills}
@@ -138,8 +149,10 @@ def _call(
     raw = json.dumps(assignment, sort_keys=True, separators=(",", ":"))
     fingerprint = hashlib.sha256(raw.encode()).hexdigest()
     system = (
-        "Binding shared rules:\n" + rules
-        + "\nReviewed role procedures:\n" + "\n".join(s.text for s in skills)
+        "Binding shared rules:\n"
+        + rules
+        + "\nReviewed role procedures:\n"
+        + "\n".join(s.text for s in skills)
         + "\nYou are a single isolated advisory role. Never execute tools, "
         "grant permissions, restore budgets, or claim task success. "
         "Return exactly JSON with role, decision, action_ids, assignment_sha256; "
@@ -233,8 +246,15 @@ def run_coordinated_workflow(
     else:
         try:
             diagnosis = _call(
-                controller, provider, run_id, "diagnostician", plan,
-                rules, rules_sha, skills, allowed,
+                controller,
+                provider,
+                run_id,
+                "diagnostician",
+                plan,
+                rules,
+                rules_sha,
+                skills,
+                allowed,
             )
             receipts.append(diagnosis)
             diagnosis_status = diagnosis.decision
@@ -250,5 +270,7 @@ def run_coordinated_workflow(
         rules_sha256=rules_sha,
         skill_sha256=hashes,
         model_calls=len(receipts),
-        handoff_sha256=hashlib.sha256(encoded(snapshot)).hexdigest(),
+        handoff_sha256=hashlib.sha256(
+            json.dumps(snapshot, sort_keys=True, separators=(",", ":")).encode()
+        ).hexdigest(),
     )

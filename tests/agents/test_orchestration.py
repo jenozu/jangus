@@ -70,9 +70,9 @@ class RoleModel:
             self.on_role(role)
         reply = {
             "role": role,
-            "decision": "stop" if role == "diagnostician" else (
-                "verified" if role == "verifier" else "ready"
-            ),
+            "decision": "stop"
+            if role == "diagnostician"
+            else ("verified" if role == "verifier" else "ready"),
             "action_ids": assignment["focus_action_ids"],
             "assignment_sha256": sha,
         }
@@ -117,11 +117,18 @@ def test_worker_rejection_blocks_effect_and_preserves_cancelled_run(fixture):
     assert row["state"] == "cancelled"
     assert row["dispatches"] == 0
     handoff = HandoffStore(Path(controller.config.paths.data_dir) / "handoffs")
-    assert handoff.rehydrate(
-        controller, row["id"], {"file-workflow": hashlib.sha256(
-            (ROOT / "skills/file-workflow/SKILL.md").read_bytes()
-        ).hexdigest()}
-    )["state"] == "cancelled"
+    assert (
+        handoff.rehydrate(
+            controller,
+            row["id"],
+            {
+                "file-workflow": hashlib.sha256(
+                    (ROOT / "skills/file-workflow/SKILL.md").read_bytes()
+                ).hexdigest()
+            },
+        )["state"]
+        == "cancelled"
+    )
 
 
 @pytest.mark.parametrize(
