@@ -1,0 +1,16 @@
+{
+  "taskId": 1,
+  "revision": "289354fef7b1414af319b8f4cd5acbb20a2ef494",
+  "checks": [
+    {
+      "name": "Phase 1 document and link review",
+      "result": "passed",
+      "artifact": "docs/reviews/PHASE_1.md"
+    },
+    {
+      "name": "Published reviewed specification",
+      "result": "passed",
+      "artifact": "https://github.com/jenozu/jangus/pull/1"
+    }
+  ]
+}

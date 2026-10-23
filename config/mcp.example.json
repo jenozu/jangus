@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "jangus-taskmaster": {
+      "command": "node",
+      "args": [
+        "/ABSOLUTE/PATH/TO/jangus/scripts/taskmaster/server.mjs"
+      ]
+    }
+  }
+}

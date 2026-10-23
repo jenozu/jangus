@@ -62,3 +62,31 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: ./scripts/windows/check-setup.ps1
+
+  taskmaster:
+    name: Taskmaster MCP / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, windows-latest]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24.19.0'
+          cache: npm
+      - name: Install pinned npm version
+        run: npm install --global npm@11.9.0 --ignore-scripts
+      - name: Install locked tooling without lifecycle scripts
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Validate reviewed backlog and local-only profile
+        run: npm run tasks:check
+      - name: Exercise real MCP workflow on disposable tasks
+        timeout-minutes: 3
+        run: npm run test:taskmaster
+      - name: Ensure tests did not change tracked task data
+        run: git diff --exit-code

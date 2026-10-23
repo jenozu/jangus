@@ -1,0 +1,16 @@
+{
+  "taskId": 3,
+  "revision": "92ed80c4b60afd5186c341a1496b76ebbfb393df",
+  "checks": [
+    {
+      "name": "Six Windows/Ubuntu CI jobs: Python 3.12/3.13 and real Taskmaster MCP",
+      "result": "passed",
+      "artifact": "https://github.com/jenozu/jangus/actions/runs/39967014055"
+    },
+    {
+      "name": "Phase 3 integration, dependency, documentation, and scope review",
+      "result": "passed",
+      "artifact": "docs/reviews/PHASE_3.md"
+    }
+  ]
+}

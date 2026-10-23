@@ -1,0 +1,737 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": "1",
+        "title": "Document the agreed system foundation",
+        "description": "Phase 1: Document the agreed system foundation.",
+        "status": "done",
+        "dependencies": [],
+        "priority": "high",
+        "details": "README, PRD, MVP, architecture decisions, AGENTS.md, and lowercase rules.md agree on the local-first design.",
+        "testStrategy": "Review relative links, phase boundaries, authority ownership, and the entire documentation diff.",
+        "subtasks": [],
+        "metadata": {
+          "phase": 1,
+          "requirements": [
+            "FR02",
+            "FR11"
+          ],
+          "acceptance": [],
+          "completionEvidence": ".taskmaster/evidence/1.json"
+        }
+      },
+      {
+        "id": "2",
+        "title": "Provide package and development setup",
+        "description": "Phase 2: Provide package and development setup.",
+        "status": "done",
+        "dependencies": [
+          "1"
+        ],
+        "priority": "high",
+        "details": "Install the Python package with a lockfile, validate configuration without side effects, document Windows/Linux setup, and run CI.",
+        "testStrategy": "47 configuration/CLI tests, locked installation, wheel smoke test, and Windows/Ubuntu CI must pass.",
+        "subtasks": [],
+        "metadata": {
+          "phase": 2,
+          "requirements": [
+            "NFR07"
+          ],
+          "acceptance": [],
+          "completionEvidence": ".taskmaster/evidence/2.json"
+        }
+      },
+      {
+        "id": "3",
+        "title": "Integrate Taskmaster MCP and reviewed backlog",
+        "description": "Phase 3: Integrate Taskmaster MCP and reviewed backlog.",
+        "status": "done",
+        "dependencies": [
+          "2"
+        ],
+        "priority": "high",
+        "details": "Pin Taskmaster and MCP dependencies; expose bounded task operations; review a dependency-linked backlog and reusable task briefs/results. Block planning/telemetry/network in the initial profile and require completion evidence.",
+        "testStrategy": "Live MCP tests on a disposable copy must cover tool selection, retrieval, dependency-aware next work, status changes, evidence rejection, and no canonical backlog mutation. Run Windows/Linux CI.",
+        "subtasks": [],
+        "metadata": {
+          "phase": 3,
+          "requirements": [
+            "FR11",
+            "NFR01",
+            "NFR04"
+          ],
+          "acceptance": []
+        },
+        "updatedAt": "2026-10-23T14:10:27.563Z"
+      },
+      {
+        "id": "4",
+        "title": "Define runtime contracts and SQLite migrations",
+        "description": "Phase 4: Define runtime contracts and SQLite migrations.",
+        "status": "pending",
+        "dependencies": [
+          "3"
+        ],
+        "priority": "high",
+        "details": "Define run/task/action/plan/event contracts, valid state transitions, schema migrations, transactions, IDs, and persisted budget counters. Reject cycles and stale plan revisions.",
+        "testStrategy": "Use temporary databases; test duplicate IDs, invalid transitions, interrupted writes, migration rollback/reopen, and recovery without lost budgets.",
+        "subtasks": [],
+        "metadata": {
+          "phase": 4,
+          "requirements": [
+            "FR02",
+            "FR03",
+            "NFR02"
+          ],
+          "acceptance": [
+            "A01",
+            "A05"
+          ]
+        }
+      },
+      {
+        "id": "5",
+        "title": "Record events and action intent durably",
+        "description": "Phase 4: Record events and action intent durably.",
+        "status": "pending",
+        "dependencies": [
+          "4"
+        ],
+        "priority": "high",
+        "details": "Persist correlated intent before side effects, results, decision summaries, evidence references, and usage provenance. Redact secrets and bound payload/disk retention; stop side effects when persistence fails.",
+        "testStrategy": "Inject full disk/database failures and secret canaries; show no new action after failed intent persistence and useful correlated diagnostics.",
+        "subtasks": [],
+        "metadata": {
+          "phase": 4,
+          "requirements": [
+            "FR03",
+            "NFR03",
+            "NFR04",
+            "NFR06"
+          ],
+          "acceptance": [
+            "A01",
+            "A07",
+            "A08"
+          ]
+        }
+      },
+      {
+        "id": "6",
+        "title": "Register bounded file tools and policy checks",
+        "description": "Phase 4: Register bounded file tools and policy checks.",
+        "status": "pending",
+        "dependencies": [
+          "5"
+        ],
+        "priority": "high",
+        "details": "Implement listing, bounded reads, copy-without-overwrite, hashing, and new reports inside an assigned synthetic workspace. Validate typed inputs and native path containment at execution time.",
+        "testStrategy": "Reject unknown tools, traversal, symlink/junction escape, oversized reads, and overwrite attempts before effects on Windows and Linux.",
+        "subtasks": [],
+        "metadata": {
+          "phase": 4,
+          "requirements": [
+            "FR04",
+            "FR02",
+            "NFR04"
+          ],
+          "acceptance": [
+            "A02"
+          ]
+        }
+      },
+      {
+        "id": "7",
+        "title": "Verify file outputs independently",
+        "description": "Phase 4: Verify file outputs independently.",
+        "status": "pending",
+        "dependencies": [
+          "6"
+        ],
+        "priority": "high",
+        "details": "Compare bytes/hashes and report contents to trusted fixture expectations. Record verification evidence separately from worker claims.",
+        "testStrategy": "Corrupt an output and fabricate a worker success response; neither may yield a succeeded action or run.",
+        "subtasks": [],
+        "metadata": {
+          "phase": 4,
+          "requirements": [
+            "FR05",
+            "NFR03"
+          ],
+          "acceptance": [
+            "A01",
+            "A03"
+          ]
+        }
+      },
+      {
+        "id": "8",
+        "title": "Expose deterministic run lifecycle commands",
+        "description": "Phase 4: Expose deterministic run lifecycle commands.",
+        "status": "pending",
+        "dependencies": [
+          "7"
+        ],
+        "priority": "high",
+        "details": "Add submit/status/cancel/resume commands backed by canonical persisted state; dispatch only ready tasks and reconcile in-flight effects on cancellation.",
+        "testStrategy": "Complete the synthetic file workflow, inspect status, and cancel before dispatch and during an action. Do not claim effects were undone.",
+        "subtasks": [],
+        "metadata": {
+          "phase": 4,
+          "requirements": [
+            "FR01",
+            "NFR08"
+          ],
+          "acceptance": [
+            "A01",
+            "A06"
+          ]
+        }
+      },
+      {
+        "id": "9",
+        "title": "Reconcile crashes and bound recovery",
+        "description": "Phase 4: Reconcile crashes and bound recovery.",
+        "status": "pending",
+        "dependencies": [
+          "8"
+        ],
+        "priority": "high",
+        "details": "Track stable action identity, total attempts, time/action limits, and uncertain effects. Reconcile actual artifacts before repeating work; preserve counters through process and plan changes.",
+        "testStrategy": "Terminate before execution, after effect/before result, and after verification. Show no blind duplicate/overwrite and honest failure on exhausted or uncertain outcomes.",
+        "subtasks": [],
+        "metadata": {
+          "phase": 4,
+          "requirements": [
+            "FR06",
+            "NFR02"
+          ],
+          "acceptance": [
+            "A04",
+            "A05",
+            "A06"
+          ]
+        }
+      },
+      {
+        "id": "10",
+        "title": "Export redacted diagnostic bundles",
+        "description": "Phase 4: Export redacted diagnostic bundles.",
+        "status": "pending",
+        "dependencies": [
+          "5",
+          "9"
+        ],
+        "priority": "high",
+        "details": "Produce summary, events, permitted artifacts, checksums, and omitted-content manifest. Define retention/size policies and a consistent state backup/restore procedure.",
+        "testStrategy": "Inspect exports for synthetic secrets, broken references, oversized payloads, and useful failure evidence; test database restoration.",
+        "subtasks": [],
+        "metadata": {
+          "phase": 4,
+          "requirements": [
+            "FR01",
+            "NFR04",
+            "NFR06"
+          ],
+          "acceptance": [
+            "A07",
+            "A08"
+          ]
+        }
+      },
+      {
+        "id": "11",
+        "title": "Accept the execution foundation",
+        "description": "Phase 4: Accept the execution foundation.",
+        "status": "pending",
+        "dependencies": [
+          "10"
+        ],
+        "priority": "high",
+        "details": "Run every Phase 4 acceptance scenario with a deterministic plan and synthetic inputs. Record actual environment and code revision.",
+        "testStrategy": "All A01-A08 pass with evidence. This accepts only the execution foundation, not local intelligence or the full MVP.",
+        "subtasks": [],
+        "metadata": {
+          "phase": 4,
+          "requirements": [
+            "FR01",
+            "FR05",
+            "FR06"
+          ],
+          "acceptance": [
+            "A01",
+            "A02",
+            "A03",
+            "A04",
+            "A05",
+            "A06",
+            "A07",
+            "A08"
+          ]
+        }
+      },
+      {
+        "id": "12",
+        "title": "Benchmark and select the local model",
+        "description": "Phase 5: Benchmark and select the local model.",
+        "status": "pending",
+        "dependencies": [
+          "11"
+        ],
+        "priority": "medium",
+        "details": "Confirm desktop/VPS resources, benchmark one shared text model, and choose placement/limits. Test Taskmaster local planning separately in a disposable backlog only after explicit enablement.",
+        "testStrategy": "Record measured latency, memory, output validity, and task completion. A mock provider is not a hardware benchmark; cloud fallback stays disabled.",
+        "subtasks": [],
+        "metadata": {
+          "phase": 5,
+          "requirements": [
+            "FR07",
+            "NFR01",
+            "NFR05"
+          ],
+          "acceptance": [
+            "A09"
+          ]
+        }
+      },
+      {
+        "id": "13",
+        "title": "Connect the local model provider",
+        "description": "Phase 5: Connect the local model provider.",
+        "status": "pending",
+        "dependencies": [
+          "12"
+        ],
+        "priority": "medium",
+        "details": "Implement a local provider adapter with structured responses, timeouts, cancellation, usage provenance, and one active inference. No automatic paid fallback.",
+        "testStrategy": "Test malformed responses/timeouts with fixtures and complete a real local-model call on the target Windows environment.",
+        "subtasks": [],
+        "metadata": {
+          "phase": 5,
+          "requirements": [
+            "FR07",
+            "NFR01",
+            "NFR05"
+          ],
+          "acceptance": [
+            "A09"
+          ]
+        }
+      },
+      {
+        "id": "14",
+        "title": "Implement isolated orchestrator and worker assignments",
+        "description": "Phase 5: Implement isolated orchestrator and worker assignments.",
+        "status": "pending",
+        "dependencies": [
+          "13",
+          "9"
+        ],
+        "priority": "medium",
+        "details": "Give workers objective, relevant evidence, allowed tools, success criteria, skill/rule references, and remaining limits. Return compact evidence-linked results and bounded local recovery.",
+        "testStrategy": "Confirm children do not inherit unrelated chat context; valid local plans complete the reference workflow; invalid plans never execute.",
+        "subtasks": [],
+        "metadata": {
+          "phase": 5,
+          "requirements": [
+            "FR07",
+            "FR08"
+          ],
+          "acceptance": [
+            "A09",
+            "A10"
+          ]
+        }
+      },
+      {
+        "id": "15",
+        "title": "Load reviewed rules and skills explicitly",
+        "description": "Phase 5: Load reviewed rules and skills explicitly.",
+        "status": "pending",
+        "dependencies": [
+          "14"
+        ],
+        "priority": "medium",
+        "details": "Add skill catalogue/loading, metadata validation, revision hashes, mandatory rules core, and initial development/diagnosis/export/handoff/memory-proposal procedures.",
+        "testStrategy": "Test missing/unreviewed skills, selective supporting-file loading, revision logs, and attempts to grant permissions through text.",
+        "subtasks": [],
+        "metadata": {
+          "phase": 5,
+          "requirements": [
+            "FR09",
+            "NFR04"
+          ],
+          "acceptance": [
+            "A11"
+          ]
+        }
+      },
+      {
+        "id": "16",
+        "title": "Enforce context budgets and durable handoffs",
+        "description": "Phase 5: Enforce context budgets and durable handoffs.",
+        "status": "pending",
+        "dependencies": [
+          "15"
+        ],
+        "priority": "medium",
+        "details": "Bound prompt/tool output, reserve response space, distinguish measured/estimated usage, and rehydrate a handoff from canonical state with exact evidence references.",
+        "testStrategy": "Force rollover with exhausted retries and uncertain effects. Scope, progress, failures, budgets, and recoverable original evidence must survive.",
+        "subtasks": [],
+        "metadata": {
+          "phase": 5,
+          "requirements": [
+            "FR10",
+            "NFR02",
+            "NFR06"
+          ],
+          "acceptance": [
+            "A12",
+            "A13"
+          ]
+        }
+      },
+      {
+        "id": "17",
+        "title": "Verify local intelligence on the desktop",
+        "description": "Phase 5: Verify local intelligence on the desktop.",
+        "status": "pending",
+        "dependencies": [
+          "16"
+        ],
+        "priority": "medium",
+        "details": "Run the actual local-model workflow and all Phase 5 gates with consultants disabled. Preserve the earlier deterministic regression checks.",
+        "testStrategy": "All A09-A13 pass, with real target-machine results separated from mocks; do not claim the memory-enabled MVP yet.",
+        "subtasks": [],
+        "metadata": {
+          "phase": 5,
+          "requirements": [
+            "FR07",
+            "FR08",
+            "FR09",
+            "FR10",
+            "NFR01"
+          ],
+          "acceptance": [
+            "A09",
+            "A10",
+            "A11",
+            "A12",
+            "A13"
+          ]
+        }
+      },
+      {
+        "id": "18",
+        "title": "Define vault templates and memory schemas",
+        "description": "Phase 6: Define vault templates and memory schemas.",
+        "status": "pending",
+        "dependencies": [
+          "17"
+        ],
+        "priority": "medium",
+        "details": "Create the agreed numbered Obsidian template structure, stable IDs, scope/provenance/sharing metadata, and exact-byte hashing rules outside live runtime storage.",
+        "testStrategy": "Validate synthetic notes including CRLF, malformed metadata, duplicate IDs, and renamed notes; no live personal vault is committed.",
+        "subtasks": [],
+        "metadata": {
+          "phase": 6,
+          "requirements": [
+            "FR12",
+            "FR13"
+          ],
+          "acceptance": []
+        }
+      },
+      {
+        "id": "19",
+        "title": "Store exact-revision approval and retirement",
+        "description": "Phase 6: Store exact-revision approval and retirement.",
+        "status": "pending",
+        "dependencies": [
+          "18"
+        ],
+        "priority": "medium",
+        "details": "Persist authorized approval records bound to note hash, scope, reviewer, and evidence. Handle revocation/retirement and restore without reactivating stale knowledge.",
+        "testStrategy": "Changing note content invalidates prior approval; unavailable registry disables retrieval; frontmatter cannot self-approve.",
+        "subtasks": [],
+        "metadata": {
+          "phase": 6,
+          "requirements": [
+            "FR12",
+            "NFR04"
+          ],
+          "acceptance": [
+            "A14",
+            "A15",
+            "A17"
+          ]
+        }
+      },
+      {
+        "id": "20",
+        "title": "Retrieve applicable approved memory",
+        "description": "Phase 6: Retrieve applicable approved memory.",
+        "status": "pending",
+        "dependencies": [
+          "19"
+        ],
+        "priority": "medium",
+        "details": "Filter eligibility before ranking, enforce destination sharing on linked notes, log selected immutable revisions, and recheck hashes just before prompt inclusion.",
+        "testStrategy": "Test approved matches, no match, private/archived/draft linked notes, conflicting facts, concurrent edits, and degraded indexes without bypassing approvals.",
+        "subtasks": [],
+        "metadata": {
+          "phase": 6,
+          "requirements": [
+            "FR12"
+          ],
+          "acceptance": [
+            "A14",
+            "A15",
+            "A17"
+          ]
+        }
+      },
+      {
+        "id": "21",
+        "title": "Propose lessons with conflict-safe review",
+        "description": "Phase 6: Propose lessons with conflict-safe review.",
+        "status": "pending",
+        "dependencies": [
+          "20"
+        ],
+        "priority": "medium",
+        "details": "Write idempotent drafts to 70_Inbox_Agent, attach evidence, protect human edits with expected hashes, and separate outcomes from approval.",
+        "testStrategy": "Repeated proposal creates no duplicate; user edits are preserved; only an authorized exact-revision review enables later operational retrieval.",
+        "subtasks": [],
+        "metadata": {
+          "phase": 6,
+          "requirements": [
+            "FR13"
+          ],
+          "acceptance": [
+            "A16"
+          ]
+        }
+      },
+      {
+        "id": "22",
+        "title": "Accept the complete local MVP",
+        "description": "Phase 6: Accept the complete local MVP.",
+        "status": "pending",
+        "dependencies": [
+          "21"
+        ],
+        "priority": "medium",
+        "details": "Run the full synthetic workload with approved memory, one session rollover, and a draft lesson. Record release evidence for owner acceptance.",
+        "testStrategy": "All A01-A17 pass, including the real Windows/local-model demonstration; Codex and Astra are disabled.",
+        "subtasks": [],
+        "metadata": {
+          "phase": 6,
+          "requirements": [
+            "FR12",
+            "FR13",
+            "NFR01"
+          ],
+          "acceptance": [
+            "A01",
+            "A02",
+            "A03",
+            "A04",
+            "A05",
+            "A06",
+            "A07",
+            "A08",
+            "A09",
+            "A10",
+            "A11",
+            "A12",
+            "A13",
+            "A14",
+            "A15",
+            "A16",
+            "A17"
+          ]
+        }
+      },
+      {
+        "id": "23",
+        "title": "Define durable remote job protocol",
+        "description": "Phase 7: Define durable remote job protocol.",
+        "status": "pending",
+        "dependencies": [
+          "22"
+        ],
+        "priority": "medium",
+        "details": "Specify job/idempotency IDs, payload digest, authentication, protocol version, states, cancellation, and result integrity without SSH-session lifetime assumptions.",
+        "testStrategy": "Contract tests reject mismatched payloads for an existing key, unsupported jobs, and stale/invalid messages.",
+        "subtasks": [],
+        "metadata": {
+          "phase": 7,
+          "requirements": [
+            "FR14"
+          ],
+          "acceptance": []
+        }
+      },
+      {
+        "id": "24",
+        "title": "Implement the private VPS worker service",
+        "description": "Phase 7: Implement the private VPS worker service.",
+        "status": "pending",
+        "dependencies": [
+          "23"
+        ],
+        "priority": "medium",
+        "details": "Persist remote intent/results under a dedicated service identity; bind loopback and restrict jobs to registered types; survive process/client disconnection.",
+        "testStrategy": "Terminate/restart service around effects and prove durable reconciliation, authentication checks, and bounded work.",
+        "subtasks": [],
+        "metadata": {
+          "phase": 7,
+          "requirements": [
+            "FR14",
+            "NFR03"
+          ],
+          "acceptance": []
+        }
+      },
+      {
+        "id": "25",
+        "title": "Submit and reconcile jobs through the private connection",
+        "description": "Phase 7: Submit and reconcile jobs through the private connection.",
+        "status": "pending",
+        "dependencies": [
+          "24"
+        ],
+        "priority": "medium",
+        "details": "Persist job identity before sending, query after lost acknowledgements, verify result identity/hashes, and handle cancellation without blind resubmission.",
+        "testStrategy": "Drop submission acknowledgement, disconnect/reconnect, and cancel in-flight work; verify same job identity and no duplicate effect.",
+        "subtasks": [],
+        "metadata": {
+          "phase": 7,
+          "requirements": [
+            "FR14",
+            "NFR02",
+            "NFR08"
+          ],
+          "acceptance": []
+        }
+      },
+      {
+        "id": "26",
+        "title": "Document and validate actual VPS operation",
+        "description": "Phase 7: Document and validate actual VPS operation.",
+        "status": "pending",
+        "dependencies": [
+          "25"
+        ],
+        "priority": "medium",
+        "details": "Add SSH administration/tunnel instructions, systemd units, remote-job skill, and health checks, with GitHub Actions kept separate from runtime communication.",
+        "testStrategy": "Run the narrow remote test job on the actual Ubuntu VPS and record restart/disconnect/cancellation evidence; do not infer success from fixtures.",
+        "subtasks": [],
+        "metadata": {
+          "phase": 7,
+          "requirements": [
+            "FR14",
+            "NFR07"
+          ],
+          "acceptance": []
+        }
+      },
+      {
+        "id": "27",
+        "title": "Add optional bounded Codex advice",
+        "description": "Phase 8: Add optional bounded Codex advice.",
+        "status": "pending",
+        "dependencies": [
+          "26"
+        ],
+        "priority": "medium",
+        "details": "Confirm supported CLI/SDK access, then accept advice only after local recovery within explicit enablement/sharing/call/token/cost/time limits.",
+        "testStrategy": "Disabled adapter sends nothing; disallowed evidence never leaves; advice cannot execute tools, broaden permissions, or reset budgets.",
+        "subtasks": [],
+        "metadata": {
+          "phase": 8,
+          "requirements": [
+            "FR15",
+            "NFR01",
+            "NFR04"
+          ],
+          "acceptance": []
+        }
+      },
+      {
+        "id": "28",
+        "title": "Evaluate the optional final Astra fallback",
+        "description": "Phase 8: Evaluate the optional final Astra fallback.",
+        "status": "deferred",
+        "dependencies": [
+          "27"
+        ],
+        "priority": "medium",
+        "details": "Confirm a supported API/model and cost before implementation. Keep disabled by default; enable only by explicit owner decision as the final bounded advisor.",
+        "testStrategy": "Verify disabled state, permission/data boundaries, and budget inheritance. Unavailable access remains documented rather than fabricated.",
+        "subtasks": [],
+        "metadata": {
+          "phase": 8,
+          "requirements": [
+            "FR15",
+            "NFR01",
+            "NFR04"
+          ],
+          "acceptance": []
+        }
+      },
+      {
+        "id": "29",
+        "title": "Benchmark optional Graphify navigation",
+        "description": "Phase 8: Benchmark optional Graphify navigation.",
+        "status": "deferred",
+        "dependencies": [
+          "22"
+        ],
+        "priority": "medium",
+        "details": "Evaluate revision-aware code relationship retrieval on a fixed baseline. Distinguish extracted from inferred relationships and review any model-backed processing.",
+        "testStrategy": "Compare correctness, total tokens, latency, resource usage, stale-index behavior, and disclosure against ordinary code search before adoption.",
+        "subtasks": [],
+        "metadata": {
+          "phase": 8,
+          "requirements": [
+            "FR16"
+          ],
+          "acceptance": []
+        }
+      },
+      {
+        "id": "30",
+        "title": "Benchmark optional Headroom compression",
+        "description": "Phase 8: Benchmark optional Headroom compression.",
+        "status": "deferred",
+        "dependencies": [
+          "22"
+        ],
+        "priority": "medium",
+        "details": "Evaluate content-specific compression inside context selection while retaining original permitted evidence. Protect exact constraints, paths, identifiers, and errors.",
+        "testStrategy": "Compare total tokens including retrieval/retries, task accuracy, latency, and memory against uncompressed baseline; do not assume advertised savings.",
+        "subtasks": [],
+        "metadata": {
+          "phase": 8,
+          "requirements": [
+            "FR16",
+            "NFR06"
+          ],
+          "acceptance": []
+        }
+      }
+    ],
+    "metadata": {
+      "version": "1.0.0",
+      "lastModified": "2026-10-23T14:10:27.564Z",
+      "taskCount": 30,
+      "completedCount": 3,
+      "tags": [
+        "master"
+      ]
+    }
+  }
+}

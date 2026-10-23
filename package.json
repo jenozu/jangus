@@ -1,0 +1,23 @@
+{
+  "name": "jangus-development",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "packageManager": "npm@11.9.0",
+  "scripts": {
+    "mcp:taskmaster": "node scripts/taskmaster/server.mjs",
+    "tasks:check": "node scripts/taskmaster/check-backlog.mjs",
+    "test:taskmaster": "node --test tests/taskmaster/*.test.mjs"
+  },
+  "devDependencies": {
+    "task-master-ai": "0.43.1",
+    "@modelcontextprotocol/sdk": "1.32.1"
+  },
+  "overrides": {
+    "simple-git": "4.0.2",
+    "undici@<7": "6.29.1"
+  }
+}
