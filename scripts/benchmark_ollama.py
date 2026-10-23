@@ -1,4 +1,5 @@
 """Loopback-only Ollama synthetic JSON benchmark. No real task data."""
+
 import argparse
 import json
 import statistics
