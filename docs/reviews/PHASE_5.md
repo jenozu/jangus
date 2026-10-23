@@ -1,7 +1,21 @@
-# Phase 5 progress record
+# Phase 5 implementation and evidence record
 
-2026-10-23: Phase 5 started on `runtime/05-local-agents` stacked on `runtime/04-reliable-execution`.
+Date: 2026-10-23. Base: `runtime/04-reliable-execution` (unmerged PR #4). Branch: `runtime/05-local-agents` (draft PR #5).
 
-Task 12 is **in progress**: a reproducible loopback-only Ollama synthetic benchmark script and Windows measurement protocol are provided. No target Windows measurements were available, so no model is selected and no completion evidence is claimed. The runner does not implement the model provider, orchestrator, skill loader, context budget manager, handoff, or real model-based task workflow. Tasks 13–17 and acceptance A09–A13 are still pending.
+## Implemented provisionally
 
-Hardware evaluation and Taskmaster local planning are distinct checks; the latter remains disabled. Phase 4 evidence continues to describe only the deterministic execution foundation.
+- Loopback-only Ollama JSON adapter with no paid fallback, bounded content/timeout and provider-attributed token counts.
+- Isolated, explicit per-assignment model context. Owner-compiled actions, tool permissions and verification remain authoritative; model plan changes are rejected.
+- Revision-pinned catalog of five reviewed procedures with explicit skill loading and required-tool checks.
+- Bounded context excerpts and atomic non-authoritative handoffs that re-read persisted run states and do not reset attempts/deadlines.
+- Synthetic Ollama benchmark script, target-Windows measurement checklist, optional local fixture runner, and simulated-provider regression tests.
+
+## Acceptance status
+
+Taskmaster task **12 in progress**, awaiting model benchmark and placement on the actual desktop. Tasks 13–17 remain **pending** because of their declared dependencies. A09–A13 remain **pending** for the real local-model workflow and hardware/rollover gates. Unit/integration tests using a mock model are not evidence of a real inference. The phase is not accepted and the local agent MVP is not complete.
+
+Run `uv run --locked pytest tests/agents`, followed by the existing full CI matrix. Record the final checked commit and workflow results on PR #5; do not claim a CI result before it executes.
+
+## Explicit limits
+
+Model cancellation is cooperative at network call boundaries; inference occupies one caller thread. The model does not receive raw input files, nor can it change compiled action arguments or execution permission. There is no generic AI-generated plan executor, autonomous recovery, OS sandbox or approved memory service. Handoff state is an auxiliary private file; SQLite/controller state remains authoritative. Real model placement, latency, actual memory footprint and Windows demonstration must be tested on the owner's hardware before Phase 5 can be closed.

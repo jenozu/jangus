@@ -1,6 +1,6 @@
 # Development verification
 
-Phase 2 tests cover installation, configuration parsing, path boundaries, and the CLI. Phase 3 adds actual Taskmaster MCP tests on disposable development tasks. Phase 4 adds executable A01–A08 scenarios under `tests/execution/`; A09–A17 remain pending.
+Phase 2 tests cover installation, configuration parsing, path boundaries, and the CLI. Phase 3 adds actual Taskmaster MCP tests on disposable development tasks. Phase 4 adds executable A01–A08 scenarios under `tests/execution/`. Phase 5 adds provisional simulated-provider, skill and handoff checks under `tests/agents/`; real A09–A13 and A14–A17 remain pending.
 
 ## Reproducible environment
 
@@ -35,6 +35,10 @@ Tests reject unknown settings, string/boolean substitutions for strict scalar ty
 Configuration checks are read-only. Execution tests separately exercise registered tools, permissions, real file verification, crash recovery, cancellation, SQLite failures, and privacy. These tests do not demonstrate a local model or hostile-user OS sandbox.
 
 Run `uv run --locked pytest tests/execution` for the execution slice; see [EXECUTION.md](EXECUTION.md) for boundaries and [Phase 4 review](../reviews/PHASE_4.md) for evidence.
+
+## Phase 5 provisional checks
+
+Run `uv run --locked pytest tests/agents` for the mock-provider and reviewed-context integration tests. These tests never download or contact a model. See [LOCAL_AGENTS.md](LOCAL_AGENTS.md) for the separate Windows hardware gate and remaining limitations.
 
 ## CI
 

@@ -4,7 +4,7 @@ Jangus is a planned self-hosted agent system for coordinating bounded tasks acro
 
 ## Current status
 
-**Phase 4: logging and reliable execution.** The CLI runs a deterministic synthetic file workflow with SQLite state, intent logging, independent verification, bounded recovery, cancellation, and diagnostic exports. Taskmaster manages the development backlog. Model execution, memory, and remote jobs remain planned.
+**Phase 5 in progress:** Phase 4's deterministic file execution is implemented. Phase 5 now has provisional local Ollama/planning components, a reviewed skill loader and durable handoff helpers tested with mock responses. Target-desktop model benchmarks and Phase 5 acceptance remain pending. Memory and remote jobs remain planned.
 
 | Capability | Status |
 |---|---|
@@ -12,7 +12,7 @@ Jangus is a planned self-hosted agent system for coordinating bounded tasks acro
 | Package, dependency lock, configuration validation, setup guides, CI workflow | Implemented: Phase 2; verification recorded on the phase PR |
 | Taskmaster MCP development workflow | Implemented: Phase 3; four offline tools and reviewed backlog |
 | Logging, deterministic tools, reliable execution | Implemented: Phase 4; synthetic workflow and A01–A08 checks |
-| Local agents, skills, context handoffs | Planned: Phase 5 |
+| Local agents, skills, context handoffs | Phase 5: provisional components and simulated tests; real hardware gates pending |
 | Approved Obsidian memory | Planned: Phase 6 |
 | Durable VPS jobs | Planned: Phase 7 |
 | Optional consultation and optimization | Planned: Phase 8 |
@@ -51,6 +51,8 @@ Validation creates no runtime directories and contacts no service. Use the OS gu
 - [Development checks and dependency updates](docs/development/TESTING.md)
 - [Taskmaster installation, MCP configuration, and workflow](docs/development/TASKMASTER.md)
 - [Run the synthetic file workflow, recover, and export diagnostics](docs/development/EXECUTION.md)
+- [Phase 5 local agent integration and limits](docs/development/LOCAL_AGENTS.md)
+- [Target-machine Ollama benchmark](docs/development/LOCAL_MODEL_BENCHMARK.md)
 
 Project specifications:
 
@@ -66,6 +68,7 @@ Project specifications:
 - [Phase 2 review](docs/reviews/PHASE_2.md)
 - [Phase 3 review](docs/reviews/PHASE_3.md)
 - [Phase 4 review](docs/reviews/PHASE_4.md)
+- [Phase 5 provisional review](docs/reviews/PHASE_5.md)
 
 The implemented execution foundation is a synthetic file workflow with durable logs and independent verification. The full local MVP adds a local model, context handoffs, reviewed skills, and approved memory through Phase 6. VPS execution is a subsequent milestone.
 
