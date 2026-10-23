@@ -81,7 +81,16 @@ class FeaturesConfig(StrictModel):
 
 
 class PermissionsConfig(StrictModel):
-    allowed_tools: list[str] = Field(default_factory=list, max_length=0)
+    allowed_tools: list[str] = Field(default_factory=list, max_length=5)
+
+    @field_validator("allowed_tools")
+    @classmethod
+    def registered_tools(cls, value: list[str]) -> list[str]:
+        known = {"file.list", "file.read", "file.hash", "file.copy", "file.report"}
+        if len(value) != len(set(value)) or not set(value) <= known:
+            raise ValueError("Only unique registered file tools are supported")
+        return value
+
     allow_network: bool = False
 
     @field_validator("allow_network")
@@ -175,7 +184,7 @@ def _external_path(value: str, repositories: set[Path]) -> Path:
 def load_config(path: Path, *, repository_root: Path | None = None) -> JangusConfig:
     """Validate a bounded YAML file without writing files or contacting providers.
 
-    Runtime tool authorization and race-safe path enforcement arrive in Phase 4.
+    Runtime authorization is implemented separately by the Phase 4 controller.
     The optional repository_root adds a boundary, never removes detected checkouts.
     """
     try:

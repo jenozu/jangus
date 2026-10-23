@@ -1,6 +1,6 @@
 # Windows development setup
 
-Phase 2 supports package installation and configuration validation. Agent execution, Taskmaster, local models, and VPS jobs arrive later.
+This guide covers Python package installation and configuration validation. For the implemented development MCP and deterministic workflow, see [Taskmaster](../development/TASKMASTER.md) and [Phase 4 execution](../development/EXECUTION.md). Local models and VPS jobs remain later phases.
 
 Use Windows PowerShell or PowerShell 7 with Git and Python 3.12 or 3.13 installed. Python 3.12 is the default in `.python-version`. No administrator session is required for these steps.
 

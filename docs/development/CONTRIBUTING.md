@@ -4,7 +4,7 @@ Read [AGENTS.md](../../AGENTS.md) and [rules.md](../../rules.md) first. Use the 
 
 ## Current development state
 
-Phase 3 adds the pinned [Taskmaster MCP adapter and reviewed backlog](TASKMASTER.md) to the Python package, configuration CLI, locked dependencies, tests, and CI. Follow [TESTING.md](TESTING.md) for verification. Live agent execution remains planned.
+Phase 3 adds the pinned [Taskmaster MCP adapter and reviewed backlog](TASKMASTER.md) to the Python package, configuration CLI, locked dependencies, tests, and CI. Follow [TESTING.md](TESTING.md) for verification. The [Phase 4 execution foundation](EXECUTION.md) runs deterministic synthetic files. Model-driven agent execution remains planned.
 
 Do not report an installation, model workflow, or remote job as tested based on a document review.
 

@@ -69,7 +69,7 @@
         "id": "4",
         "title": "Define runtime contracts and SQLite migrations",
         "description": "Phase 4: Define runtime contracts and SQLite migrations.",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "3"
         ],
@@ -88,13 +88,14 @@
             "A01",
             "A05"
           ]
-        }
+        },
+        "updatedAt": "2026-10-23T14:17:51.684Z"
       },
       {
         "id": "5",
         "title": "Record events and action intent durably",
         "description": "Phase 4: Record events and action intent durably.",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "4"
         ],
@@ -121,7 +122,7 @@
         "id": "6",
         "title": "Register bounded file tools and policy checks",
         "description": "Phase 4: Register bounded file tools and policy checks.",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "5"
         ],
@@ -145,7 +146,7 @@
         "id": "7",
         "title": "Verify file outputs independently",
         "description": "Phase 4: Verify file outputs independently.",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "6"
         ],
@@ -169,7 +170,7 @@
         "id": "8",
         "title": "Expose deterministic run lifecycle commands",
         "description": "Phase 4: Expose deterministic run lifecycle commands.",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "7"
         ],
@@ -193,7 +194,7 @@
         "id": "9",
         "title": "Reconcile crashes and bound recovery",
         "description": "Phase 4: Reconcile crashes and bound recovery.",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "8"
         ],
@@ -218,7 +219,7 @@
         "id": "10",
         "title": "Export redacted diagnostic bundles",
         "description": "Phase 4: Export redacted diagnostic bundles.",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "5",
           "9"
@@ -244,7 +245,7 @@
         "id": "11",
         "title": "Accept the execution foundation",
         "description": "Phase 4: Accept the execution foundation.",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "10"
         ],
@@ -726,7 +727,7 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-10-23T14:10:27.564Z",
+      "lastModified": "2026-10-23T14:17:51.685Z",
       "taskCount": 30,
       "completedCount": 3,
       "tags": [

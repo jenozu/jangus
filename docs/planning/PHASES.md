@@ -1,6 +1,6 @@
 # Phased repository delivery
 
-This is the agreed delivery sequence, not a second development task backlog. Taskmaster owns detailed dependencies and task status from Phase 3. Current repository scope: Phase 3 offline development MCP integration, built on the Phase 1 specifications and Phase 2 package setup.
+This is the agreed delivery sequence, not a second development task backlog. Taskmaster owns detailed dependencies and task status from Phase 3. Current repository scope: Phase 4 deterministic execution foundation, built on the preceding specifications, package setup, and Taskmaster integration.
 
 | Phase | Branch example | Deliverables | Verification before submission |
 |---|---|---|---|

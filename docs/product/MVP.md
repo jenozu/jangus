@@ -1,6 +1,6 @@
 # Minimum viable product
 
-Status: specification only; nothing here is an executed test result.
+Status: acceptance specification. Phase 4 A01–A08 implementation and executed checks are recorded in [the phase review](../reviews/PHASE_4.md). Later scenarios remain pending.
 
 ## Two milestones
 
