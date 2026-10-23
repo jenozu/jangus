@@ -1,6 +1,6 @@
 # System architecture
 
-Status: intended runtime design. Phases 2–4 implement package/configuration tooling, an offline development Taskmaster adapter, and deterministic execution. Phase 5 adds provisional model/skills/context components without hardware acceptance; Phase 6 adds provisional external-vault approved-memory code and templates, without a trusted desktop review UI; see [README.md](../../README.md) for current capabilities. Shared requirements live in [PRD.md](../product/PRD.md); authority rules live in [rules.md](../../rules.md).
+Status: intended runtime design. Phases 2–4 implement package/configuration tooling, an offline development Taskmaster adapter, and deterministic execution. Phase 5 adds provisional model/skills/context components without hardware acceptance; Phase 6 adds provisional external-vault approved-memory code and templates; Phase 7 adds a provisional authenticated loopback worker and durable SSH-tunnel client for a narrow synthetic job, without deployment; see [README.md](../../README.md) for current capabilities. Shared requirements live in [PRD.md](../product/PRD.md); authority rules live in [rules.md](../../rules.md).
 
 ## Components and authority
 
@@ -19,7 +19,7 @@ Status: intended runtime design. Phases 2–4 implement package/configuration to
 | Remote worker | Durable allowed VPS jobs, status, evidence | Routine desktop orchestration |
 | Consultants | Optional bounded guidance after local recovery | Tool execution or policy changes |
 
-Start with one Python application and SQLite rather than a service per role. The VPS worker becomes a separate process when Phase 7 begins. Multiple roles can share one local model; initial inference concurrency is one. Model placement is a benchmark decision.
+Start with one Python application and SQLite rather than a service per role. The Phase 7 provisional VPS worker is a separate loopback-bound process with its own SQLite job ledger, distinct from the desktop controller. Multiple roles can share one local model; initial inference concurrency is one. Model placement is a benchmark decision.
 
 ## Execution lifecycle
 
@@ -100,7 +100,7 @@ Agent proposals go to `70_Inbox_Agent/` with supporting evidence and idempotent 
 
 Use SSH for administration and an SSH tunnel to a loopback-bound worker service for jobs. Verify host identity and use a dedicated service identity with scoped filesystem access. Application authentication and protocol validation remain required; a private connection is not permission for every job type.
 
-The service owns jobs durably, independently of the initiating SSH session. The desktop persists job identity before sending and reconciles by that identity after a lost acknowledgement. The service compares payload digests on repeated keys. Result retrieval verifies identity and artifact integrity. Do not resubmit blindly or assume cancellation reversed an effect.
+The Phase 7 registered synthetic worker owns jobs durably in private SQLite, independently of the initiating SSH session; see [REMOTE_WORKER.md](../development/REMOTE_WORKER.md). The desktop persists job identity before sending and reconciles by that identity after a lost acknowledgement. The service compares payload digests on repeated keys. Result retrieval verifies identity and artifact integrity. Do not resubmit blindly or assume cancellation reversed an effect.
 
 GitHub Actions is for tests and optional later deployment, not the runtime job bus. Playwright is a future registered worker tool, not a VPS transport.
 
