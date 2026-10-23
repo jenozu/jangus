@@ -67,6 +67,7 @@ def select(
         for candidate in eligible:
             key = (candidate.metadata.topic, candidate.metadata.scope)
             counts[key] = counts.get(key, 0) + 1
+
         def conflict_free(start: Note) -> bool:
             stack = [start]
             seen_ids = set()
@@ -125,7 +126,8 @@ def render_for_prompt(
         raise MemoryFault("retrieval_invalid")
     notes = vault.scan()
     eligible = [
-        item for item in notes.values()
+        item
+        for item in notes.values()
         if _eligible_graph(item, notes, registry, scope, destination)
     ]
     counts = {}

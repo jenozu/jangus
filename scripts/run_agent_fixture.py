@@ -8,15 +8,15 @@ from pathlib import Path
 
 from jangus.agents.context import ContextFailure
 from jangus.agents.orchestration import run_coordinated_workflow
-from jangus.memory.integration import MemoryContext
-from jangus.memory.registry import ApprovalRegistry
-from jangus.memory.schema import MemoryFault, Vault
 from jangus.agents.provider import ModelFailure, OllamaProvider
 from jangus.agents.skills import SkillFailure
 from jangus.agents.workflow import PlanningFailure, run_verified_workflow
 from jangus.config import ConfigurationError, load_config
 from jangus.execution.contracts import RuntimeFault
 from jangus.execution.controller import Controller, read_manifest
+from jangus.memory.integration import MemoryContext
+from jangus.memory.registry import ApprovalRegistry
+from jangus.memory.schema import MemoryFault, Vault
 
 
 def main() -> int:
@@ -57,8 +57,12 @@ def main() -> int:
                 vault = Vault(args.vault)
                 registry = ApprovalRegistry(args.registry, vault)
                 memory = MemoryContext(
-                    vault, registry, scope=args.memory_scope, query=args.memory_query,
-                    required=args.memory_required, propose_on_success=args.propose_lesson,
+                    vault,
+                    registry,
+                    scope=args.memory_scope,
+                    query=args.memory_query,
+                    required=args.memory_required,
+                    propose_on_success=args.propose_lesson,
                 )
             workflow = run_coordinated_workflow if args.coordinated else run_verified_workflow
             outcome = workflow(

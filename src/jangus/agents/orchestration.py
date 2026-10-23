@@ -255,7 +255,15 @@ def run_coordinated_workflow(
         for role in ("planner", "worker"):
             attempted_calls += 1
             receipt = _call(
-                controller, provider, run_id, role, plan, rules, rules_sha, skills, allowed,
+                controller,
+                provider,
+                run_id,
+                role,
+                plan,
+                rules,
+                rules_sha,
+                skills,
+                allowed,
                 memory=memory,
             )
             receipts.append(receipt)
@@ -279,7 +287,15 @@ def run_coordinated_workflow(
         try:
             attempted_calls += 1
             reviewer = _call(
-                controller, provider, run_id, "verifier", plan, rules, rules_sha, skills, allowed,
+                controller,
+                provider,
+                run_id,
+                "verifier",
+                plan,
+                rules,
+                rules_sha,
+                skills,
+                allowed,
                 memory=memory,
             )
             receipts.append(reviewer)
@@ -309,9 +325,7 @@ def run_coordinated_workflow(
     lesson_note_id = None
     if memory is not None and memory.propose_on_success and independent:
         try:
-            proposal = memory.draft_from_verified_run(
-                run_id=run_id, action_count=len(plan.actions)
-            )
+            proposal = memory.draft_from_verified_run(run_id=run_id, action_count=len(plan.actions))
             lesson_status = "created" if proposal.created else "already_exists"
             lesson_note_id = proposal.note_id
         except MemoryFault:
@@ -331,9 +345,9 @@ def run_coordinated_workflow(
         handoff_sha256=hashlib.sha256(
             json.dumps(snapshot, sort_keys=True, separators=(",", ":")).encode()
         ).hexdigest(),
-        memory_revisions=tuple(dict.fromkeys(
-            item for receipt in receipts for item in receipt.memory_revisions
-        )),
+        memory_revisions=tuple(
+            dict.fromkeys(item for receipt in receipts for item in receipt.memory_revisions)
+        ),
         lesson_status=lesson_status,
         lesson_note_id=lesson_note_id,
     )

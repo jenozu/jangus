@@ -45,9 +45,7 @@ def main() -> int:
             print("Review identity enrolled in private state.")
             return 0
 
-        proof = authority.authenticated_callback(
-            args.reviewer, _password("Review passphrase: ")
-        )
+        proof = authority.authenticated_callback(args.reviewer, _password("Review passphrase: "))
         vault = Vault(args.vault)
         registry = ApprovalRegistry(args.registry, vault)
         try:
@@ -76,8 +74,11 @@ def main() -> int:
                 evidence=args.evidence,
                 authorize=proof,
             )
-            print(json.dumps({"decision": args.decision, "note_id": note.metadata.id,
-                              "sha256": note.sha256}))
+            print(
+                json.dumps(
+                    {"decision": args.decision, "note_id": note.metadata.id, "sha256": note.sha256}
+                )
+            )
             return 0
         finally:
             registry.close()

@@ -122,12 +122,14 @@ class SyntheticRoles:
 def run(scenario, model, *, required=True, propose=True):
     ctl, workspace, manifest, vault, registry = scenario
     memory = MemoryContext(
-        vault, registry, scope="project:fixture", query="verified copy",
-        required=required, propose_on_success=propose,
+        vault,
+        registry,
+        scope="project:fixture",
+        query="verified copy",
+        required=required,
+        propose_on_success=propose,
     )
-    return run_coordinated_workflow(
-        ctl, model, workspace, manifest, ROOT, memory=memory
-    )
+    return run_coordinated_workflow(ctl, model, workspace, manifest, ROOT, memory=memory)
 
 
 def test_full_synthetic_approved_memory_three_roles_and_draft_lesson(scenario):
@@ -143,10 +145,10 @@ def test_full_synthetic_approved_memory_three_roles_and_draft_lesson(scenario):
     assert out.lesson_note_id is not None
     assert out.memory_revisions == ((item.metadata.id, item.sha256),)
     assert model.roles == ["planner", "worker", "verifier"]
-    assert all("Check the verified hashes" in msg["reviewed_memory"]["text"]
-               for msg in model.assignments)
-    assert all(msg["reviewed_memory"]["lower_trust_reference_only"]
-               for msg in model.assignments)
+    assert all(
+        "Check the verified hashes" in msg["reviewed_memory"]["text"] for msg in model.assignments
+    )
+    assert all(msg["reviewed_memory"]["lower_trust_reference_only"] for msg in model.assignments)
     assert (workspace / "out/test.txt").is_file()
     assert ctl.status(out.run_id)["state"] == "succeeded"
     audit = registry.db.execute("SELECT COUNT(*) FROM retrievals").fetchone()[0]
@@ -206,23 +208,33 @@ def test_review_authentication_and_revision_bound_decision(scenario, tmp_path):
         authority.authenticated_callback("operator", "incorrect passphrase")
     with pytest.raises(MemoryFault, match="reviewer_already_enrolled"):
         authority.initialize("operator", "different but valid long passphrase")
-    callback = authority.authenticated_callback(
-        "operator", "a very long synthetic passphrase"
-    )
+    callback = authority.authenticated_callback("operator", "a very long synthetic passphrase")
     assert callback("operator", "approved", "run:fixture")
     assert not callback("other", "approved", "run:fixture")
     with pytest.raises(MemoryFault, match="review_unauthorized"):
         registry.review(
-            item, expected_sha256=item.sha256, decision="approved",
-            reviewer="other", evidence="test:rejected", authorize=callback,
+            item,
+            expected_sha256=item.sha256,
+            decision="approved",
+            reviewer="other",
+            evidence="test:rejected",
+            authorize=callback,
         )
     registry.review(
-        item, expected_sha256=item.sha256, decision="approved",
-        reviewer="operator", evidence="test:accepted", authorize=callback,
+        item,
+        expected_sha256=item.sha256,
+        decision="approved",
+        reviewer="operator",
+        evidence="test:accepted",
+        authorize=callback,
     )
     item.path.write_bytes(item.raw + b"edit\n")
     with pytest.raises(MemoryFault, match="note_revision_changed"):
         registry.review(
-            item, expected_sha256=item.sha256, decision="approved",
-            reviewer="operator", evidence="test:accepted", authorize=callback,
+            item,
+            expected_sha256=item.sha256,
+            decision="approved",
+            reviewer="operator",
+            evidence="test:accepted",
+            authorize=callback,
         )
