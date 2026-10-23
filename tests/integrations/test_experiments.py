@@ -91,7 +91,6 @@ class _Opener:
         )
 
 
-
 def test_astra_prototype_uses_no_tools_and_no_storage():
     opener = _Opener()
     model = AstraTextOnly("synthetic-example-key-length-32", opener=opener)
