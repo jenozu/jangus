@@ -1,0 +1,25 @@
+[Unit]
+Description=Jangus registered private remote worker (synthetic jobs)
+After=network.target
+
+[Service]
+Type=simple
+User=jangus-worker
+Group=jangus-worker
+WorkingDirectory=/var/lib/jangus
+EnvironmentFile=/etc/jangus/worker.env
+ExecStart=/opt/jangus/.venv/bin/python -m jangus.remote.service --state-dir /var/lib/jangus/remote --port 8765
+Restart=on-failure
+RestartSec=3
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/jangus
+RestrictAddressFamilies=AF_INET AF_UNIX
+IPAddressDeny=any
+IPAddressAllow=localhost
+
+[Install]
+WantedBy=multi-user.target

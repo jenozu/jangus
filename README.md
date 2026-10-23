@@ -4,7 +4,7 @@ Jangus is a planned self-hosted agent system for coordinating bounded tasks acro
 
 ## Current status
 
-**Phase 5 in progress:** Phase 4's deterministic file execution is implemented. Phase 5 now has provisional local Ollama/planning components, a reviewed skill loader and durable handoff helpers tested with mock responses. Target-desktop model benchmarks and Phase 5 acceptance remain pending. Provisional Phase 6 Obsidian memory components are staged separately; no live vault is connected or approved. Remote jobs remain planned.
+**Phase 5 in progress:** Phase 4's deterministic file execution is implemented. Phase 5 now has provisional local Ollama/planning components, a reviewed skill loader and durable handoff helpers tested with mock responses. Target-desktop model benchmarks and Phase 5 acceptance remain pending. Provisional Phase 6 Obsidian memory components are staged separately; no live vault is connected or approved. Phase 7 now has provisional registered-job client/server code and synthetic tests; no real VPS has been contacted.
 
 | Capability | Status |
 |---|---|
@@ -14,7 +14,7 @@ Jangus is a planned self-hosted agent system for coordinating bounded tasks acro
 | Logging, deterministic tools, reliable execution | Implemented: Phase 4; synthetic workflow and A01–A08 checks |
 | Local agents, skills, context handoffs | Phase 5: provisional components and simulated tests; real hardware gates pending |
 | Approved Obsidian memory | Phase 6: provisional private approval/retrieval and draft procedures; integrated acceptance pending |
-| Durable VPS jobs | Planned: Phase 7 |
+| Durable VPS jobs | Phase 7: provisional authenticated loopback worker and durable client; VPS acceptance pending |
 | Optional consultation and optimization | Planned: Phase 8 |
 
 ## How it will work
@@ -31,7 +31,7 @@ Multiple roles can share one model. Start with one active text inference at a ti
 
 Taskmaster MCP manages the **development backlog**. The Jangus controller manages **live executions**. Skills provide reviewed procedures; Obsidian provides curated knowledge. Neither grants execution authority.
 
-SSH will serve administration, with an SSH tunnel to a private VPS job service. GitHub Actions will serve tests and later deployment. Codex consultation is optional and advice-only; a final Astra API fallback remains disabled by default and conditional on a supported integration.
+SSH is the planned administration channel, with a verified SSH tunnel to a private loopback-bound VPS job service once deployment is explicitly authorized. GitHub Actions will serve tests and later deployment. Codex consultation is optional and advice-only; a final Astra API fallback remains disabled by default and conditional on a supported integration.
 
 ## Start here
 
@@ -71,6 +71,8 @@ Project specifications:
 - [Phase 5 provisional review](docs/reviews/PHASE_5.md)
 - [Phase 6 Obsidian memory design, limitations, and synthetic testing](docs/development/MEMORY.md)
 - [Phase 6 provisional verification record](docs/reviews/PHASE_6.md)
+- [Phase 7 private remote worker protocol and setup](docs/development/REMOTE_WORKER.md)
+- [Phase 7 provisional verification record](docs/reviews/PHASE_7.md)
 
 The implemented execution foundation is a synthetic file workflow with durable logs and independent verification. The full local MVP adds a local model, context handoffs, reviewed skills, and approved memory through Phase 6. VPS execution is a subsequent milestone.
 
