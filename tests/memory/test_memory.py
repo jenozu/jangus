@@ -10,8 +10,8 @@ import yaml
 
 from jangus.memory.proposals import propose_lesson
 from jangus.memory.registry import ApprovalRegistry
-from jangus.memory.retrieval import render_for_prompt, select
-from jangus.memory.schema import MemoryFault, Vault, parse_note
+from jangus.memory.retrieval import Selection, render_for_prompt, select
+from jangus.memory.schema import MemoryFault, Vault
 
 
 def authorize(_reviewer, _decision, _evidence):
@@ -147,14 +147,19 @@ def test_a15_missing_private_link_prevents_leak(memory):
     assert select(vault, registry, query="report", scope="project:demo") == []
     approve(registry, linked)
     assert select(vault, registry, query="report", scope="project:demo", destination="local")
-    assert select(vault, registry, query="report", scope="project:demo", destination="external") == []
-    from jangus.memory.retrieval import Selection
-
+    assert select(
+        vault, registry, query="report", scope="project:demo", destination="external"
+    ) == []
     with pytest.raises(MemoryFault, match="memory_revision_changed"):
         render_for_prompt(
             vault,
             registry,
-            [Selection(parent.metadata.id, parent.sha256, parent.metadata.scope, parent.metadata.sharing)],
+            [
+                Selection(
+                    parent.metadata.id, parent.sha256,
+                    parent.metadata.scope, parent.metadata.sharing,
+                )
+            ],
             scope="project:demo",
             destination="external",
             evidence="run:synthetic",

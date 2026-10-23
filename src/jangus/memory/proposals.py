@@ -80,7 +80,7 @@ def propose_lesson(
             path.chmod(0o600)
     except FileExistsError:
         if hashlib.sha256(path.read_bytes()).hexdigest() != wanted:
-            raise MemoryFault("proposal_conflict")
+            raise MemoryFault("proposal_conflict") from None
         return Proposal(note_id, path.relative_to(vault.root).as_posix(), wanted, False)
     except OSError:
         raise MemoryFault("proposal_write_failed") from None

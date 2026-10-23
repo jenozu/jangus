@@ -178,7 +178,7 @@ class ApprovalRegistry:
                 path.chmod(0o600)
         except FileExistsError:
             if hashlib.sha256(path.read_bytes()).hexdigest() != note.sha256:
-                raise MemoryFault("snapshot_changed")
+                raise MemoryFault("snapshot_changed") from None
         except OSError:
             raise MemoryFault("registry_unavailable") from None
 
