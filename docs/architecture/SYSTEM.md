@@ -1,6 +1,6 @@
 # System architecture
 
-Status: intended runtime design. Phases 2–4 implement package/configuration tooling, an offline development Taskmaster adapter, and deterministic execution. Phase 5 adds provisional model/skills/context components without hardware acceptance; see [README.md](../../README.md) for current capabilities. Shared requirements live in [PRD.md](../product/PRD.md); authority rules live in [rules.md](../../rules.md).
+Status: intended runtime design. Phases 2–4 implement package/configuration tooling, an offline development Taskmaster adapter, and deterministic execution. Phase 5 adds provisional model/skills/context components without hardware acceptance; Phase 6 adds provisional external-vault approved-memory code and templates, without a trusted desktop review UI; see [README.md](../../README.md) for current capabilities. Shared requirements live in [PRD.md](../product/PRD.md); authority rules live in [rules.md](../../rules.md).
 
 ## Components and authority
 
@@ -90,7 +90,7 @@ templates/obsidian/
 └── _templates/
 ```
 
-A note has a stable ID, type, scope, provenance, sharing classification, and concise content. An approval registry outside the vault binds an authorized review to the exact content hash, scope, and evidence. Frontmatter alone does not confer approval. Define consistent hashing in Phase 6, accounting for line endings; store immutable selected revisions for traceability.
+A note has a stable ID, type, scope, provenance, sharing classification, and concise content. An approval registry outside the vault binds an authorized review to the exact content hash, scope, and evidence. Frontmatter alone does not confer approval. Phase 6 hashes exact raw bytes (including line endings) and stores private immutable revision snapshots; see [MEMORY.md](../development/MEMORY.md).
 
 Filter drafts, retired notes, invalid approvals, incompatible scope, and disallowed destinations before ranking, including any linked-note expansion. Recheck hashes and eligibility before prompt inclusion. Re-observe volatile environment facts when needed. A broken index permits bounded eligible-file search or no memory; unavailable approval state disables operational retrieval.
 
