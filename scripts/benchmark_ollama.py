@@ -8,6 +8,13 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 URL = "http://127.0.0.1:11434/api/chat"
+METRICS = (
+    "prompt_eval_count",
+    "eval_count",
+    "prompt_eval_duration",
+    "eval_duration",
+    "load_duration",
+)
 CASES = (
     ("arithmetic", "Answer with JSON object: integer answer is 7 plus 5.", {"answer": 12}),
     (
@@ -45,13 +52,7 @@ def sample(model, name, prompt, expected, timeout):
         response = json.loads(raw)
         answer = json.loads(response["message"]["content"])
         result = {"case": name, "passed": type(answer) is dict and answer == expected}
-        for key in (
-            "prompt_eval_count",
-            "eval_count",
-            "prompt_eval_duration",
-            "eval_duration",
-            "load_duration",
-        ):
+        for key in METRICS:
             if type(response.get(key)) is int and response[key] >= 0:
                 result[key] = response[key]
     except (HTTPError, URLError, TimeoutError, OSError, ValueError, KeyError, TypeError):
