@@ -72,8 +72,7 @@ def main():
     }
     with output.open("x", encoding="utf-8") as stream:
         json.dump(report, stream, indent=2)
-        stream.write("
-")
+        stream.write("\n")
     print(f"Synthetic JSON checks: {report['passed']}/{report['total']}")
     return int(report["passed"] != report["total"])
 
