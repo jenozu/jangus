@@ -14,7 +14,7 @@ from jangus.agents.context import ContextFailure, HandoffStore, estimate_tokens
 from jangus.agents.provider import Message, ModelFailure, ModelReply
 from jangus.agents.skills import SkillRegistry, load_rules
 from jangus.agents.workflow import PlanningFailure
-from jangus.execution.contracts import Manifest, RuntimeFault, compile_plan, encoded
+from jangus.execution.contracts import Manifest, compile_plan, encoded
 from jangus.execution.controller import RULES_HASH, Controller
 
 Role = Literal["planner", "worker", "verifier", "diagnostician"]
@@ -201,7 +201,9 @@ def run_coordinated_workflow(
 
     try:
         for role in ("planner", "worker"):
-            receipt = _call(controller, provider, run_id, role, plan, rules, rules_sha, skills, allowed)
+            receipt = _call(
+                controller, provider, run_id, role, plan, rules, rules_sha, skills, allowed
+            )
             receipts.append(receipt)
             if receipt.decision != "ready":
                 raise PlanningFailure("worker_rejected")

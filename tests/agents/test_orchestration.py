@@ -153,7 +153,9 @@ def test_post_effect_advisor_disagreement_cannot_rewrite_truth(fixture):
     assert outcome.independent_verification is True
     assert outcome.review_status == "disagree"
     assert controller.status(outcome.run_id)["state"] == "succeeded"
-    assert all(action["state"] == "verified" for action in controller.status(outcome.run_id)["actions"])
+    assert all(
+        action["state"] == "verified" for action in controller.status(outcome.run_id)["actions"]
+    )
 
 
 def test_post_effect_invalid_model_does_not_hide_verified_controller_outcome(fixture):
