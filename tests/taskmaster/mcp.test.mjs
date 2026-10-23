@@ -15,18 +15,27 @@ const data = result => JSON.parse(result.content[0].text).data;
 test("live MCP workflow is narrow, evidence-gated, and does not change the real backlog", { timeout: 60000 }, async t => {
   const original = await readFile(path.join(repo, ".taskmaster/tasks/tasks.json"), "utf8");
   const root = await mkdtemp(path.join(os.tmpdir(), "jangus-mcp-"));
-  t.after(() => rm(root, { recursive: true, force: true }));
+  const clients = [];
+  t.after(async () => {
+    // Windows locks a process's working directory. Close every client before
+    // removing the fixture, including when an assertion or connection fails.
+    try {
+      for (const client of [...clients].reverse()) await client.close();
+    } finally {
+      await rm(root, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+    }
+  });
   await mkdir(path.join(root, ".taskmaster/tasks"), { recursive: true });
   await mkdir(path.join(root, ".taskmaster/evidence"), { recursive: true });
   await copyFile(path.join(repo, ".taskmaster/config.json"), path.join(root, ".taskmaster/config.json"));
   await writeFile(path.join(root, ".taskmaster/tasks/tasks.json"), JSON.stringify({ master: { tasks: [task(1), task(2, [1])] } }));
   const client = new Client({ name: "jangus-smoke", version: "1.0.0" });
+  clients.push(client);
   const transport = new StdioClientTransport({
     command: process.execPath,
     args: [path.join(repo, "scripts/taskmaster/server.mjs"), "--project-root", root],
     cwd: root, stderr: "pipe",
   });
-  t.after(() => client.close());
   await client.connect(transport);
   transport.stderr?.on("data", () => {});
   const tools = await client.listTools();
@@ -58,8 +67,8 @@ test("live MCP workflow is narrow, evidence-gated, and does not change the real 
   await client.close();
   // Restart the real upstream server to verify persisted Taskmaster state.
   const again = new Client({ name: "jangus-reconnect", version: "1.0.0" });
+  clients.push(again);
   const againTransport = new StdioClientTransport({ command: process.execPath, args: [path.join(repo, "scripts/taskmaster/server.mjs"), "--project-root", root], cwd: root, stderr: "pipe" });
-  t.after(() => again.close());
   await again.connect(againTransport);
   againTransport.stderr?.on("data", () => {});
   assert.equal(data(await again.callTool({ name: "get_task", arguments: { id: 1 } })).status, "done");

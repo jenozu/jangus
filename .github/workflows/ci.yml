@@ -86,6 +86,7 @@ jobs:
       - name: Validate reviewed backlog and local-only profile
         run: npm run tasks:check
       - name: Exercise real MCP workflow on disposable tasks
+        timeout-minutes: 3
         run: npm run test:taskmaster
       - name: Ensure tests did not change tracked task data
         run: git diff --exit-code
