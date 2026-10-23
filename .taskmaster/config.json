@@ -1,0 +1,42 @@
+{
+  "models": {
+    "main": {
+      "provider": "ollama",
+      "modelId": "jangus-unconfigured-local-model",
+      "maxTokens": 4096,
+      "temperature": 0.2,
+      "baseURL": "http://127.0.0.1:11434/api"
+    },
+    "research": {
+      "provider": "ollama",
+      "modelId": "jangus-unconfigured-local-model",
+      "maxTokens": 4096,
+      "temperature": 0.2,
+      "baseURL": "http://127.0.0.1:11434/api"
+    },
+    "fallback": {
+      "provider": "ollama",
+      "modelId": "jangus-unconfigured-local-model",
+      "maxTokens": 4096,
+      "temperature": 0.2,
+      "baseURL": "http://127.0.0.1:11434/api"
+    }
+  },
+  "global": {
+    "logLevel": "error",
+    "debug": false,
+    "defaultNumTasks": 10,
+    "defaultSubtasks": 5,
+    "defaultPriority": "medium",
+    "defaultTag": "master",
+    "projectName": "Jangus",
+    "ollamaBaseURL": "http://127.0.0.1:11434/api",
+    "responseLanguage": "English",
+    "anonymousTelemetry": false,
+    "enableCodebaseAnalysis": false,
+    "enableProxy": false
+  },
+  "storage": {
+    "type": "file"
+  }
+}

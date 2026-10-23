@@ -1,0 +1,16 @@
+{
+  "taskId": 2,
+  "revision": "d4ad78b66dee7a1708ebeb97a78ebe1cf9c41003",
+  "checks": [
+    {
+      "name": "47 configuration and CLI tests",
+      "result": "passed",
+      "artifact": "docs/reviews/PHASE_2.md"
+    },
+    {
+      "name": "Windows/Ubuntu Python matrix",
+      "result": "passed",
+      "artifact": "https://github.com/jenozu/jangus/actions/runs/39849604159"
+    }
+  ]
+}

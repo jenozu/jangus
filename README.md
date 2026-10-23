@@ -4,13 +4,13 @@ Jangus is a planned self-hosted agent system for coordinating bounded tasks acro
 
 ## Current status
 
-**Phase 2: package and development setup.** The Python package installs and provides version reporting, a configuration schema, and read-only configuration validation. Model execution, Taskmaster, memory, and remote jobs remain planned. Setup validation is not an operational agent.
+**Phase 3: Taskmaster development workflow.** The Python package provides read-only configuration validation. The pinned MCP adapter manages the reviewed development backlog with dependency and completion-evidence checks. Model execution, memory, and remote jobs remain planned.
 
 | Capability | Status |
 |---|---|
 | Product requirements, MVP acceptance criteria, architecture, working rules | Documented |
 | Package, dependency lock, configuration validation, setup guides, CI workflow | Implemented: Phase 2; verification recorded on the phase PR |
-| Taskmaster MCP development workflow | Planned: Phase 3 |
+| Taskmaster MCP development workflow | Implemented: Phase 3; four offline tools and reviewed backlog |
 | Logging, deterministic tools, reliable execution | Planned: Phase 4 |
 | Local agents, skills, context handoffs | Planned: Phase 5 |
 | Approved Obsidian memory | Planned: Phase 6 |
@@ -29,7 +29,7 @@ Jangus is a planned self-hosted agent system for coordinating bounded tasks acro
 
 Multiple roles can share one model. Start with one active text inference at a time; choose models and desktop/VPS placement through benchmarks. Vision is an on-demand later capability.
 
-Taskmaster MCP will manage the **development backlog**. The Jangus controller will manage **live executions**. Skills provide reviewed procedures; Obsidian provides curated knowledge. Neither grants execution authority.
+Taskmaster MCP manages the **development backlog**. The Jangus controller will manage **live executions**. Skills provide reviewed procedures; Obsidian provides curated knowledge. Neither grants execution authority.
 
 SSH will serve administration, with an SSH tunnel to a private VPS job service. GitHub Actions will serve tests and later deployment. Codex consultation is optional and advice-only; a final Astra API fallback remains disabled by default and conditional on a supported integration.
 
@@ -49,6 +49,7 @@ Validation creates no runtime directories and contacts no service. Use the OS gu
 - [Linux/Ubuntu setup](docs/setup/LINUX.md)
 - [Configuration contract](config/README.md)
 - [Development checks and dependency updates](docs/development/TESTING.md)
+- [Taskmaster installation, MCP configuration, and workflow](docs/development/TASKMASTER.md)
 
 Project specifications:
 
@@ -61,6 +62,8 @@ Project specifications:
 - [Coding-agent entry point](AGENTS.md)
 - [Contribution and verification workflow](docs/development/CONTRIBUTING.md)
 - [Phase 1 review](docs/reviews/PHASE_1.md)
+- [Phase 2 review](docs/reviews/PHASE_2.md)
+- [Phase 3 review](docs/reviews/PHASE_3.md)
 
 The first execution milestone is a synthetic file workflow with durable logs and independent verification. The full local MVP adds a local model, context handoffs, reviewed skills, and approved memory through Phase 6. VPS execution is a subsequent milestone.
 

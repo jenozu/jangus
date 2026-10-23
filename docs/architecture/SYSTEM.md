@@ -1,6 +1,6 @@
 # System architecture
 
-Status: intended runtime design. Phase 2 implements only package setup and read-only configuration validation; see [README.md](../../README.md) for current capabilities. Shared requirements live in [PRD.md](../product/PRD.md); authority rules live in [rules.md](../../rules.md).
+Status: intended runtime design. Phases 2–3 implement package setup, read-only configuration validation, and an offline development Taskmaster adapter; see [README.md](../../README.md) for current capabilities. Shared requirements live in [PRD.md](../product/PRD.md); authority rules live in [rules.md](../../rules.md).
 
 ## Components and authority
 
@@ -122,7 +122,7 @@ No actual runtime directory is committed. Version/config examples appear in Phas
 
 ## Intended repository layout
 
-Phase 1 documentation and Phase 2 package/configuration tooling exist now. The following remains a path allocation for the complete system; later directories and integrations are not yet implemented.
+Phase 1 documentation, Phase 2 package/configuration tooling, and the Phase 3 Node development adapter in `scripts/taskmaster/` exist now. The following remains a path allocation for the complete system; later directories and integrations are not yet implemented.
 
 | Location | Purpose and phase |
 |---|---|

@@ -11,6 +11,13 @@ htmlcov/
 build/
 dist/
 node_modules/
+npm-debug.log*
+.taskmaster/state.json
+.taskmaster/reports/
+.taskmaster/backups/
+.taskmaster/*.lock
+.taskmaster/tasks/*.lock
+.taskmaster/tasks/*.md
 
 # Secrets and local configuration (examples are intentionally tracked)
 .env

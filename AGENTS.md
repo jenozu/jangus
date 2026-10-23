@@ -6,13 +6,13 @@ Read [rules.md](rules.md) before changing this repository. It is the canonical s
 
 1. Inspect the branch, existing changes, and any more-specific instructions. Preserve unrelated work.
 2. Read the relevant [PRD](docs/product/PRD.md), [MVP](docs/product/MVP.md), [architecture](docs/architecture/SYSTEM.md), and [phase scope](docs/planning/PHASES.md).
-3. Use the assigned Taskmaster task once Phase 3 is implemented. Before then, use the authorized phase and PR description as the assignment. Do not invent Taskmaster IDs or claim MCP is connected.
-4. Load relevant reviewed procedures from root `skills/` when implemented. No skill files or discovery mechanism exist through Phase 2. Record unavailable prerequisites honestly.
+3. Read the assigned Taskmaster task through the [development MCP adapter](docs/development/TASKMASTER.md). Use its scope, dependencies, and acceptance criteria. A next-task suggestion does not authorize a new phase. Do not invent task IDs or claim a client is connected without checking.
+4. Load relevant reviewed procedures from root `skills/` when implemented. No skill files or discovery mechanism exist through Phase 3. Record unavailable prerequisites honestly.
 5. Make scoped changes on a feature branch. Create source directories when concrete functionality or interfaces require them.
 6. Verify the acceptance criteria using actual outputs. Follow [contribution guidance](docs/development/CONTRIBUTING.md) for documentation-only changes.
 7. Review the full diff for regressions, secrets, personal data, broken links, and inaccurate capability claims.
 8. Push the authorized branch and prepare a PR identifying its base, changes, evidence, and pending hardware checks. Do not merge or deploy without authorization.
-9. Update Taskmaster status only after verification, once that integration exists. A push or model success message alone is not completion evidence.
+9. Update Taskmaster status only after verification and prepare the required completion-evidence record. A push or model success message alone is not completion evidence.
 
 ## Where to look
 

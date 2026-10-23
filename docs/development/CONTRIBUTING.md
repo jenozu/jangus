@@ -4,14 +4,14 @@ Read [AGENTS.md](../../AGENTS.md) and [rules.md](../../rules.md) first. Use the 
 
 ## Current development state
 
-Phase 2 provides an installable Python package, configuration CLI, locked dependencies, tests, and CI. Follow [TESTING.md](TESTING.md) for the verified commands. Taskmaster MCP and the development backlog arrive in Phase 3; live agent execution remains planned.
+Phase 3 adds the pinned [Taskmaster MCP adapter and reviewed backlog](TASKMASTER.md) to the Python package, configuration CLI, locked dependencies, tests, and CI. Follow [TESTING.md](TESTING.md) for verification. Live agent execution remains planned.
 
 Do not report an installation, model workflow, or remote job as tested based on a document review.
 
 ## Change workflow
 
 1. Inspect existing instructions, branch state, and pending changes.
-2. Identify the authorized phase or, after Phase 3, the Taskmaster assignment and acceptance criteria.
+2. Identify the authorized phase and Taskmaster assignment and acceptance criteria.
 3. Read applicable requirements, decisions, and reviewed skills when present.
 4. Make a focused branch and scoped changes. Preserve other contributors' work.
 5. Run checks that address the changed behavior; record the environment and limitations.
@@ -42,6 +42,6 @@ Use deterministic provider fixtures for repeatable failure injection, but separa
 
 ## Dependencies and integrations
 
-Python dependencies are locked in Phase 2; follow [TESTING.md](TESTING.md) for updates. Pin Taskmaster tooling in Phase 3 and verify actual MCP schemas, minimal tool-selection support, and local-model compatibility then. Do not silently add a paid-provider credential or fallback to make a test pass.
+Python dependencies are locked in Phase 2; follow [TESTING.md](TESTING.md) for updates. Taskmaster tooling is pinned in Phase 3; its four offline task operations are tested using the explicit local-provider profile. Actual model-backed planning remains gated on Phase 5 desktop validation and a reviewed enablement change. Do not silently add a paid-provider credential or fallback to make a test pass.
 
 Add tools through typed contracts, policy checks, observable intent/results, and independent verification. Add skills only when their procedure can be reviewed and its limits stated. Significant architecture changes require a decision record and corresponding requirement updates.

@@ -1,6 +1,6 @@
-# Package and configuration verification
+# Development verification
 
-Phase 2 tests cover installation, configuration parsing, path boundaries, and the CLI. They do not satisfy the runtime MVP scenarios.
+Phase 2 tests cover installation, configuration parsing, path boundaries, and the CLI. Phase 3 adds actual Taskmaster MCP tests on disposable development tasks. They do not satisfy the runtime MVP scenarios.
 
 ## Reproducible environment
 
@@ -39,6 +39,22 @@ Configuration checks are read-only. They do not prove that a future tool broker 
 The [workflow](../../.github/workflows/ci.yml) runs for pushes to project branches and pull requests. It has read-only repository permissions and no model, VPS, or deployment credentials. Third-party actions are pinned to reviewed commit SHAs.
 
 The matrix covers Ubuntu 22.04 and Windows on Python 3.12 and 3.13, including locked install, lint/format, tests, document/ignore checks, example validation, build, isolated wheel verification, and OS health scripts. Record the actual workflow result on the phase PR. A configured workflow is not evidence of a successful run.
+
+## Taskmaster checks
+
+Use Node 24.19.0 and npm 11.9.0:
+
+```console
+npm ci --ignore-scripts --no-audit --no-fund
+npm run tasks:check
+npm run test:taskmaster
+```
+
+The separate two-OS Taskmaster job verifies the exact four-tool MCP contract,
+status persistence, dependencies, evidence rejection, safe configuration, and
+unchanged canonical tasks. Together with the four Python jobs, CI has six jobs.
+The tests make no model calls and need no provider credentials. See
+[TASKMASTER.md](TASKMASTER.md) for the adapter contract and dependency updates.
 
 ## References
 

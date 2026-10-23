@@ -69,7 +69,7 @@ Excluded from the local MVP: unrestricted shell or generated code execution, bro
 
 - Model quality and memory/latency fit require real benchmarks; do not assume a small model can reliably plan.
 - VPS specifications, GPU availability, model placement, and exact model choice are unconfirmed.
-- Taskmaster version, MCP tool subset, and local planning-provider compatibility must be verified in Phase 3. Use no automatic paid fallback.
+- Phase 3 pins Taskmaster 0.43.1 and verifies four offline MCP task operations with explicit local-only provider configuration. No model-backed planning is exposed. Actual local planning inference remains a Phase 5/task 12 hardware check and requires reviewed enablement; no automatic paid fallback is allowed.
 - Dependency versions and supported Python/Node ranges are selected and locked in Phases 2–3.
 - Astra is a design label, not a verified API model identifier. Confirm supported access, model identity, and pricing before implementation.
 - Obsidian approval is an application boundary, not protection from an administrator able to modify all state.

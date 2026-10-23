@@ -51,6 +51,10 @@ def main():
         "credentials/service.json",
         "model.gguf",
         ".venv/pyvenv.cfg",
+        "node_modules/task-master-ai/package.json",
+        ".taskmaster/state.json",
+        ".taskmaster/reports/complexity.json",
+        ".taskmaster/tasks/task_001.md",
     ]
     for name in excluded:
         result = subprocess.run(
@@ -58,7 +62,16 @@ def main():
         )
         if result.returncode != 0:
             failures.append(f"Expected ignore rule missing: {name}")
-    for name in [".env.example", "config/jangus.example.yaml", "uv.lock", "rules.md"]:
+    for name in [
+        ".env.example",
+        "config/jangus.example.yaml",
+        "uv.lock",
+        "rules.md",
+        "package-lock.json",
+        ".taskmaster/config.json",
+        ".taskmaster/tasks/tasks.json",
+        "config/mcp.example.json",
+    ]:
         if name not in tracked:
             failures.append(f"Required tracked file missing: {name}")
     if "RULES.md" in tracked or "[rules.md](rules.md)" not in (ROOT / "AGENTS.md").read_text():
