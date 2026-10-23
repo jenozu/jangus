@@ -65,7 +65,8 @@ def pack_evidence(items: list[Evidence]) -> str:
         raise AdviceFault("disclosure_denied")
     raw = json.dumps(
         [{"reference": e.reference, "sha256": e.sha256, "text": e.text} for e in items],
-        sort_keys=True, separators=(",", ":"),
+        sort_keys=True,
+        separators=(",", ":"),
     )
     if len(raw.encode()) > 4096:
         raise AdviceFault("evidence_too_large")

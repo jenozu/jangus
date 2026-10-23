@@ -30,7 +30,9 @@ def run() -> dict:
     )
     started = time.perf_counter()
     result = compact(
-        context, reference="fixture:context", max_bytes=130,
+        context,
+        reference="fixture:context",
+        max_bytes=130,
         required_exact=("synthetic_job_id=abc123", "verified_copy_conflict"),
     )
     verify_reference(context, result)

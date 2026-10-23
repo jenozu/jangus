@@ -56,8 +56,8 @@ refunded after failure or interruption. Records contain session/provider,
 evidence digest, response digest and status, **not raw content**. A changed
 policy revision is refused on resume. This limit scheme is intentionally
 conservative, and does not claim to reflect actual invoices. Codex reserves
-the **entire** configured financial ceiling for a call rather than assuming
-a subscription call is free. Provider token counts are **not measured**.
+an equal portion of the operator-configured financial ceiling for each
+permitted call, rather than assuming a subscription call is free. Provider token counts are **not measured**.
 
 Codex `ManualCodexReview` is a practical safe bridge: it supplies the reviewed
 JSON without programmatically contacting the external app. The Astra

@@ -47,7 +47,7 @@ class AdviceBroker:
         cost = (
             10 * input_tokens + 50 * policy.max_answer_bytes
             if provider == "astra"
-            else policy.max_reserved_microdollars
+            else policy.max_reserved_microdollars // max(1, policy.max_calls)
         )
         event_id = self.ledger.reserve(
             provider,

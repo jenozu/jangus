@@ -22,8 +22,7 @@ class ConsultationLedger:
         no_links(directory)
         home = directory.expanduser().resolve()
         if any(
-            home.is_relative_to(root) or root.is_relative_to(home)
-            for root in _checkout_roots()
+            home.is_relative_to(root) or root.is_relative_to(home) for root in _checkout_roots()
         ):
             raise AdviceFault("ledger_inside_checkout")
         home.mkdir(parents=True, mode=0o700, exist_ok=True)

@@ -5,18 +5,16 @@ import json
 
 import pytest
 
+from jangus.integrations.advice.providers import AstraTextOnly
 from jangus.integrations.graphify import plain_search, scan_python, search_graph
 from jangus.integrations.headroom import compact, verify_reference
-from jangus.integrations.advice.providers import AstraTextOnly
 
 
 def test_ast_index_edges_are_syntactic_not_semantically_inferred():
     raw = b"import json\ndef helper():\n    return 1\ndef caller():\n    return helper()\n"
     graph = scan_python(raw, "synthetic")
     assert graph.revision == hashlib.sha256(raw).hexdigest()
-    assert {e.relation for e in search_graph(graph, "helper", raw)} == {
-        "declares", "calls-name"
-    }
+    assert {e.relation for e in search_graph(graph, "helper", raw)} == {"declares", "calls-name"}
     assert plain_search(raw, "helper")
     with pytest.raises(ValueError, match="graph_stale"):
         search_graph(graph, "helper", raw + b"\n")
@@ -32,8 +30,9 @@ def test_preserve_constraints_and_retrieve_original_by_digest():
         "ERROR invalid_digest\n"
         "Final note\n"
     )
-    result = compact(raw, reference="evidence:1", max_bytes=92,
-                     required_exact=("job_id=123", "invalid_digest"))
+    result = compact(
+        raw, reference="evidence:1", max_bytes=92, required_exact=("job_id=123", "invalid_digest")
+    )
     assert result.truncated
     assert "job_id=123" in result.excerpt
     assert "invalid_digest" in result.excerpt
@@ -43,8 +42,7 @@ def test_preserve_constraints_and_retrieve_original_by_digest():
     with pytest.raises(ValueError, match="original_evidence_changed"):
         verify_reference(raw + "updated", result)
     with pytest.raises(ValueError, match="required_evidence_exceeds_budget"):
-        compact(raw, reference="evidence:1", max_bytes=12,
-                required_exact=("job_id=123",))
+        compact(raw, reference="evidence:1", max_bytes=12, required_exact=("job_id=123",))
 
 
 def test_broker_is_not_required_for_offline_experiments():
@@ -76,12 +74,22 @@ class _Opener:
 
     def open(self, request, timeout):
         self.requests.append((request, timeout))
-        return _Response(json.dumps({
-            "status": "completed",
-            "output": [{"type": "message", "content": [
-                {"type": "output_text", "text": '{"summary":"ok","action_ids":[]}'}
-            ]}],
-        }).encode())
+        return _Response(
+            json.dumps(
+                {
+                    "status": "completed",
+                    "output": [
+                        {
+                            "type": "message",
+                            "content": [
+                                {"type": "output_text", "text": '{"summary":"ok","action_ids":[]}'}
+                            ],
+                        }
+                    ],
+                }
+            ).encode()
+        )
+
 
 
 def test_astra_prototype_uses_no_tools_and_no_storage():

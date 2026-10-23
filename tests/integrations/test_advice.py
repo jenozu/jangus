@@ -1,7 +1,6 @@
 """Phase 8 provider gating, privacy and persistent budget tests."""
 
 import hashlib
-import json
 import uuid
 
 import pytest
@@ -9,20 +8,31 @@ import pytest
 from jangus.integrations.advice.broker import AdviceBroker
 from jangus.integrations.advice.contracts import AdviceFault, AdvicePolicy, Evidence
 from jangus.integrations.advice.ledger import ConsultationLedger
-from jangus.integrations.advice.providers import AstraTextOnly, ManualCodexReview
+from jangus.integrations.advice.providers import ManualCodexReview
 
 
 def evidence():
     text = "synthetic redacted failure"
-    return Evidence(reference="synthetic:1", text=text, sha256=hashlib.sha256(text.encode()).hexdigest(), sharing="external-ok", redacted=True)
+    return Evidence(
+        reference="synthetic:1",
+        text=text,
+        sha256=hashlib.sha256(text.encode()).hexdigest(),
+        sharing="external-ok",
+        redacted=True,
+    )
 
 
 @pytest.fixture
 def suite(tmp_path):
     session = str(uuid.uuid4())
     root = tmp_path / "private"
-    policy = AdvicePolicy(codex_enabled=True, astra_enabled=True, max_calls=2,
-                          max_estimated_tokens=6000, max_reserved_microdollars=200000)
+    policy = AdvicePolicy(
+        codex_enabled=True,
+        astra_enabled=True,
+        max_calls=2,
+        max_estimated_tokens=6000,
+        max_reserved_microdollars=200000,
+    )
     db = ConsultationLedger(root, session, policy)
     try:
         yield db, root, session, policy
@@ -31,9 +41,14 @@ def suite(tmp_path):
 
 
 def consult(db, **kwargs):
-    args = dict(provider="codex", evidence=[evidence()], allowed_action_ids={"copy_1"},
-                local_recovery_exhausted=True, owner_approved_call=True,
-                transport=ManualCodexReview('{"summary":"Review copy","action_ids":["copy_1"]}'))
+    args = dict(
+        provider="codex",
+        evidence=[evidence()],
+        allowed_action_ids={"copy_1"},
+        local_recovery_exhausted=True,
+        owner_approved_call=True,
+        transport=ManualCodexReview('{"summary":"Review copy","action_ids":["copy_1"]}'),
+    )
     args.update(kwargs)
     return AdviceBroker(db).consult(**args)
 
@@ -69,7 +84,7 @@ def test_invalid_response_charges_calls_and_does_not_expand_tools(suite):
     with pytest.raises(AdviceFault, match="advice_out_of_scope"):
         consult(db, transport=ManualCodexReview('{"summary":"no","action_ids":["shell_exec"]}'))
     with pytest.raises(AdviceFault, match="invalid_advice"):
-        consult(db, transport=ManualCodexReview('{"summary":"x","action_ids":[],"tools":[]}' ))
+        consult(db, transport=ManualCodexReview('{"summary":"x","action_ids":[],"tools":[]}'))
     with pytest.raises(AdviceFault, match="consultation_budget_exhausted"):
         consult(db)
     assert db.usage()["calls"] == 2
