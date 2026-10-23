@@ -1,6 +1,6 @@
 # Phased repository delivery
 
-This is the agreed delivery sequence, not a second development task backlog. Taskmaster owns detailed dependencies and task status from Phase 3. Current repository scope: Phase 4 deterministic execution foundation, built on the preceding specifications, package setup, and Taskmaster integration.
+This is the agreed delivery sequence, not a second development task backlog. Taskmaster owns detailed dependencies and task status from Phase 3. Current implementation: Phase 4 deterministic execution foundation plus provisional Phase 5 local-agent modules. Model hardware acceptance and the dependent Phase 5 Taskmaster tasks remain pending.
 
 | Phase | Branch example | Deliverables | Verification before submission |
 |---|---|---|---|

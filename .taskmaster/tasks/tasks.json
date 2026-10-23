@@ -276,7 +276,7 @@
         "id": "12",
         "title": "Benchmark and select the local model",
         "description": "Phase 5: Benchmark and select the local model.",
-        "status": "pending",
+        "status": "in-progress",
         "dependencies": [
           "11"
         ],

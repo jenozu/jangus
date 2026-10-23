@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "reviewed": {
+    "file-workflow": {
+      "blob_sha": "f04597e28032b896a5ad0e31af4a5bca5fa4674b",
+      "required_tools": [
+        "file.copy",
+        "file.report"
+      ]
+    },
+    "diagnose-failure": {
+      "blob_sha": "d699e5f1cf52b416c6409a797bc628bad028dc58",
+      "required_tools": []
+    },
+    "export-diagnostics": {
+      "blob_sha": "8b52917bae4b1a2e3b0a7e6e83cbfb092c52b6da",
+      "required_tools": []
+    },
+    "create-handoff": {
+      "blob_sha": "adb49bcb632866a7a1ce235edb6a81ca0484cfdd",
+      "required_tools": []
+    },
+    "propose-lesson": {
+      "blob_sha": "7800def282b1c812d236528fbcd0874bc1e56e70",
+      "required_tools": []
+    }
+  }
+}

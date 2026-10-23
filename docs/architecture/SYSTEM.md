@@ -1,6 +1,6 @@
 # System architecture
 
-Status: intended runtime design. Phases 2–4 implement package/configuration tooling, an offline development Taskmaster adapter, and deterministic execution; see [README.md](../../README.md) for current capabilities. Shared requirements live in [PRD.md](../product/PRD.md); authority rules live in [rules.md](../../rules.md).
+Status: intended runtime design. Phases 2–4 implement package/configuration tooling, an offline development Taskmaster adapter, and deterministic execution. Phase 5 adds provisional model/skills/context components without hardware acceptance; see [README.md](../../README.md) for current capabilities. Shared requirements live in [PRD.md](../product/PRD.md); authority rules live in [rules.md](../../rules.md).
 
 ## Components and authority
 
