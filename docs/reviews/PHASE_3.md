@@ -23,11 +23,16 @@ Taskmaster, not a mock service.
 The exposed tool definitions total 1,114 UTF-8 bytes; 279 tokens is only a bytes/4
 estimate. No model token usage or upstream context reduction is claimed.
 
-The phase PR and `.taskmaster/evidence/3.json` record the tested commit and
-actual hosted workflow once available. The workflow definition alone does not
-establish a successful hosted run. The local locked reinstall, 47 Python regression tests, Ruff lint/format,
-57 relative document links, ignore rules, lock registry/integrity inspection,
-and whitespace review all passed before publication.
+All six hosted jobs passed for commit `92ed80c4b60afd5186c341a1496b76ebbfb393df` in
+[the verified workflow](https://github.com/jenozu/jangus/actions/runs/39967014055): Windows/Ubuntu Python 3.12/3.13
+and Windows/Ubuntu Taskmaster MCP. The Windows MCP log confirms 12 passed,
+0 failed. The local locked reinstall, 47 Python regression tests, Ruff
+lint/format, relative document links, ignore rules, lock registry/integrity
+inspection, and whitespace review also passed.
+
+[Task 3 evidence](../../.taskmaster/evidence/3.json) references that tested code
+commit. The subsequent status/evidence commit changes only bookkeeping and
+this review; the phase PR records its final CI result separately.
 
 ## Dependency review
 
