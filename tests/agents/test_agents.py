@@ -146,9 +146,7 @@ def test_handoff_is_non_authoritative_and_preserves_exhausted_attempts(synthetic
             "UPDATE actions SET attempts=2,state='uncertain' WHERE run_id=? AND id='copy_1'",
             (run_id,),
         )
-        controller.store.db.execute(
-            "UPDATE runs SET dispatches=2 WHERE id=?", (run_id,)
-        )
+        controller.store.db.execute("UPDATE runs SET dispatches=2 WHERE id=?", (run_id,))
     handoff = HandoffStore(Path(controller.config.paths.data_dir) / "handoffs")
     handoff.save(controller, run_id, {"file-workflow": "a" * 64})
     stored = handoff._path(run_id)
@@ -175,11 +173,13 @@ def test_context_estimates_explicit_and_bounded():
 
 def test_ollama_reports_provider_usage_without_leaking_response():
     fake = FakeOpener(
-        json.dumps({
-            "message": {"content": '{"action_ids":["copy_1","report"]}'},
-            "prompt_eval_count": 12,
-            "eval_count": 5,
-        }).encode()
+        json.dumps(
+            {
+                "message": {"content": '{"action_ids":["copy_1","report"]}'},
+                "prompt_eval_count": 12,
+                "eval_count": 5,
+            }
+        ).encode()
     )
     provider = OllamaProvider(ModelConfig(name="local-model"), opener=fake)
     result = provider.generate([Message(role="user", content="synthetic")])

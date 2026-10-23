@@ -38,8 +38,14 @@ def main() -> int:
             return 0 if outcome.state == "succeeded" else 1
         finally:
             controller.close()
-    except (ConfigurationError, ModelFailure, SkillFailure, ContextFailure,
-            PlanningFailure, RuntimeFault) as exc:
+    except (
+        ConfigurationError,
+        ModelFailure,
+        SkillFailure,
+        ContextFailure,
+        PlanningFailure,
+        RuntimeFault,
+    ) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
     except (OSError, ValueError):
