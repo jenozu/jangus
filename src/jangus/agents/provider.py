@@ -13,6 +13,8 @@ from jangus.config import ModelConfig, StrictModel
 
 MAX_RESPONSE = 64 * 1024
 MAX_PROMPT = 24 * 1024
+# Shared lock across instances: separate roles cannot overlap inference.
+_GLOBAL_INFERENCE = threading.BoundedSemaphore(1)
 
 
 class ModelFailure(Exception):
@@ -53,7 +55,11 @@ class OllamaProvider:
     def __init__(self, config: ModelConfig, *, opener=None):
         if not config.name or not config.name.strip():
             raise ModelFailure("model_unconfigured")
-        url = urlsplit(config.endpoint)
+        try:
+            url = urlsplit(config.endpoint)
+            port = url.port
+        except ValueError:
+            raise ModelFailure("non_loopback_endpoint") from None
         if (
             url.scheme != "http"
             or url.hostname not in {"127.0.0.1", "::1"}
@@ -62,7 +68,7 @@ class OllamaProvider:
             or url.path not in {"", "/"}
             or url.query
             or url.fragment
-            or not url.port
+            or not port
             or config.max_concurrent_inference != 1
         ):
             raise ModelFailure("non_loopback_endpoint")
@@ -70,7 +76,7 @@ class OllamaProvider:
         self.endpoint = config.endpoint.rstrip("/") + "/api/chat"
         # Explicitly ignore HTTP_PROXY and HTTPS_PROXY for local inference.
         self.opener = opener if opener is not None else build_opener(ProxyHandler({}))
-        self._semaphore = threading.BoundedSemaphore(1)
+        self._semaphore = _GLOBAL_INFERENCE
 
     def generate(
         self,
