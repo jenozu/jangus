@@ -220,9 +220,11 @@ def test_no_model_or_cancelled_model_fails_closed():
 
 def test_cross_instance_single_inference_and_malformed_port():
     with pytest.raises(ModelFailure, match="non_loopback_endpoint"):
-        OllamaProvider(ModelConfig.model_construct(
-            name="local-model", endpoint="http://127.0.0.1:bad", max_concurrent_inference=1
-        ))
+        OllamaProvider(
+            ModelConfig.model_construct(
+                name="local-model", endpoint="http://127.0.0.1:bad", max_concurrent_inference=1
+            )
+        )
 
     entered, release = threading.Event(), threading.Event()
 
