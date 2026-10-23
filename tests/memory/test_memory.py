@@ -156,7 +156,7 @@ def test_a15_archived_or_inbox_note_ineligible(memory):
 
 def test_a15_missing_private_link_prevents_leak(memory):
     vault, registry = memory
-    linked = make_note(vault, sharing="local")
+    linked = make_note(vault, sharing="local", topic="supporting-proof")
     parent = make_note(vault, links=[linked.metadata.id], sharing="external-ok")
     approve(registry, parent)
     assert select(vault, registry, query="report", scope="project:demo") == []
@@ -216,7 +216,9 @@ def test_a15_conflicting_topics_need_review_not_blind_merging(memory):
     approve(registry, first)
     approve(registry, second)
     selected = select(vault, registry, query="report", scope="project:demo")
-    assert len(selected) == 1
+    assert selected == []
+    with pytest.raises(MemoryFault, match="memory_required_unavailable"):
+        select(vault, registry, query="report", scope="project:demo", required=True)
 
 
 def test_a15_retired_note_cannot_reactivate_with_prior_approval(memory):
