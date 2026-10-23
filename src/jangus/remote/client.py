@@ -133,9 +133,11 @@ class RemoteClient:
         self.opener = opener if opener is not None else build_opener(ProxyHandler({}), NoRedirect())
 
     def request(self, method: str, path: str, body: dict | None = None) -> dict:
-        data = None if body is None else json.dumps(
-            body, sort_keys=True, separators=(",", ":")
-        ).encode()
+        data = (
+            None
+            if body is None
+            else json.dumps(body, sort_keys=True, separators=(",", ":")).encode()
+        )
         headers = {"Authorization": "Bearer " + self.token}
         if data is not None:
             headers["Content-Type"] = "application/json"

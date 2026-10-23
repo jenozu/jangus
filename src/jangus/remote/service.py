@@ -96,9 +96,12 @@ def handler_for(ledger: JobLedger, secret: str):
                 self.reply(400, {"error": "invalid_job"})
             except RemoteFault as exc:
                 status = (
-                    404 if exc.code == "job_missing"
-                    else 409 if exc.code == "idempotency_conflict"
-                    else 400 if exc.code in {"invalid_json", "invalid_request", "request_too_large"}
+                    404
+                    if exc.code == "job_missing"
+                    else 409
+                    if exc.code == "idempotency_conflict"
+                    else 400
+                    if exc.code in {"invalid_json", "invalid_request", "request_too_large"}
                     else 503
                 )
                 self.reply(status, {"error": exc.code})

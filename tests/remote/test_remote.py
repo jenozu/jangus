@@ -199,9 +199,7 @@ def test_exhausted_attempt_budget_and_expired_deadline(ledger):
     assert ledger.status(spec.job_id)["attempts"] == MAX_ATTEMPTS
     next_spec = job()
     ledger.submit(next_spec)
-    ledger.db.execute(
-        "UPDATE jobs SET deadline=0 WHERE job_id=?", (next_spec.job_id,)
-    )
+    ledger.db.execute("UPDATE jobs SET deadline=0 WHERE job_id=?", (next_spec.job_id,))
     ledger.process_once()
     assert ledger.status(next_spec.job_id)["state"] == "failed"
 
@@ -238,9 +236,7 @@ def test_authenticated_loopback_http_and_no_generic_tools(ledger, transport, des
         create_server(ledger, TOKEN, 80)
 
 
-def test_lost_ack_disconnect_reconnect_and_result_verification(
-    ledger, transport, desktop
-):
+def test_lost_ack_disconnect_reconnect_and_result_verification(ledger, transport, desktop):
     spec = desktop.prepare("synthetic stable job")
     client = RemoteClient(transport, TOKEN, desktop)
     # Server has accepted the submit, but the client never records the response.
