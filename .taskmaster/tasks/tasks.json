@@ -69,7 +69,7 @@
         "id": "4",
         "title": "Define runtime contracts and SQLite migrations",
         "description": "Phase 4: Define runtime contracts and SQLite migrations.",
-        "status": "pending",
+        "status": "in-progress",
         "dependencies": [
           "3"
         ],
@@ -88,7 +88,8 @@
             "A01",
             "A05"
           ]
-        }
+        },
+        "updatedAt": "2026-10-23T14:17:51.684Z"
       },
       {
         "id": "5",
@@ -726,7 +727,7 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-10-23T14:10:27.564Z",
+      "lastModified": "2026-10-23T14:17:51.685Z",
       "taskCount": 30,
       "completedCount": 3,
       "tags": [

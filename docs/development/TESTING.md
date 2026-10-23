@@ -1,6 +1,6 @@
 # Development verification
 
-Phase 2 tests cover installation, configuration parsing, path boundaries, and the CLI. Phase 3 adds actual Taskmaster MCP tests on disposable development tasks. They do not satisfy the runtime MVP scenarios.
+Phase 2 tests cover installation, configuration parsing, path boundaries, and the CLI. Phase 3 adds actual Taskmaster MCP tests on disposable development tasks. Phase 4 adds executable A01–A08 scenarios under `tests/execution/`; A09–A17 remain pending.
 
 ## Reproducible environment
 
@@ -26,13 +26,15 @@ git diff --check
 
 Repository checks use Git's tracked files. When adding a new linked document, stage it before running that check. Never use broad staging without reviewing the files.
 
-The distribution script creates a temporary environment, exports production dependencies from the lock with hashes, installs them, installs the wheel without dependency resolution, then runs the CLI outside the source checkout. Remove obsolete Jangus wheels from `dist/` when intentionally changing the version; the script rejects ambiguous wheel selection.
+The distribution script creates a temporary environment, exports production dependencies from the lock with hashes, installs them, installs the wheel without dependency resolution, then runs configuration validation and the verified synthetic copy/report workflow outside the source checkout. Remove obsolete Jangus wheels from `dist/` when intentionally changing the version; the script rejects ambiguous wheel selection.
 
 ## Covered cases
 
 Tests reject unknown settings, string/boolean substitutions for strict scalar types, unsupported feature enablement, unregistered tools, invalid budgets, unsafe or ambiguous YAML, oversized files, and invalid/overlapping storage paths. CLI tests verify configuration selection and that synthetic secrets do not appear in errors. Symlink tests skip only when the host cannot create symlinks, and that skip is visible in pytest output.
 
-Configuration checks are read-only. They do not prove that a future tool broker enforces permissions, that a path cannot change after validation, or that a local model is available.
+Configuration checks are read-only. Execution tests separately exercise registered tools, permissions, real file verification, crash recovery, cancellation, SQLite failures, and privacy. These tests do not demonstrate a local model or hostile-user OS sandbox.
+
+Run `uv run --locked pytest tests/execution` for the execution slice; see [EXECUTION.md](EXECUTION.md) for boundaries and [Phase 4 review](../reviews/PHASE_4.md) for evidence.
 
 ## CI
 

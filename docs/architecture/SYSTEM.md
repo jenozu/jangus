@@ -1,6 +1,6 @@
 # System architecture
 
-Status: intended runtime design. Phases 2–3 implement package setup, read-only configuration validation, and an offline development Taskmaster adapter; see [README.md](../../README.md) for current capabilities. Shared requirements live in [PRD.md](../product/PRD.md); authority rules live in [rules.md](../../rules.md).
+Status: intended runtime design. Phases 2–4 implement package/configuration tooling, an offline development Taskmaster adapter, and deterministic execution; see [README.md](../../README.md) for current capabilities. Shared requirements live in [PRD.md](../product/PRD.md); authority rules live in [rules.md](../../rules.md).
 
 ## Components and authority
 
@@ -23,7 +23,7 @@ Start with one Python application and SQLite rather than a service per role. The
 
 ## Execution lifecycle
 
-A proposed run lifecycle is: queued, planning, running, verifying, recovering, waiting, and terminal succeeded/failed/cancelled. These are design concepts; concrete schemas and migrations are delivered later.
+Phase 4 implements queued, running, waiting, and terminal succeeded/failed/cancelled states, with intent/result/verification/reconciliation events. Model planning and context states remain Phase 5 work. See [the execution contract](../development/EXECUTION.md) for the concrete schema and recovery rules.
 
 Every action has a stable ID and durable intent before execution. Completion requires observed results and independent verification. A crash between an effect and its recorded result produces an uncertain action, not a new action. Recovery inspects the real output and original intent, adopts a matching verified result, or pauses if the outcome cannot be proven. Never claim general exactly-once execution across process/network failures.
 
@@ -31,7 +31,7 @@ Validate dependency cycles, duplicate task IDs, missing prerequisites, unknown t
 
 Cancellation stops new dispatch and requests cancellation of in-flight work. Record any completed or unresolved effects. Automatic rollback is not promised.
 
-## Contracts to define in implementation
+## Contracts and ownership
 
 | Contract | Required information |
 |---|---|
@@ -46,7 +46,7 @@ Cancellation stops new dispatch and requests cancellation of in-flight work. Rec
 | Remote job | Stable job/idempotency key, payload digest, protocol version, status, result/evidence |
 | Consultation | Reason, permitted compact evidence, remaining limits, validated advisory response |
 
-Persist canonical state and revisioned transitions transactionally. Model summaries are views of state, not replacements for it. Concrete schemas belong to later phases; these requirements prevent incompatible component assumptions.
+Persist canonical state and revisioned transitions transactionally. Model summaries are views of state, not replacements for it. Phase 4 defines strict manifest/action/plan contracts and SQLite run/action/event schema version 1 in `src/jangus/execution/`. Model, handoff, memory, remote, and consultation contracts remain later work.
 
 ## Context and recovery
 
@@ -66,7 +66,7 @@ Capture machine/model identity, prompt/config/rules/skill revisions, timings, us
 
 Retain original permitted evidence locally under redaction, retention, access, and size policies; compression affects model context only. Never preserve raw secrets merely to claim full logging. Diagnostics contain a readable summary, structured events, permitted artifacts, checksums/provenance, and a manifest explaining omissions. Export is a separate disclosure boundary; redaction applies before any external transmission.
 
-If required state or event persistence fails, stop new side effects. Later implementation must define retention defaults, disk limits, and consistent backup/restore checks.
+If required state or event persistence fails, stop new side effects. Phase 4 defines explicit terminal-record retention, operational database limits, and consistent backup/restore checks in the execution guide.
 
 ## Skills and Obsidian
 
@@ -122,7 +122,7 @@ No actual runtime directory is committed. Version/config examples appear in Phas
 
 ## Intended repository layout
 
-Phase 1 documentation, Phase 2 package/configuration tooling, and the Phase 3 Node development adapter in `scripts/taskmaster/` exist now. The following remains a path allocation for the complete system; later directories and integrations are not yet implemented.
+Phase 1 documentation, Phase 2 package/configuration tooling, the Phase 3 Node development adapter, and the Phase 4 Python execution package exist now. The following remains a path allocation for the complete system; later directories and integrations are not yet implemented.
 
 | Location | Purpose and phase |
 |---|---|
@@ -135,13 +135,12 @@ Phase 1 documentation, Phase 2 package/configuration tooling, and the Phase 3 No
 | `docs/setup/`, `scripts/windows/`, `scripts/linux/` | Separate setup and health checks: 2 onward |
 | `package.json`, `package-lock.json`, `.taskmaster/` | Pinned development tooling and canonical tasks: 3 |
 | `templates/task-brief.md`, `templates/task-result.md` | Focused development assignments: 3 |
-| `src/jangus/cli/`, `controller/`, `contracts/`, `storage/` | Runtime foundation: 2–4 |
-| `src/jangus/tools/`, `policy/`, `verification/`, `observability/` | Controlled execution: 4 |
+| `src/jangus/cli.py`, `config.py`, `execution/` | Implemented setup and deterministic execution: 2–4; cohesive package instead of empty subsystem trees |
 | `src/jangus/agents/`, `providers/`, `context/`, `skills/` | Local intelligence and loading: 5 |
 | Root `prompts/`, `skills/`, `templates/session-handoff.md` | Versioned instructions: 5 |
 | `src/jangus/memory/`, `templates/obsidian/` | Reviewed memory: 6 |
 | `src/jangus/remote/`, `deploy/systemd/` | Remote service: 7 |
-| `src/jangus/integrations/taskmaster/` | Narrow development-task adapter: 3 onward |
+| `scripts/taskmaster/` | Implemented Node development MCP adapter: 3 |
 | `src/jangus/integrations/graphify/`, `headroom/` | Optional experiments: 8 |
 | `tests/unit/`, `integration/`, `acceptance/`, `fixtures/` | Meaningful tests as functionality arrives |
 | `examples/tasks/`, `examples/diagnostics/` | Synthetic examples with implemented behavior |

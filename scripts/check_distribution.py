@@ -1,5 +1,6 @@
 """Install the built wheel with locked runtime dependencies in an isolated environment."""
 
+import json
 import os
 import subprocess
 import sys
@@ -72,7 +73,55 @@ def main():
             cwd=directory,
             env=env,
         )
-        print("PASS: wheel imported and CLI validated outside the source checkout.")
+        run(
+            str(python),
+            "-I",
+            str(ROOT / "examples/tasks/create_fixture.py"),
+            "--root",
+            str(directory / "demo"),
+            cwd=directory,
+            env=env,
+        )
+        config = directory / "demo/config.yaml"
+        submitted = subprocess.check_output(
+            [
+                str(python),
+                "-I",
+                "-m",
+                "jangus",
+                "run",
+                "submit",
+                "--config",
+                str(config),
+                "--manifest",
+                str(directory / "demo/manifest.json"),
+                "--workspace",
+                str(directory / "demo/workspaces/demo"),
+            ],
+            cwd=directory,
+            env=env,
+            text=True,
+        )
+        run_id = json.loads(submitted)["run_id"]
+        completed = subprocess.check_output(
+            [
+                str(python),
+                "-I",
+                "-m",
+                "jangus",
+                "run",
+                "execute",
+                run_id,
+                "--config",
+                str(config),
+            ],
+            cwd=directory,
+            env=env,
+            text=True,
+        )
+        if json.loads(completed)["state"] != "succeeded":
+            raise SystemExit("Installed wheel did not complete the synthetic workflow.")
+        print("PASS: isolated wheel config and verified runtime workflow.")
 
 
 if __name__ == "__main__":

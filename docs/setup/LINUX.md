@@ -1,6 +1,6 @@
 # Linux development setup
 
-This guide covers the Phase 2 package on Ubuntu, including Ubuntu 22.04. No daemon, open port, SSH tunnel, or remote-job service is installed in this phase.
+This guide covers the Python package on Ubuntu, including Ubuntu 22.04. See [Taskmaster](../development/TASKMASTER.md) and [Phase 4 execution](../development/EXECUTION.md) for the implemented development and deterministic runtime workflows. No daemon, open port, SSH tunnel, or remote-job service is installed.
 
 Install Git and the pinned uv tool using the [official uv installation guidance](https://docs.astral.sh/uv/getting-started/installation/). If you have a suitable Python/pip environment, `python3 -m pip install --user uv==0.12.23` is another option. Do not use sudo pip or overwrite the distribution's managed Python. Ensure `uv --version` prints `0.12.23` and that `uv` is on PATH.
 
