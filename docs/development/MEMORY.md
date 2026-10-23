@@ -1,6 +1,6 @@
 # Private Obsidian memory (Phase 6)
 
-This is a **provisional synthetic implementation** on `memory/06-obsidian`.
+This is a **provisional implementation with mocked end-to-end local-agent tests** on `memory/06-obsidian`.
 The complete local MVP cannot be accepted until the Windows local-model gates
 from Phase 5 (Taskmaster 12–17) and the real A09–A17 integration demonstration
 pass. No personal vault, trusted human-review UI, or desktop Obsidian session
@@ -32,7 +32,7 @@ whitespace, metadata, or body always invalidates a previous approval.
 Renaming a note without changing bytes preserves its stable ID; moving to
 `70_Inbox_Agent/` or `90_Archive/` makes it ineligible.
 
-The optional index provides organization only. Retrieval uses a bounded direct
+Multiple approved notes with the same topic and scope are treated as unresolved conflicts: neither is selected until an authorized human resolves/retires the conflicting revision. The optional index provides organization only. Retrieval uses a bounded direct
 scan of at most 300 note files, and fails closed on corruption/ambiguity;
 absence of index does not weaken approval.
 
@@ -109,3 +109,52 @@ pending** despite provisional source and simulated checks in this stacked PR.
 A14–A17 synthetic cases can be tested in CI but A09–A17 integrated desktop
 acceptance, authenticated review UI, and owner signoff are not claimed.
 Phase 7 is not authorized by this implementation.
+
+## Developer-only local integration and review CLI
+
+Use a private vault and separate approval and credential directories **outside**
+all Git checkouts and outside one another. Never test with customer data. Example
+operator commands (use paths you control):
+
+```powershell
+$vault = Join-Path $env:USERPROFILE 'JangusVault'
+$reviews = Join-Path $env:LOCALAPPDATA 'Jangus/approvals'
+$identity = Join-Path $env:LOCALAPPDATA 'Jangus/reviewer'
+uv run --locked python scripts/review_memory.py --vault $vault --registry $reviews --identity-dir $identity --reviewer owner enroll
+uv run --locked python scripts/review_memory.py --vault $vault --registry $reviews --identity-dir $identity --reviewer owner inspect NOTE_UUID
+# Inspect printed exact SHA from the specific final note revision.
+uv run --locked python scripts/review_memory.py --vault $vault --registry $reviews --identity-dir $identity --reviewer owner decide NOTE_UUID --sha256 EXACT_SHA --decision approved --evidence review:operator
+```
+
+Enrollment and all review actions require an interactive terminal and a
+passphrase never supplied in command arguments, environment variables, or CI.
+The identity file holds a salted verifier, not the passphrase; preserve both
+credential and approval/anchor state in independently protected private backup.
+A note cannot self-authorize by declaring `active`. Edits always invalidate
+the exact revision, even after a successful CLI approval. The owner is
+responsible for enrollment, decisions, OS permissions and backup policy.
+Recovery from a lost reviewer passphrase is **not automated** and must not be
+implemented as an agent bypass.
+
+The developer coordinator now accepts an optional `MemoryContext`. Each role
+re-scans approval/link eligibility, checks the current exact raw note SHA,
+audits retrieval before providing bounded `local` reference text, and treats
+that text as *non-authoritative data*. Required-memory failures cancel the run
+before effects if encountered during planning/preflight; optional memory can
+degrade to no context. Post-effect memory changes do not erase already
+independently verified controller outcomes. No external model or VPS receives
+these notes. On a verified successful run, the operator may opt into an
+idempotent **draft-only** lesson proposal, never automatic approval. Conflicting
+human edits are preserved and reported without changing the controller result.
+
+Opt-in synthetic CLI invocation after vault/review setup:
+
+```powershell
+uv run --locked python scripts/run_agent_fixture.py --coordinated --config "$demoRoot/config.yaml" --workspace "$demoRoot/workspaces/demo" --manifest "$demoRoot/manifest.json" --vault $vault --registry $reviews --memory-scope "project:demo" --memory-query "verified file report" --memory-required --propose-lesson
+```
+
+Use a fresh fixture directory, an approved matching synthetic note, and
+a locally installed Ollama model before running the above. It does not
+authenticate the external Obsidian app or verify a real Windows model call
+in GitHub CI. No production backup, live vault, or user credential belongs in
+the repository.

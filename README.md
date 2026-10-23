@@ -4,7 +4,7 @@ Jangus is a planned self-hosted agent system for coordinating bounded tasks acro
 
 ## Current status
 
-**Phase 5 in progress:** Phase 4's deterministic file execution is implemented. Phase 5 now has provisional local Ollama/planning components, a reviewed skill loader and durable handoff helpers tested with mock responses. Target-desktop model benchmarks and Phase 5 acceptance remain pending. Provisional Phase 6 Obsidian memory components are staged separately; no live vault is connected or approved. Phase 7 now has provisional registered-job client/server code and synthetic tests; no real VPS has been contacted.
+**Phase 5 in progress:** Phase 4's deterministic file execution is implemented. Phase 5 now has provisional local Ollama/planning components, a reviewed skill loader and durable handoff helpers tested with mock responses. Target-desktop model benchmarks and Phase 5 acceptance remain pending. Phase 6 now has a tested synthetic end-to-end local memory/agent integration and authenticated local reviewer CLI; no live vault has been connected or accepted. Phase 7 now has provisional registered-job client/server code and synthetic tests; no real VPS has been contacted.
 
 | Capability | Status |
 |---|---|
