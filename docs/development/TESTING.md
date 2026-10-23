@@ -1,6 +1,6 @@
 # Development verification
 
-Phase 2 tests cover installation, configuration parsing, path boundaries, and the CLI. Phase 3 adds actual Taskmaster MCP tests on disposable development tasks. Phase 4 adds executable A01–A08 scenarios under `tests/execution/`. Phase 5 adds provisional simulated-provider, skill and handoff checks under `tests/agents/`; real A09–A13 and A14–A17 remain pending.
+Phase 2 tests cover installation, configuration parsing, path boundaries, and the CLI. Phase 3 adds actual Taskmaster MCP tests on disposable development tasks. Phase 4 adds executable A01–A08 scenarios under `tests/execution/`. Phase 5 adds provisional simulated-provider, skill and handoff checks under `tests/agents/`; real A09–A13 and integrated A14–A17 remain pending. Phase 6 adds synthetic approval/retrieval/proposal regression checks under `tests/memory/`.
 
 ## Reproducible environment
 
@@ -39,6 +39,10 @@ Run `uv run --locked pytest tests/execution` for the execution slice; see [EXECU
 ## Phase 5 provisional checks
 
 Run `uv run --locked pytest tests/agents` for the mock-provider and reviewed-context integration tests. These tests never download or contact a model. See [LOCAL_AGENTS.md](LOCAL_AGENTS.md) for the separate Windows hardware gate and remaining limitations.
+
+## Phase 6 synthetic memory checks
+
+Run `uv run --locked pytest tests/memory`; these tests use private temporary vaults and registries, never a live Obsidian vault. See [MEMORY.md](MEMORY.md) for exact-byte approvals, audit and anti-rollback limits. Dependency Taskmaster statuses remain pending until Phase 5's required local hardware gate is completed.
 
 ## CI
 

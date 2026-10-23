@@ -4,7 +4,7 @@ Jangus is a planned self-hosted agent system for coordinating bounded tasks acro
 
 ## Current status
 
-**Phase 5 in progress:** Phase 4's deterministic file execution is implemented. Phase 5 now has provisional local Ollama/planning components, a reviewed skill loader and durable handoff helpers tested with mock responses. Target-desktop model benchmarks and Phase 5 acceptance remain pending. Memory and remote jobs remain planned.
+**Phase 5 in progress:** Phase 4's deterministic file execution is implemented. Phase 5 now has provisional local Ollama/planning components, a reviewed skill loader and durable handoff helpers tested with mock responses. Target-desktop model benchmarks and Phase 5 acceptance remain pending. Phase 6 now contains a synthetic end-to-end local memory/agent workflow and authenticated reviewer CLI; no live vault or human acceptance has been performed. Remote jobs remain planned.
 
 | Capability | Status |
 |---|---|
@@ -13,7 +13,7 @@ Jangus is a planned self-hosted agent system for coordinating bounded tasks acro
 | Taskmaster MCP development workflow | Implemented: Phase 3; four offline tools and reviewed backlog |
 | Logging, deterministic tools, reliable execution | Implemented: Phase 4; synthetic workflow and A01–A08 checks |
 | Local agents, skills, context handoffs | Phase 5: provisional components and simulated tests; real hardware gates pending |
-| Approved Obsidian memory | Planned: Phase 6 |
+| Approved Obsidian memory | Phase 6: provisional private approval/retrieval and draft procedures; integrated acceptance pending |
 | Durable VPS jobs | Planned: Phase 7 |
 | Optional consultation and optimization | Planned: Phase 8 |
 
@@ -69,6 +69,8 @@ Project specifications:
 - [Phase 3 review](docs/reviews/PHASE_3.md)
 - [Phase 4 review](docs/reviews/PHASE_4.md)
 - [Phase 5 provisional review](docs/reviews/PHASE_5.md)
+- [Phase 6 Obsidian memory design, limitations, and synthetic testing](docs/development/MEMORY.md)
+- [Phase 6 provisional verification record](docs/reviews/PHASE_6.md)
 
 The implemented execution foundation is a synthetic file workflow with durable logs and independent verification. The full local MVP adds a local model, context handoffs, reviewed skills, and approved memory through Phase 6. VPS execution is a subsequent milestone.
 

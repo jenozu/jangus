@@ -1,6 +1,6 @@
 # Minimum viable product
 
-Status: acceptance specification. Phase 4 A01–A08 implementation and executed checks are recorded in [the phase review](../reviews/PHASE_4.md). Later scenarios remain pending.
+Status: acceptance specification. Phase 4 A01–A08 implementation and executed checks are recorded in [the phase review](../reviews/PHASE_4.md). Phase 5 real-model gates and Phase 6 integrated local acceptance remain pending; synthetic Phase 6 memory checks do not independently close A14–A17.
 
 ## Two milestones
 
