@@ -37,7 +37,7 @@ export async function connectAdapter(root) {
   async function call(name, args = {}) {
     const tool = TOOLS.find(t => t.name === name);
     if (!tool || !args || typeof args !== "object" || Array.isArray(args) ||
-        Object.keys(args).some(k => !(k in tool.inputSchema.properties))) {
+        Object.keys(args).some(k => !Object.hasOwn(tool.inputSchema.properties, k))) {
       throw new PolicyError("Unsupported tool or arguments.");
     }
     if ("id" in tool.inputSchema.properties && (!Number.isSafeInteger(args.id) || args.id < 1)) throw new PolicyError("A positive integer task ID is required.");

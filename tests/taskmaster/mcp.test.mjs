@@ -37,6 +37,7 @@ test("live MCP workflow is narrow, evidence-gated, and does not change the real 
   assert.equal(data(await call("next_task")).nextTask.id, 1);
   assert.equal((await call("parse_prd", {})).isError, true);
   assert.equal((await call("get_tasks", { projectRoot: repo })).isError, true);
+  assert.equal((await call("get_tasks", { constructor: "unexpected" })).isError, true);
   assert.equal((await call("get_task", { id: "1" })).isError, true);
   assert.equal((await call("set_task_status", { id: 2, status: "in-progress" })).isError, true);
   assert.equal((await call("set_task_status", { id: 1, status: "done" })).isError, true);
