@@ -123,7 +123,7 @@ class OllamaProvider:
                 value = json.loads(msg["content"], object_pairs_hook=_unique_pairs)
                 if not isinstance(value, dict):
                     raise ValueError("expected object")
-            except (HTTPError, URLError, TimeoutError, OSError) as exc:
+            except (HTTPError, URLError, TimeoutError, OSError):
                 raise ModelFailure("provider_unavailable") from None
             except (ValueError, KeyError, TypeError, UnicodeError, RecursionError):
                 raise ModelFailure("invalid_provider_response") from None
