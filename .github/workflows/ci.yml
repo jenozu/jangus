@@ -42,7 +42,7 @@ jobs:
       - name: Lint
         run: uv run --locked ruff check .
       - name: Format
-        run: uv run --locked ruff format --check .
+        run: uv run --locked ruff format --diff .
       - name: Test configuration, CLI, and execution acceptance
         run: uv run --locked pytest
       - name: Check repository documents and exclusions
