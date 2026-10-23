@@ -60,7 +60,10 @@ def handler_for(ledger: JobLedger, secret: str):
                 raise RemoteFault("invalid_request") from None
             if not 0 <= size <= MAX_REQUEST_BYTES:
                 raise RemoteFault("request_too_large")
-            if self.headers.get("Transfer-Encoding") or self.headers.get("Content-Type") != "application/json":
+            if (
+                self.headers.get("Transfer-Encoding")
+                or self.headers.get("Content-Type") != "application/json"
+            ):
                 raise RemoteFault("invalid_request")
             return unique_json(self.rfile.read(size))
 

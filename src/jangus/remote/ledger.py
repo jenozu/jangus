@@ -47,7 +47,9 @@ class JobLedger:
             no_links(name)
         self._thread_lock = threading.RLock()
         try:
-            self.db = sqlite3.connect(self.path, timeout=5, isolation_level=None, check_same_thread=False)
+            self.db = sqlite3.connect(
+                self.path, timeout=5, isolation_level=None, check_same_thread=False
+            )
             self.db.row_factory = sqlite3.Row
             self.db.execute("PRAGMA journal_mode=WAL")
             self.db.execute("PRAGMA synchronous=FULL")
