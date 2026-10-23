@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import threading
 from pathlib import Path
 
 import pytest
@@ -215,3 +216,40 @@ def test_no_model_or_cancelled_model_fails_closed():
     with pytest.raises(ModelFailure, match="cancelled"):
         provider.generate([Message(role="user", content="synthetic")], cancelled=lambda: True)
     assert fake.calls == []
+
+
+def test_cross_instance_single_inference_and_malformed_port():
+    with pytest.raises(ModelFailure, match="non_loopback_endpoint"):
+        OllamaProvider(ModelConfig(name="local-model", endpoint="http://127.0.0.1:bad"))
+
+    entered, release = threading.Event(), threading.Event()
+
+    class BlockingOpener:
+        def open(self, *_args, **_kwargs):
+            entered.set()
+            assert release.wait(4)
+            return FakeResponse(b'{"message":{"content":"{}"}}')
+
+    first = OllamaProvider(ModelConfig(name="local-model"), opener=BlockingOpener())
+    second = OllamaProvider(ModelConfig(name="local-model"), opener=FakeOpener(
+        b'{"message":{"content":"{}"}}'
+    ))
+    failures = []
+
+    def work():
+        try:
+            first.generate([Message(role="user", content="synthetic")])
+        except Exception as exc:
+            failures.append(type(exc).__name__)
+
+    thread = threading.Thread(target=work)
+    thread.start()
+    try:
+        assert entered.wait(2)
+        with pytest.raises(ModelFailure, match="inference_busy"):
+            second.generate([Message(role="user", content="synthetic")])
+    finally:
+        release.set()
+        thread.join(timeout=3)
+    assert not thread.is_alive()
+    assert not failures

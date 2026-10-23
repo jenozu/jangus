@@ -7,6 +7,7 @@ from dataclasses import asdict
 from pathlib import Path
 
 from jangus.agents.context import ContextFailure
+from jangus.agents.orchestration import run_coordinated_workflow
 from jangus.agents.provider import ModelFailure, OllamaProvider
 from jangus.agents.skills import SkillFailure
 from jangus.agents.workflow import PlanningFailure, run_verified_workflow
@@ -20,6 +21,10 @@ def main() -> int:
     parser.add_argument("--config", type=Path, required=True)
     parser.add_argument("--workspace", type=Path, required=True)
     parser.add_argument("--manifest", type=Path, required=True)
+    parser.add_argument(
+        "--coordinated", action="store_true",
+        help="Use isolated planner, worker, and verifier/diagnostician roles.",
+    )
     parser.add_argument("--review-root", type=Path, default=Path(__file__).resolve().parents[1])
     args = parser.parse_args()
     try:
@@ -27,7 +32,8 @@ def main() -> int:
         provider = OllamaProvider(config.model)
         controller = Controller(config)
         try:
-            outcome = run_verified_workflow(
+            workflow = run_coordinated_workflow if args.coordinated else run_verified_workflow
+            outcome = workflow(
                 controller,
                 provider,
                 args.workspace.expanduser().absolute(),
@@ -35,7 +41,8 @@ def main() -> int:
                 args.review_root,
             )
             print(json.dumps(asdict(outcome), sort_keys=True))
-            return 0 if outcome.state == "succeeded" else 1
+            state = outcome.controller_state if args.coordinated else outcome.state
+            return 0 if state == "succeeded" else 1
         finally:
             controller.close()
     except (
