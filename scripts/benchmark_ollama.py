@@ -20,11 +20,20 @@ CASES = (
 
 
 def sample(model, name, prompt, expected, timeout):
-    request = Request(URL, json.dumps({
-        "model": model, "messages": [{"role": "user", "content": prompt}],
-        "stream": False, "format": "json", "keep_alive": "0",
+    payload = {
+        "model": model,
+        "messages": [{"role": "user", "content": prompt}],
+        "stream": False,
+        "format": "json",
+        "keep_alive": "0",
         "options": {"temperature": 0, "num_ctx": 4096, "num_predict": 128},
-    }).encode(), {"Content-Type": "application/json"}, method="POST")
+    }
+    request = Request(
+        URL,
+        json.dumps(payload).encode(),
+        {"Content-Type": "application/json"},
+        method="POST",
+    )
     start = time.perf_counter()
     try:
         with urlopen(request, timeout=timeout) as response:
@@ -37,8 +46,11 @@ def sample(model, name, prompt, expected, timeout):
         answer = json.loads(response["message"]["content"])
         result = {"case": name, "passed": type(answer) is dict and answer == expected}
         for key in (
-            "prompt_eval_count", "eval_count", "prompt_eval_duration",
-            "eval_duration", "load_duration"
+            "prompt_eval_count",
+            "eval_count",
+            "prompt_eval_duration",
+            "eval_duration",
+            "load_duration",
         ):
             if type(response.get(key)) is int and response[key] >= 0:
                 result[key] = response[key]
@@ -61,13 +73,20 @@ def main():
         (p / ".git").exists() for p in (output.parent, *output.parent.parents)
     ):
         parser.error("output must be a new file outside any git checkout")
-    results = [sample(args.model, name, prompt, expected, args.timeout)
-               for _ in range(3) for name, prompt, expected in CASES]
+    results = [
+        sample(args.model, name, prompt, expected, args.timeout)
+        for _ in range(3)
+        for name, prompt, expected in CASES
+    ]
     report = {
-        "kind": "synthetic_smoke_only", "model": args.model, "endpoint": URL,
-        "passed": sum(r["passed"] for r in results), "total": len(results),
+        "kind": "synthetic_smoke_only",
+        "model": args.model,
+        "endpoint": URL,
+        "passed": sum(r["passed"] for r in results),
+        "total": len(results),
         "median_elapsed_seconds": statistics.median(r["elapsed_seconds"] for r in results),
-        "samples": results, "hardware_memory_not_measured": True,
+        "samples": results,
+        "hardware_memory_not_measured": True,
         "real_workflow_not_measured": True,
     }
     with output.open("x", encoding="utf-8") as stream:
