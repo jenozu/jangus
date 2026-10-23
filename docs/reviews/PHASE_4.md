@@ -26,8 +26,12 @@ exercise the complete synthetic copy/report workflow.
 
 Local Linux: 93 Python tests passed, including 46 execution tests and the 47
 configuration/CLI regressions. Ruff lint/format also passed. The isolated wheel successfully completed the synthetic workflow outside the
-checkout. Repository checks and hosted Windows/Ubuntu results are recorded on
-the phase PR once completed; a configured workflow is not an executed result.
+checkout. All six hosted Windows/Ubuntu CI jobs passed for tested commit
+`3361f6f29e509938b974a78e5985bd097fbe5d39` in
+[the verified workflow](https://github.com/jenozu/jangus/actions/runs/39971549421). Ubuntu ran 93 Python tests;
+Windows ran 92 with one POSIX-only skip. Both Python versions, installed-wheel
+workflow, and Taskmaster MCP checks passed. The final bookkeeping commit is
+separate from this tested implementation commit.
 
 Additional checks exercise migration rollback, duplicate IDs, dependency cycles,
 stale revisions, changed permissions, exclusive executor ownership, deadline
@@ -48,4 +52,6 @@ and does not reverse effects. Diagnostic exports omit raw content; private
 backups contain recovery metadata and must not be shared as exports.
 
 This phase is stacked on `foundation/03-taskmaster` while PR #3 remains open.
-Taskmaster development completion and PR merge state remain separate.
+[Task completion evidence](../../.taskmaster/evidence/11.json) uses the tested
+implementation revision. Task 12 remains pending. Taskmaster development
+completion and PR merge state remain separate.
