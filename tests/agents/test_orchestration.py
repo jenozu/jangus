@@ -101,6 +101,9 @@ def test_complete_roles_isolated_verified_with_handoff(fixture):
     assert (workspace / "out/report.json").read_bytes() == manifest.report_bytes()
     assert all("input/test.txt" not in str(msg) for msg in model.messages)
     assert model.assignments[0]["status"] is None
+    assert model.assignments[0]["scope"] == "one_owner_manifest_workspace"
+    assert model.assignments[0]["remaining_budget"]["remaining_dispatches"] >= 2
+    assert all(a["expected_sha256"] for a in model.assignments[0]["actions"])
     assert model.assignments[1]["status"] is None
     assert model.assignments[2]["status"]["state"] == "succeeded"
     handoff = HandoffStore(Path(controller.config.paths.data_dir) / "handoffs")
@@ -170,6 +173,7 @@ def test_post_effect_invalid_model_does_not_hide_verified_controller_outcome(fix
     model = RoleModel(changes={"verifier": {"action_ids": ["unknown"]}})
     outcome = run_coordinated_workflow(controller, model, workspace, manifest, ROOT)
     assert outcome.review_status == "unavailable"
+    assert outcome.model_calls == 3  # Includes failed/unusable advisory calls.
     assert outcome.independent_verification is True
     assert controller.status(outcome.run_id)["state"] == "succeeded"
 

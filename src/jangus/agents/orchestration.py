@@ -108,7 +108,15 @@ def _assignment(
     skill_hashes: dict[str, str],
     rules_sha: str,
 ) -> dict:
-    known = [{"id": a.id, "tool": a.tool, "requires": a.dependencies} for a in plan.actions]
+    known = [
+        {
+            "id": a.id,
+            "tool": a.tool,
+            "requires": a.dependencies,
+            "expected_sha256": a.expected_sha256,
+        }
+        for a in plan.actions
+    ]
     if role == "diagnostician":
         focus = [a["id"] for a in status["actions"] if a["state"] != "verified"]
     else:
@@ -124,6 +132,16 @@ def _assignment(
         "run_id": status["run_id"],
         "plan_revision": status["revision"],
         "allowed_tools": sorted(allowed),
+        "scope": "one_owner_manifest_workspace",
+        "acceptance": "Controller independently verifies original manifest hashes.",
+        "remaining_budget": {
+            "dispatches": status["dispatches"],
+            "remaining_dispatches": max(0, status["max_dispatches"] - status["dispatches"]),
+            "remaining_attempts": {
+                action["id"]: action["remaining_attempts"] for action in status["actions"]
+            },
+            "deadline_epoch": status["deadline"],
+        },
         "actions": known,
         "focus_action_ids": focus,
         "skill_sha256": skill_hashes,
@@ -193,7 +211,7 @@ def run_coordinated_workflow(
     *,
     selected_skills: tuple[str, ...] = ("file-workflow",),
 ) -> CoordinatedOutcome:
-    """Fixed four-role lifecycle; post-effect disagreement never changes SQLite truth.
+    """Four possible advisory roles; no more than three are called in a run.
 
     Only the existing owner manifest may specify actual file effects. Each role
     gets a fresh isolated context and a bounded response budget. Recovery stays
@@ -210,10 +228,12 @@ def run_coordinated_workflow(
         raise PlanningFailure("too_many_actions")
     run_id = controller.submit(workspace, manifest)
     receipts: list[RoleReceipt] = []
+    attempted_calls = 0
     handoffs = HandoffStore(Path(controller.config.paths.data_dir).expanduser() / "handoffs")
 
     try:
         for role in ("planner", "worker"):
+            attempted_calls += 1
             receipt = _call(
                 controller, provider, run_id, role, plan, rules, rules_sha, skills, allowed
             )
@@ -236,6 +256,7 @@ def run_coordinated_workflow(
     )
     if status["state"] == "succeeded":
         try:
+            attempted_calls += 1
             reviewer = _call(
                 controller, provider, run_id, "verifier", plan, rules, rules_sha, skills, allowed
             )
@@ -245,6 +266,7 @@ def run_coordinated_workflow(
             review_status = "unavailable"
     else:
         try:
+            attempted_calls += 1
             diagnosis = _call(
                 controller,
                 provider,
@@ -269,7 +291,7 @@ def run_coordinated_workflow(
         roles=tuple(receipts),
         rules_sha256=rules_sha,
         skill_sha256=hashes,
-        model_calls=len(receipts),
+        model_calls=attempted_calls,
         handoff_sha256=hashlib.sha256(
             json.dumps(snapshot, sort_keys=True, separators=(",", ":")).encode()
         ).hexdigest(),
