@@ -33,9 +33,7 @@ class ApprovalRegistry:
             for checkout in _checkout_roots()
         ):
             raise MemoryFault("registry_inside_checkout")
-        if self.directory.is_relative_to(vault.root) or vault.root.is_relative_to(
-            self.directory
-        ):
+        if self.directory.is_relative_to(vault.root) or vault.root.is_relative_to(self.directory):
             raise MemoryFault("registry_overlaps_vault")
         self.directory.mkdir(parents=True, exist_ok=True, mode=0o700)
         no_links(self.directory)
@@ -57,9 +55,7 @@ class ApprovalRegistry:
             self.db.execute("PRAGMA foreign_keys=ON")
             if not existed:
                 with self._initial_transaction():
-                    self.db.execute(
-                        "CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)"
-                    )
+                    self.db.execute("CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)")
                     self.db.execute(
                         "CREATE TABLE reviews (sequence INTEGER PRIMARY KEY, "
                         "note_id TEXT NOT NULL, sha256 TEXT NOT NULL, decision TEXT NOT NULL, "

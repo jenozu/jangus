@@ -21,9 +21,7 @@ def authorize(_reviewer, _decision, _evidence):
 @pytest.fixture
 def memory(tmp_path):
     root = tmp_path / "vault"
-    for name in (
-        "20_Runbooks", "40_Lessons", "70_Inbox_Agent", "90_Archive"
-    ):
+    for name in ("20_Runbooks", "40_Lessons", "70_Inbox_Agent", "90_Archive"):
         (root / name).mkdir(parents=True)
     vault = Vault(root)
     registry = ApprovalRegistry(tmp_path / "private-registry", vault)
@@ -73,8 +71,12 @@ def test_a14_approved_selected_and_logged_at_exact_revision(memory):
     assert len(found) == 1
     assert found[0].sha256 == note.sha256
     result = render_for_prompt(
-        vault, registry, found, scope="project:demo",
-        destination="local", evidence="run:synthetic",
+        vault,
+        registry,
+        found,
+        scope="project:demo",
+        destination="local",
+        evidence="run:synthetic",
     )
     assert "Verify local copy" in result
     assert note.sha256 in result
@@ -91,7 +93,12 @@ def test_a15_raw_crlf_and_whitespace_edits_invalidate_approval(memory):
     note = make_note(vault)
     approve(registry, note)
     original = note.sha256
-    note.path.write_bytes(note.raw.replace(b"\n", b"\r\n"))
+    converted = (
+        note.raw.replace(b"\r\n", b"\n")
+        if b"\r\n" in note.raw
+        else note.raw.replace(b"\n", b"\r\n")
+    )
+    note.path.write_bytes(converted)
     changed = vault.load(note.path)
     assert changed.sha256 != original
     assert changed.metadata.id == note.metadata.id
@@ -108,8 +115,12 @@ def test_a15_recheck_rejects_edit_after_selection(memory):
     note.path.write_bytes(note.raw + b" \n")
     with pytest.raises(MemoryFault, match="memory_revision_changed"):
         render_for_prompt(
-            vault, registry, selected, scope="project:demo",
-            destination="local", evidence="run:synthetic",
+            vault,
+            registry,
+            selected,
+            scope="project:demo",
+            destination="local",
+            evidence="run:synthetic",
         )
     assert registry.db.execute("SELECT COUNT(*) FROM retrievals").fetchone()[0] == 0
 
@@ -122,8 +133,12 @@ def test_a15_only_explicit_review_approves_and_draft_is_never_selected(memory):
         approve(registry, draft)
     with pytest.raises(MemoryFault, match="review_unauthorized"):
         registry.review(
-            draft, expected_sha256=draft.sha256, decision="approved",
-            reviewer="owner", evidence="test:record", authorize=None,
+            draft,
+            expected_sha256=draft.sha256,
+            decision="approved",
+            reviewer="owner",
+            evidence="test:record",
+            authorize=None,
         )
 
 
@@ -147,17 +162,19 @@ def test_a15_missing_private_link_prevents_leak(memory):
     assert select(vault, registry, query="report", scope="project:demo") == []
     approve(registry, linked)
     assert select(vault, registry, query="report", scope="project:demo", destination="local")
-    assert select(
-        vault, registry, query="report", scope="project:demo", destination="external"
-    ) == []
+    assert (
+        select(vault, registry, query="report", scope="project:demo", destination="external") == []
+    )
     with pytest.raises(MemoryFault, match="memory_revision_changed"):
         render_for_prompt(
             vault,
             registry,
             [
                 Selection(
-                    parent.metadata.id, parent.sha256,
-                    parent.metadata.scope, parent.metadata.sharing,
+                    parent.metadata.id,
+                    parent.sha256,
+                    parent.metadata.scope,
+                    parent.metadata.sharing,
                 )
             ],
             scope="project:demo",

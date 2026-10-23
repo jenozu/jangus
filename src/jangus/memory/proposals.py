@@ -27,9 +27,7 @@ def propose_lesson(
     summary: str,
     evidence: str,
 ) -> Proposal:
-    if not (
-        scope == "global" or re.fullmatch(r"project:[a-z0-9][a-z0-9_-]{0,63}", scope)
-    ):
+    if not (scope == "global" or re.fullmatch(r"project:[a-z0-9][a-z0-9_-]{0,63}", scope)):
         raise MemoryFault("proposal_invalid")
     if (
         not 1 <= len(summary.strip()) <= 1200

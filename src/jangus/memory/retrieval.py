@@ -31,9 +31,7 @@ def _eligible_graph(
     seen.add(note.metadata.id)
     for linked_id in note.metadata.links:
         linked = notes.get(linked_id)
-        if linked is None or not _eligible_graph(
-            linked, notes, registry, scope, destination, seen
-        ):
+        if linked is None or not _eligible_graph(linked, notes, registry, scope, destination, seen):
             return False
     return True
 
@@ -58,7 +56,8 @@ def select(
     try:
         notes = vault.scan()
         eligible = [
-            note for note in notes.values()
+            note
+            for note in notes.values()
             if _eligible_graph(note, notes, registry, scope, destination)
         ]
         terms = set(re.findall(r"[a-z0-9_-]+", query.casefold()))
