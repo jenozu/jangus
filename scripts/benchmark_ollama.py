@@ -10,7 +10,11 @@ from urllib.request import Request, urlopen
 URL = "http://127.0.0.1:11434/api/chat"
 CASES = (
     ("arithmetic", "Answer with JSON object: integer answer is 7 plus 5.", {"answer": 12}),
-    (\n        "selection",\n        "Answer with JSON object: choice is alphabetically first of pear, apple, plum.",\n        {"choice": "apple"},\n    ),
+    (
+        "selection",
+        "Answer with JSON object: choice is alphabetically first of pear, apple, plum.",
+        {"choice": "apple"},
+    ),
     ("boolean", "Answer with JSON object: safe is boolean true.", {"safe": True}),
 )
 
@@ -32,7 +36,10 @@ def sample(model, name, prompt, expected, timeout):
         response = json.loads(raw)
         answer = json.loads(response["message"]["content"])
         result = {"case": name, "passed": type(answer) is dict and answer == expected}
-        for key in (\n            "prompt_eval_count", "eval_count", "prompt_eval_duration",\n            "eval_duration", "load_duration"\n        ):
+        for key in (
+            "prompt_eval_count", "eval_count", "prompt_eval_duration",
+            "eval_duration", "load_duration"
+        ):
             if type(response.get(key)) is int and response[key] >= 0:
                 result[key] = response[key]
     except (HTTPError, URLError, TimeoutError, OSError, ValueError, KeyError, TypeError):
@@ -50,7 +57,9 @@ def main():
     if not args.model.strip() or not 1 <= args.timeout <= 600:
         parser.error("invalid model or timeout")
     output = args.output.expanduser().resolve()
-    if output.exists() or any(\n        (p / ".git").exists() for p in (output.parent, *output.parent.parents)\n    ):
+    if output.exists() or any(
+        (p / ".git").exists() for p in (output.parent, *output.parent.parents)
+    ):
         parser.error("output must be a new file outside any git checkout")
     results = [sample(args.model, name, prompt, expected, args.timeout)
                for _ in range(3) for name, prompt, expected in CASES]
@@ -63,7 +72,8 @@ def main():
     }
     with output.open("x", encoding="utf-8") as stream:
         json.dump(report, stream, indent=2)
-        stream.write("\n")
+        stream.write("
+")
     print(f"Synthetic JSON checks: {report['passed']}/{report['total']}")
     return int(report["passed"] != report["total"])
 
