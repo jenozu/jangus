@@ -31,10 +31,14 @@ def compact(
         raise ValueError("required_evidence_missing")
     lines = text.splitlines(keepends=True)
     protected = set()
+    critical = re.compile(
+        r"\b(?:[A-Za-z_]*(?:id|hash|path|sha256)=[^\s]+|[0-9a-f]{64})\b"
+        r"|(?:[A-Za-z]:\\|(?:^|\s)/)\S+"
+    )
     for i, line in enumerate(lines):
         if any(term in line for term in required_exact):
             protected.add(i)
-        elif re.search(r"\b(MUST|NEVER|ERROR|SHA-256|INVALID|FAILED)\b", line):
+        elif re.search(r"\b(MUST|NEVER|ERROR|SHA-256|INVALID|FAILED)\b", line) or critical.search(line):
             protected.add(i)
     # Start with exact required and high-impact lines, always in original order.
     chosen = set(protected)

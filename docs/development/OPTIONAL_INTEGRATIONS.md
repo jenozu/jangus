@@ -40,7 +40,7 @@ automatically invokes Phase 8.
 
 A trusted operator must provide *all* of these to `AdviceBroker.consult`:
 
-1. local recovery exhausted; explicit authorization for this particular call;
+1. local recovery exhausted; explicit authorization for this particular call from a separate **trusted authorizer callback**, bound to the selected provider, immutable session, exact approved evidence-packet SHA and hashed allowed-action scope; an untrusted boolean alone is insufficient;
 2. a selected, enabled provider (`codex` or `astra`), with Astra permitted
    only as a separate final choice after Codex was unresolved;
 3. 1–6 source-revision-bound evidence packets, each explicitly marked
@@ -54,7 +54,7 @@ The broker reserves calls, input-token estimate, worst-case output bound and
 a conservative cost *before* provider invocation. Reservations are not
 refunded after failure or interruption. Records contain session/provider,
 evidence digest, response digest and status, **not raw content**. A changed
-policy revision is refused on resume. This limit scheme is intentionally
+policy revision is refused on resume. The ledger also maintains a separate private identity/generation anchor (schema v2); missing or rolled-back state fails closed. Its identity and generation must be preserved during backups, and it does not withstand an attacker replacing both the database and anchor. Earlier experimental schema v0 databases need explicit reviewed migration; never delete state to bypass protection. This limit scheme is intentionally
 conservative, and does not claim to reflect actual invoices. Codex reserves
 an equal portion of the operator-configured financial ceiling for each
 permitted call, rather than assuming a subscription call is free. Provider token counts are **not measured**.
@@ -64,15 +64,25 @@ JSON without programmatically contacting the external app. The Astra
 prototype is available only by constructing it explicitly with a separately
 stored credential and a reviewed network environment. A transport must honor
 the passed timeout and response cap. The broker cannot forcibly terminate a
-malicious or hung injected transport; true OS process isolation and live
-financial metering are not implemented.
+malicious or hung injected transport; true OS process isolation, anti-rollback
+resistance against a fully privileged local attacker, and live financial
+metering are not implemented. The trusted authorization callback is supplied by
+the owner-controlled application layer, **not authenticated by the broker itself**.
+
+The documented Python Codex SDK supports untrusted `ExternalMessage` and a
+`Sandbox.read_only` preset, but `read_only` still allows file reading and the
+SDK's local agent may execute commands. It is therefore **not attached** to
+Jangus automatically or offered an agent-controlled invocation path. A separate
+OS-restricted ephemeral workspace, explicit approval model and actual SDK
+verification are prerequisites for safely replacing the manual bridge.
+
 
 Valid advice is exactly `{"summary": "...", "action_ids": ["existing_id"]}`.
 Unknown fields, additional IDs, invalid JSON and too-large text are rejected.
 The broker **never calls a tool, executes advice, edits a task, changes a
 budget or promotes an approval**. Existing controller verification/policy
 remains responsible for every effect. A provider outage does not trigger
-a different model automatically.
+a different model automatically. A requested Astra consultation additionally needs an exact matching persisted **failed or unresolved Codex attempt** for the same session, evidence and authorized action scope. The `codex_unresolved` flag alone can never trigger Astra. A fresh, separate trusted per-call approval is mandatory. A Codex recommendation with no allowable action IDs is recorded as unresolved.
 
 Redaction is an explicit owner-controlled admission boundary, not a guarantee
 that marked text is safe. Do not send live logs, vault data, secrets, customer
@@ -92,7 +102,8 @@ search before considering use in real tasks.
 
 `jangus.integrations.headroom` is a **local line-preserving trial**, not
 the third-party Headroom product. It keeps complete lines containing explicit
-required strings and recognized MUST/NEVER/ERROR markers, then fills remaining
+required strings, recognized MUST/NEVER/ERROR markers, and common hash/path/ID
+patterns, then fills remaining
 bytes in original order. It returns the full source SHA-256 and evidence
 reference; the original is never overwritten. If critical lines exceed the
 budget it fails closed instead of shortening paths, limits or IDs. Token
@@ -108,8 +119,11 @@ uv run --locked python scripts/benchmark_optional_integrations.py
 uv run --locked pytest
 ```
 
-That script produces per-run measured *wall time* for one tiny synthetic code
-fixture plus token *estimates*, hit counts and a revision reference. It is
+That script compares a fixed set of synthetic Python source fixtures, including a
+literal-search false positive, stale-revision refusal, and several bounded context
+fixtures. It reports median local timings over repeated runs, protected-line
+retention, approximate token counts, and **original-plus-retrieval** estimates
+where the original must also be fetched. It is
 **not** evidence of correctness, latency, total token savings, cost, or memory
 improvement in production. To adopt either optimization, define a real fixed
 baseline and compare success/accuracy, full tokens including retries and
