@@ -40,13 +40,13 @@ jobs:
       - name: Install locked dependencies
         run: uv sync --locked
       - name: Lint
-        run: uv run --locked ruff check . || true
+        run: uv run --locked ruff check .
       - name: Format
-        run: |
-          uv run --locked ruff format --diff . || true
-          uv run --locked ruff format .
+        run: uv run --locked ruff format --check .
       - name: Test configuration, CLI, and execution acceptance
         run: uv run --locked pytest
+      - name: Run fixed offline integration comparisons (no provider access)
+        run: uv run --locked python scripts/benchmark_optional_integrations.py
       - name: Check repository documents and exclusions
         run: uv run --locked python scripts/check_repository.py
       - name: Validate example configuration

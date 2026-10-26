@@ -21,7 +21,12 @@ def elapsed_ms(fn, repetitions: int = 25) -> float:
 
 def run() -> dict:
     programs = [
-        ("fixture_a", b"def resolve():\n    return 1\ndef caller():\n    return resolve()\n", "resolve", True),
+        (
+            "fixture_a",
+            b"def resolve():\n    return 1\ndef caller():\n    return resolve()\n",
+            "resolve",
+            True,
+        ),
         ("fixture_b", b"def actual():\n    return 1\ncomment = 'phantom()'\n", "phantom", False),
         ("fixture_c", b"import os\ndef reader():\n    return os.getcwd()\n", "reader", True),
     ]
@@ -62,15 +67,18 @@ def run() -> dict:
     contexts = [
         (
             "bounded_ids",
-            "ignore\n" * 16 + "MUST keep job_id=abc123\n"
-            + "noise\n" * 16 + "ERROR conflict\n",
+            "ignore\n" * 16 + "MUST keep job_id=abc123\n" + "noise\n" * 16 + "ERROR conflict\n",
             120,
             ("job_id=abc123", "ERROR conflict"),
         ),
         (
             "bounded_paths",
-            "noise\n" * 20 + "path=/tmp/example/report.txt\n"
-            + "noise\n" * 12 + "hash=" + "a" * 64 + "\n",
+            "noise\n" * 20
+            + "path=/tmp/example/report.txt\n"
+            + "noise\n" * 12
+            + "hash="
+            + "a" * 64
+            + "\n",
             160,
             ("path=/tmp/example/report.txt", "a" * 64),
         ),
