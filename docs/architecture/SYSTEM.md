@@ -1,6 +1,6 @@
 # System architecture
 
-Status: intended runtime design. Phases 2–4 implement package/configuration tooling, an offline development Taskmaster adapter, and deterministic execution. Phase 5 adds provisional model/skills/context components without hardware acceptance; Phase 6 adds provisional external-vault approved-memory code and templates; Phase 7 adds a provisional authenticated loopback worker and durable SSH-tunnel client for a narrow synthetic job, without deployment; see [README.md](../../README.md) for current capabilities. Shared requirements live in [PRD.md](../product/PRD.md); authority rules live in [rules.md](../../rules.md).
+Status: intended runtime design. Phases 2–4 implement package/configuration tooling, an offline development Taskmaster adapter, and deterministic execution. Phase 5 adds provisional model/skills/context components without hardware acceptance; Phase 6 adds provisional external-vault approved-memory code and templates; Phase 7 adds a provisional authenticated loopback worker and durable SSH-tunnel client for a narrow synthetic job, without deployment; Phase 8 adds optional no-auto-consult advisory contracts and toy offline source/context optimizations, still default-disabled; see [README.md](../../README.md) for current capabilities. Shared requirements live in [PRD.md](../product/PRD.md); authority rules live in [rules.md](../../rules.md).
 
 ## Components and authority
 
@@ -56,7 +56,7 @@ Build prompts from relevant state, a mandatory rules core, task-specific rules, 
 
 Before rollover, persist a structured handoff. Rehydrate budgets, permissions, and uncertain actions from authoritative state and reconcile the handoff. A summary cannot renew retries or broaden scope. Plain concise language is the baseline; compressed styles require comparison tests.
 
-Recovery starts with bounded worker diagnosis, then the local orchestrator. Optional Codex consultation follows local exhaustion; Astra is only a final explicitly enabled fallback if supported. Consultant outputs are advisory plan proposals subject to the same validation. Provider outages must never trigger an unapproved paid fallback.
+Recovery starts with bounded worker diagnosis, then the local orchestrator. Optional Codex consultation follows local exhaustion; Astra is only a final explicitly enabled fallback if supported. Consultant outputs are advisory plan proposals subject to the same validation. Provider outages must never trigger an unapproved paid fallback. The provisional Phase 8 advisor broker returns only validated suggestions and no controller commands; see [OPTIONAL_INTEGRATIONS.md](../development/OPTIONAL_INTEGRATIONS.md).
 
 ## Logging and diagnostics
 

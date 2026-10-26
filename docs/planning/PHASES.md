@@ -1,6 +1,6 @@
 # Phased repository delivery
 
-This is the agreed delivery sequence, not a second development task backlog. Taskmaster owns detailed dependencies and task status from Phase 3. Current implementation: Phase 4 deterministic execution, provisional Phase 5 agent code, Phase 6 memory code and Phase 7 synthetic remote worker in stacked unmerged branches. Hardware, owner-machine and Taskmaster acceptance gates remain pending.
+This is the agreed delivery sequence, not a second development task backlog. Taskmaster owns detailed dependencies and task status from Phase 3. Current implementation: Phase 4 deterministic execution, provisional Phase 5 agent code, Phase 6 memory code and Phase 7 synthetic remote worker and Phase 8 opt-in consultation/experiment prototypes in stacked unmerged branches. Hardware, owner-machine and Taskmaster acceptance gates remain pending.
 
 | Phase | Branch example | Deliverables | Verification before submission |
 |---|---|---|---|

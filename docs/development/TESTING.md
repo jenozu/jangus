@@ -1,6 +1,6 @@
 # Development verification
 
-Phase 2 tests cover installation, configuration parsing, path boundaries, and the CLI. Phase 3 adds actual Taskmaster MCP tests on disposable development tasks. Phase 4 adds executable A01–A08 scenarios under `tests/execution/`. Phase 5 adds provisional simulated-provider, skill and handoff checks under `tests/agents/`; real A09–A13 and integrated A14–A17 remain pending. Phase 6 adds synthetic approval/retrieval/proposal checks under `tests/memory/`. Phase 7 adds authenticated loopback transport, private SQLite job and restart-reconciliation checks under `tests/remote/`; the hardened worker also checks ledger identity, persisted audit, stuck cancellation, unsafe unit directives, read-only private permissions and service/object restarts. No actual VPS testing is claimed.
+Phase 2 tests cover installation, configuration parsing, path boundaries, and the CLI. Phase 3 adds actual Taskmaster MCP tests on disposable development tasks. Phase 4 adds executable A01–A08 scenarios under `tests/execution/`. Phase 5 adds provisional simulated-provider, skill and handoff checks under `tests/agents/`; real A09–A13 and integrated A14–A17 remain pending. Phase 6 adds synthetic approval/retrieval/proposal checks under `tests/memory/`. Phase 7 adds authenticated loopback transport, private SQLite job and restart-reconciliation checks under `tests/remote/`; hardening tests additionally verify identity anchors, immutable terminal client receipts, durable audit, uncertain-output cancellation, read-only service preflight and actual loopback service/client object restart. No actual VPS testing is claimed. Phase 8 adds default-off advice-contract and synthetic AST/context comparison tests under `tests/integrations/`, including revision-bound trusted reviewer gates, persistent session identity and no-reset cost/call budgets, exact matching Codex-to-Astra fallback evidence, and multiple offline baseline fixtures.
 
 ## Reproducible environment
 
@@ -47,6 +47,10 @@ Run `uv run --locked pytest tests/memory`; these tests use private temporary vau
 ## Phase 7 remote worker synthetic checks
 
 Run `uv run --locked pytest tests/remote` for authenticated localhost HTTP, versioned job schemas, durable idempotency, lost acknowledgement, cancellation, restart, and result integrity. See [REMOTE_WORKER.md](REMOTE_WORKER.md) for the separate actual SSH/VPS acceptance gate. GitHub Actions is not the runtime job transport.
+
+## Phase 8 default-off integration checks
+
+Run `uv run --locked pytest tests/integrations` and `uv run --locked python scripts/benchmark_optional_integrations.py`. Synthetic mocked providers make no real Codex or paid API calls; generated token figures are estimates, not production benchmarks. See [OPTIONAL_INTEGRATIONS.md](OPTIONAL_INTEGRATIONS.md).
 
 ## CI
 

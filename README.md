@@ -4,7 +4,7 @@ Jangus is a planned self-hosted agent system for coordinating bounded tasks acro
 
 ## Current status
 
-**Phase 5 in progress:** Phase 4's deterministic file execution is implemented. Phase 5 now has provisional local Ollama/planning components, a reviewed skill loader and durable handoff helpers tested with mock responses. Target-desktop model benchmarks and Phase 5 acceptance remain pending. Phase 6 now has a tested synthetic end-to-end local memory/agent integration and authenticated local reviewer CLI; no live vault has been connected or accepted. Phase 7 now has provisional registered-job client/server code and synthetic tests; no real VPS has been contacted.
+**Phase 5 in progress:** Phase 4's deterministic file execution is implemented. Phase 5 now has provisional local Ollama/planning components, a reviewed skill loader and durable handoff helpers tested with mock responses. Target-desktop model benchmarks and Phase 5 acceptance remain pending. Phase 6 now has a tested synthetic end-to-end local memory/agent integration and authenticated local reviewer CLI; no live vault has been connected or accepted. Phase 7 has provisional registered-job client/server code and synthetic tests; no real VPS has been contacted. Phase 8 proposes default-off consultation gates and local AST/context comparison fixtures; no paid provider has been contacted.
 
 | Capability | Status |
 |---|---|
@@ -15,7 +15,7 @@ Jangus is a planned self-hosted agent system for coordinating bounded tasks acro
 | Local agents, skills, context handoffs | Phase 5: provisional components and simulated tests; real hardware gates pending |
 | Approved Obsidian memory | Phase 6: provisional private approval/retrieval and draft procedures; integrated acceptance pending |
 | Durable VPS jobs | Phase 7: provisional authenticated loopback worker and durable client; VPS acceptance pending |
-| Optional consultation and optimization | Planned: Phase 8 |
+| Optional consultation and optimization | Phase 8 provisional advice gates and toy offline experiments; disabled in normal runtime |
 
 ## How it will work
 
@@ -73,6 +73,8 @@ Project specifications:
 - [Phase 6 provisional verification record](docs/reviews/PHASE_6.md)
 - [Phase 7 private remote worker protocol and setup](docs/development/REMOTE_WORKER.md)
 - [Phase 7 provisional verification record](docs/reviews/PHASE_7.md)
+- [Phase 8 optional advice, Codex/Astra restrictions and optimization baselines](docs/development/OPTIONAL_INTEGRATIONS.md)
+- [Phase 8 provisional review](docs/reviews/PHASE_8.md)
 
 The implemented execution foundation is a synthetic file workflow with durable logs and independent verification. The full local MVP adds a local model, context handoffs, reviewed skills, and approved memory through Phase 6. VPS execution is a subsequent milestone.
 

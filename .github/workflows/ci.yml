@@ -45,6 +45,8 @@ jobs:
         run: uv run --locked ruff format --check .
       - name: Test configuration, CLI, and execution acceptance
         run: uv run --locked pytest
+      - name: Run fixed offline integration comparisons (no provider access)
+        run: uv run --locked python scripts/benchmark_optional_integrations.py
       - name: Check repository documents and exclusions
         run: uv run --locked python scripts/check_repository.py
       - name: Validate example configuration
