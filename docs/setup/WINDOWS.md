@@ -1,6 +1,6 @@
 # Windows development setup
 
-This guide covers Python package installation and configuration validation. For the implemented development MCP and deterministic workflow, see [Taskmaster](../development/TASKMASTER.md) and [Phase 4 execution](../development/EXECUTION.md). Local models and VPS jobs remain later phases.
+This guide covers development installation and configuration validation. For developer-only Phase 5–8 integration and the remaining owner acceptance, see the [acceptance handoff](../development/ACCEPTANCE_HANDOFF.md). GitHub CI has not tested your actual Windows Ollama model, personal vault, or VPS.
 
 Use Windows PowerShell or PowerShell 7 with Git and Python 3.12 or 3.13 installed. Python 3.12 is the default in `.python-version`. No administrator session is required for these steps.
 
@@ -14,18 +14,27 @@ py -3.12 -m uv --version
 $JangusPythonScripts = py -3.12 -c "import sysconfig; print(sysconfig.get_path('scripts', 'nt_user'))"
 $env:PATH = "$JangusPythonScripts;$env:PATH"
 uv --version
-git clone --branch foundation/02-development-setup https://github.com/jenozu/jangus.git
+git clone --branch release/acceptance-readiness https://github.com/jenozu/jangus.git
 Set-Location jangus
 py -3.12 -m uv sync --locked
 py -3.12 -m uv run --locked jangus --version
 py -3.12 -m uv run --locked jangus config validate --config config/jangus.example.yaml
 ```
 
-The branch command works while this phase is under review; after it merges use the branch containing the merged work. In an existing checkout, fetch and switch to that branch after preserving your local changes.
+The branch above is an unmerged stacked release-readiness **draft**, not an accepted `main` release. Review the PR and preserve local changes before switching branches. After the PRs merge, choose the reviewed and accepted branch.
 
 If Python 3.13 is installed instead, replace `py -3.12` with `py -3.13` and set `$env:UV_PYTHON = "3.13"` before syncing. Supported range is 3.12–3.13; newer versions are not yet claimed.
 
 The commands add the Python user Scripts directory to PATH for this session so the check scripts can find uv. Using `py -m uv` also works for direct commands. No virtual-environment activation is needed.
+
+## Read-only owner prerequisites
+
+```powershell
+./scripts/windows/check-owner-readiness.ps1
+uv run --locked python scripts/check_release_readiness.py
+```
+
+These report installed command availability and reviewed Taskmaster task statuses, not actual model performance or VPS acceptance. They do not connect to Ollama, SSH or external providers. Continue with the [acceptance handoff](../development/ACCEPTANCE_HANDOFF.md).
 
 ## Private configuration
 

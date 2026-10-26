@@ -1,6 +1,6 @@
 # Phased repository delivery
 
-This is the agreed delivery sequence, not a second development task backlog. Taskmaster owns detailed dependencies and task status from Phase 3. Current implementation: Phase 4 deterministic execution, provisional Phase 5 agent code, Phase 6 memory code and Phase 7 synthetic remote worker and Phase 8 opt-in consultation/experiment prototypes in stacked unmerged branches. Hardware, owner-machine and Taskmaster acceptance gates remain pending.
+This is the agreed delivery sequence, not a second development task backlog. Taskmaster owns detailed dependencies and task status from Phase 3. Current implementation: Phase 4 deterministic execution, provisional Phase 5 agent code, Phase 6 memory code and Phase 7 synthetic remote worker and Phase 8 opt-in consultation/experiment prototypes in stacked unmerged branches. Hardware, owner-machine and Taskmaster acceptance gates remain pending. The post-Phase-8 `release/acceptance-readiness` checkpoint is **not a new delivery phase**: it validates dependency consistency, rehearses only synthetic cross-component boundaries and prepares an owner handoff without marking Taskmaster tasks done.
 
 | Phase | Branch example | Deliverables | Verification before submission |
 |---|---|---|---|
@@ -22,6 +22,10 @@ Inspect the current repository and instructions, create a focused branch, implem
 When a preceding phase is merged, branch from the updated default branch. If it remains open and dependent work is authorized, branch from that reviewed phase and target the predecessor explicitly; retarget after it merges. Avoid including unrelated changes or claiming that a submitted PR is already merged.
 
 This repository began empty. A minimal README initialization commit supplies the `main` base needed for the Phase 1 branch and PR. All Phase 1 specifications are proposed on the feature branch.
+
+## Post-phase readiness review
+
+The [owner acceptance handoff](../development/ACCEPTANCE_HANDOFF.md) and `scripts/check_release_readiness.py` explain pending gates without performing them. A synthetic cross-component CI test cannot validate a real Windows model, private Obsidian vault, approved VPS host or external provider account.
 
 ## Release gates
 
