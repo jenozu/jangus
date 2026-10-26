@@ -6,6 +6,7 @@ import os
 import re
 import secrets
 import threading
+from collections.abc import Callable
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
@@ -24,7 +25,7 @@ from jangus.remote.protocol import (
 JOB_PATTERN = re.compile(r"/v1/jobs/([0-9a-f-]{36})(/cancel)?\Z")
 
 
-def handler_for(ledger: JobLedger, secret: str):
+def handler_for(ledger: JobLedger, secret: str, worker_alive: Callable[[], bool] | None = None):
     if len(secret) < 32:
         raise RemoteFault("authentication_unconfigured")
 
@@ -73,6 +74,9 @@ def handler_for(ledger: JobLedger, secret: str):
             try:
                 path = self.path
                 if self.command == "GET" and path == "/v1/health":
+                    if worker_alive is not None and not worker_alive():
+                        self.reply(503, {"error": "worker_unavailable"})
+                        return
                     ledger.db.execute("SELECT 1").fetchone()
                     self.reply(200, {"version": PROTOCOL_VERSION, "healthy": True})
                     return
@@ -117,11 +121,16 @@ def handler_for(ledger: JobLedger, secret: str):
     return Handler
 
 
-def create_server(ledger: JobLedger, token: str, port: int = 8765) -> ThreadingHTTPServer:
+def create_server(
+    ledger: JobLedger,
+    token: str,
+    port: int = 8765,
+    worker_alive: Callable[[], bool] | None = None,
+) -> ThreadingHTTPServer:
     """Hard-coded loopback binding, regardless of machine or service settings."""
     if not 1024 <= port <= 65535:
         raise RemoteFault("invalid_port")
-    server = ThreadingHTTPServer(("127.0.0.1", port), handler_for(ledger, token))
+    server = ThreadingHTTPServer(("127.0.0.1", port), handler_for(ledger, token, worker_alive))
     server.daemon_threads = True
     return server
 
@@ -130,7 +139,9 @@ def worker_loop(ledger: JobLedger, stop: threading.Event):
     while not stop.is_set():
         try:
             job = ledger.process_once()
-        except (RemoteFault, RuntimeFault, OSError):
+        except RuntimeFault as exc:
+            if str(exc) != "executor_busy":
+                raise
             job = None
         stop.wait(0.1 if job is not None else 0.5)
 
@@ -146,19 +157,33 @@ def main() -> int:
     ledger = JobLedger(args.state_dir)
     stop = threading.Event()
     worker = threading.Thread(target=worker_loop, args=(ledger, stop), daemon=True)
+    worker_failed = threading.Event()
+    watchdog = None
     try:
-        server = create_server(ledger, token, args.port)
+        server = create_server(ledger, token, args.port, worker_alive=worker.is_alive)
         worker.start()
+
+        def supervise():
+            while not stop.wait(0.5):
+                if not worker.is_alive():
+                    worker_failed.set()
+                    server.shutdown()
+                    return
+
+        watchdog = threading.Thread(target=supervise, daemon=True)
+        watchdog.start()
         try:
             server.serve_forever(poll_interval=0.25)
         finally:
             server.server_close()
     finally:
         stop.set()
+        if watchdog is not None:
+            watchdog.join(timeout=3)
         if worker.is_alive():
             worker.join(timeout=3)
         ledger.close()
-    return 0
+    return 1 if worker_failed.is_set() else 0
 
 
 if __name__ == "__main__":
