@@ -23,6 +23,10 @@
     "propose-lesson": {
       "blob_sha": "7800def282b1c812d236528fbcd0874bc1e56e70",
       "required_tools": []
+    },
+    "remote-worker": {
+      "blob_sha": "0ab5417dcc566f96fb2061f5d9876d7400c42b3a",
+      "required_tools": []
     }
   }
 }

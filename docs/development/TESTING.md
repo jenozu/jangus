@@ -1,6 +1,6 @@
 # Development verification
 
-Phase 2 tests cover installation, configuration parsing, path boundaries, and the CLI. Phase 3 adds actual Taskmaster MCP tests on disposable development tasks. Phase 4 adds executable A01–A08 scenarios under `tests/execution/`. Phase 5 adds provisional simulated-provider, skill and handoff checks under `tests/agents/`; real A09–A13 and integrated A14–A17 remain pending. Phase 6 adds synthetic approval/retrieval/proposal regression checks under `tests/memory/`.
+Phase 2 tests cover installation, configuration parsing, path boundaries, and the CLI. Phase 3 adds actual Taskmaster MCP tests on disposable development tasks. Phase 4 adds executable A01–A08 scenarios under `tests/execution/`. Phase 5 adds provisional simulated-provider, skill and handoff checks under `tests/agents/`; real A09–A13 and integrated A14–A17 remain pending. Phase 6 adds synthetic approval/retrieval/proposal checks under `tests/memory/`. Phase 7 adds authenticated loopback transport, private SQLite job and restart-reconciliation checks under `tests/remote/`; the hardened worker also checks ledger identity, persisted audit, stuck cancellation, unsafe unit directives, read-only private permissions and service/object restarts. No actual VPS testing is claimed.
 
 ## Reproducible environment
 
@@ -43,6 +43,10 @@ Run `uv run --locked pytest tests/agents` for the mock-provider and reviewed-con
 ## Phase 6 synthetic memory checks
 
 Run `uv run --locked pytest tests/memory`; these tests use private temporary vaults and registries, never a live Obsidian vault. See [MEMORY.md](MEMORY.md) for exact-byte approvals, audit and anti-rollback limits. Dependency Taskmaster statuses remain pending until Phase 5's required local hardware gate is completed.
+
+## Phase 7 remote worker synthetic checks
+
+Run `uv run --locked pytest tests/remote` for authenticated localhost HTTP, versioned job schemas, durable idempotency, lost acknowledgement, cancellation, restart, and result integrity. See [REMOTE_WORKER.md](REMOTE_WORKER.md) for the separate actual SSH/VPS acceptance gate. GitHub Actions is not the runtime job transport.
 
 ## CI
 
