@@ -16,7 +16,9 @@ def main() -> int:
         default=Path(__file__).resolve().parents[1] / ".taskmaster/tasks/tasks.json",
     )
     parser.add_argument(
-        "--check", choices=tuple(GROUPS), help="Require task-status completion (not live acceptance)"
+        "--check",
+        choices=tuple(GROUPS),
+        help="Require task-status completion (not live acceptance)",
     )
     args = parser.parse_args()
     try:
