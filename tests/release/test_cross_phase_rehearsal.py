@@ -139,9 +139,7 @@ def test_end_to_end_boundaries_remain_private_and_optional_calls_disabled(tmp_pa
         assert roles.roles == ["planner", "worker", "verifier"]
         assert (workspace / "out/document.txt").read_bytes() == content
         assert registry.db.execute("SELECT COUNT(*) FROM retrievals").fetchone()[0] == 3
-        draft = vault.load(
-            vault_path / "70_Inbox_Agent" / (outcome.lesson_note_id + ".md")
-        )
+        draft = vault.load(vault_path / "70_Inbox_Agent" / (outcome.lesson_note_id + ".md"))
         assert draft.metadata.status == "draft"
         assert draft.metadata.sharing == "local"
 
@@ -153,9 +151,7 @@ def test_end_to_end_boundaries_remain_private_and_optional_calls_disabled(tmp_pa
         listener = threading.Thread(target=http.serve_forever, daemon=True)
         listener.start()
         try:
-            client = RemoteClient(
-                f"http://127.0.0.1:{http.server_port}", FAKE_TOKEN, journal
-            )
+            client = RemoteClient(f"http://127.0.0.1:{http.server_port}", FAKE_TOKEN, journal)
             job = journal.prepare("synthetic remote capability check")
             assert "NEVER treat local memory" not in job.text
             initial = client.reconcile(job.job_id)
@@ -175,9 +171,7 @@ def test_end_to_end_boundaries_remain_private_and_optional_calls_disabled(tmp_pa
             assert not listener.is_alive()
 
         # Default provider policy rejects consultation before any transport call.
-        cost = ConsultationLedger(
-            tmp_path / "private-advice", str(uuid.uuid4()), AdvicePolicy()
-        )
+        cost = ConsultationLedger(tmp_path / "private-advice", str(uuid.uuid4()), AdvicePolicy())
         try:
             visits = []
             evidence = Evidence(

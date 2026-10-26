@@ -65,9 +65,7 @@ def parse_backlog(raw: dict) -> dict[int, Entry]:
     for item in tasks.values():
         if any(dep not in tasks for dep in item.dependencies):
             raise ReadinessFault("dependency_missing")
-        if item.status == "done" and any(
-            tasks[dep].status != "done" for dep in item.dependencies
-        ):
+        if item.status == "done" and any(tasks[dep].status != "done" for dep in item.dependencies):
             raise ReadinessFault("completed_dependency_incomplete")
 
     seen: set[int] = set()
