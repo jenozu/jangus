@@ -94,9 +94,7 @@ class ClientJournal:
             raise RemoteFault("client_state_unavailable") from None
 
     def has_terminal_receipt(self, job_id: str) -> bool:
-        row = self.db.execute(
-            "SELECT last_state FROM pending WHERE job_id=?", (job_id,)
-        ).fetchone()
+        row = self.db.execute("SELECT last_state FROM pending WHERE job_id=?", (job_id,)).fetchone()
         if row is None:
             raise RemoteFault("job_missing")
         return row["last_state"] in {"succeeded", "failed", "cancelled"}
@@ -133,7 +131,6 @@ class ClientJournal:
             if isinstance(exc, sqlite3.Error):
                 raise RemoteFault("client_state_unavailable") from None
             raise
-
 
 
 class NoRedirect(HTTPRedirectHandler):
@@ -210,7 +207,7 @@ class RemoteClient:
             # A completed job that vanished is a rollback/identity incident,
             # not permission to duplicate the accepted effect on another host.
             if self.journal.has_terminal_receipt(spec.job_id):
-                raise RemoteFault("receipt_regressed")
+                raise RemoteFault("receipt_regressed") from None
             status = self.request("POST", "/v1/jobs", spec.model_dump())
         verify_receipt(status, spec)
         self.journal.record(status)

@@ -25,9 +25,7 @@ from jangus.remote.protocol import (
 JOB_PATTERN = re.compile(r"/v1/jobs/([0-9a-f-]{36})(/cancel)?\Z")
 
 
-def handler_for(
-    ledger: JobLedger, secret: str, worker_alive: Callable[[], bool] | None = None
-):
+def handler_for(ledger: JobLedger, secret: str, worker_alive: Callable[[], bool] | None = None):
     if len(secret) < 32:
         raise RemoteFault("authentication_unconfigured")
 

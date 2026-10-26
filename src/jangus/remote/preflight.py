@@ -15,6 +15,8 @@ EXPECTED = {
     "Group": "jangus-worker",
     "WorkingDirectory": "/var/lib/jangus",
     "EnvironmentFile": "/etc/jangus/worker.env",
+    "Restart": "on-failure",
+    "RestartSec": "3",
     "ExecStart": (
         "/opt/jangus/.venv/bin/python -m jangus.remote.service "
         "--state-dir /var/lib/jangus/remote --port 8765"

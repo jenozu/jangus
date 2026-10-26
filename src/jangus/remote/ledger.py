@@ -47,9 +47,7 @@ class JobLedger:
         self.anchor = self.root / "ledger-identity.json"
         no_links(self.anchor)
         existing = self.path.exists()
-        if existing != self.anchor.exists() or (
-            not existing and any(self.outputs.iterdir())
-        ):
+        if existing != self.anchor.exists() or (not existing and any(self.outputs.iterdir())):
             raise RemoteFault("ledger_identity_missing")
         for name in (self.path, Path(str(self.path) + "-wal"), Path(str(self.path) + "-shm")):
             no_links(name)
@@ -68,9 +66,7 @@ class JobLedger:
                     raise RemoteFault("unsupported_state_version")
                 if version == 0:
                     self.db.execute("CREATE TABLE meta (instance TEXT NOT NULL)")
-                    self.db.execute(
-                        "INSERT INTO meta VALUES (?)", (secrets.token_hex(32),)
-                    )
+                    self.db.execute("INSERT INTO meta VALUES (?)", (secrets.token_hex(32),))
                     self.db.execute(
                         "CREATE TABLE events (sequence INTEGER PRIMARY KEY, "
                         "job_id TEXT NOT NULL, event TEXT NOT NULL, state TEXT NOT NULL, "
@@ -133,7 +129,8 @@ class JobLedger:
                 dict(row)
                 for row in self.db.execute(
                     "SELECT sequence,event,state,attempts,recorded FROM events "
-                    "WHERE job_id=? ORDER BY sequence LIMIT 64", (job_id,)
+                    "WHERE job_id=? ORDER BY sequence LIMIT 64",
+                    (job_id,),
                 )
             ]
 
@@ -259,10 +256,7 @@ class JobLedger:
                 self.db.execute("BEGIN IMMEDIATE")
                 row = self._one(job_id)
                 if row["state"] not in TERMINAL:
-                    state = (
-                        "cancelled" if row["state"] in {"queued", "waiting"}
-                        else row["state"]
-                    )
+                    state = "cancelled" if row["state"] in {"queued", "waiting"} else row["state"]
                     self.db.execute(
                         "UPDATE jobs SET cancel_requested=1,state=? WHERE job_id=?",
                         (state, job_id),

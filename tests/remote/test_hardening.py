@@ -94,14 +94,16 @@ def test_waiting_cancellation_is_terminal_without_overwriting_partial_output(tmp
         assert store.cancel(item.job_id) == outcome
         assert store.process_once() is None
         assert [x["event"] for x in store.audit(item.job_id)] == [
-            "submitted", "transition", "cancel_requested"
+            "submitted",
+            "transition",
+            "cancel_requested",
         ]
     finally:
         store.close()
 
 
 def test_unit_template_static_hardening():
-    unit = (Path(__file__).resolve().parents[2] / "deploy/systemd/jangus-worker.service")
+    unit = Path(__file__).resolve().parents[2] / "deploy/systemd/jangus-worker.service"
     body = unit.read_bytes()
     verify_unit(body)
     text = body.decode()
@@ -137,13 +139,13 @@ def test_read_only_privilege_preflight(tmp_path):
 
 
 def test_tunnel_helper_requires_verified_host_and_local_bind():
-    source = (Path(__file__).resolve().parents[2] / "scripts/windows/open-remote-tunnel.ps1")
+    source = Path(__file__).resolve().parents[2] / "scripts/windows/open-remote-tunnel.ps1"
     command = source.read_text()
     assert "StrictHostKeyChecking=yes" in command
     assert "ExitOnForwardFailure=yes" in command
     assert "BatchMode=yes" in command
     assert "ClearAllForwardings=yes" in command
-    assert '127.0.0.1:${LocalPort}:127.0.0.1:8765' in command
+    assert "127.0.0.1:${LocalPort}:127.0.0.1:8765" in command
 
 
 def test_actual_http_listener_and_worker_restart_reconcile_same_job(tmp_path):
@@ -214,8 +216,7 @@ def test_client_terminal_receipt_cannot_regress_or_be_recreated(tmp_path):
         complete = ledger.status(item.job_id)
         journal.record(complete)
         with pytest.raises(RemoteFault, match="receipt_regressed"):
-            journal.record(ledger.status(item.job_id) | {"state": "queued",
-                                                        "result_sha256": None})
+            journal.record(ledger.status(item.job_id) | {"state": "queued", "result_sha256": None})
         client = RemoteClient("http://127.0.0.1:8765", TOKEN, journal)
         attempts = []
 

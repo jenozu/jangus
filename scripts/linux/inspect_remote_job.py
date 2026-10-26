@@ -23,8 +23,9 @@ def main() -> int:
             status = ledger.status(args.job_id)
             # Deliberately do not emit original job text/payload.
             status.pop("result", None)
-            print(json.dumps({"status": status, "events": ledger.audit(args.job_id)},
-                             sort_keys=True))
+            print(
+                json.dumps({"status": status, "events": ledger.audit(args.job_id)}, sort_keys=True)
+            )
             return 0
         finally:
             ledger.close()
