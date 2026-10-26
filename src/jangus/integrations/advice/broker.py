@@ -69,8 +69,7 @@ class AdviceBroker:
         # An untrusted boolean cannot manufacture prior Codex exhaustion.
         context_digest = hashlib.sha256(packet.encode() + b"|" + scope_bytes).hexdigest()
         if provider == "astra" and (
-            not codex_unresolved
-            or not self.ledger.has_unresolved_codex(context_digest)
+            not codex_unresolved or not self.ledger.has_unresolved_codex(context_digest)
         ):
             raise AdviceFault("fallback_not_authorized")
         # Byte size and extra instruction/header overhead are deliberately
@@ -97,7 +96,9 @@ class AdviceBroker:
                 raise AdviceFault("invalid_advice") from None
             if not set(result.action_ids) <= allowed_action_ids:
                 raise AdviceFault("advice_out_of_scope")
-            disposition = "unresolved" if provider == "codex" and not result.action_ids else "advisory"
+            disposition = (
+                "unresolved" if provider == "codex" and not result.action_ids else "advisory"
+            )
             self.ledger.finish(event_id, hashlib.sha256(raw.encode()).hexdigest(), disposition)
             return result
         except BaseException:

@@ -113,6 +113,7 @@ def test_restart_keeps_budget_and_policy(suite):
 def test_approval_is_exact_content_and_scope_bound(suite):
     db, *_ = suite
     known = []
+
     def authorize(grant):
         known.append(grant)
         return grant.evidence_sha256 == evidence().sha256
@@ -133,13 +134,19 @@ def test_approved_reviewer_can_refuse_changed_evidence_scope(suite):
     approved = baseline[0]
     assert consult(db, authorize=lambda grant: grant == approved).action_ids == ["copy_1"]
     with pytest.raises(AdviceFault, match="consultation_not_authorized"):
-        consult(db, evidence=[
-            evidence().model_copy(update={"text": "altered", "sha256":
-                hashlib.sha256(b"altered").hexdigest()})
-        ], authorize=lambda grant: grant == approved)
+        consult(
+            db,
+            evidence=[
+                evidence().model_copy(
+                    update={"text": "altered", "sha256": hashlib.sha256(b"altered").hexdigest()}
+                )
+            ],
+            authorize=lambda grant: grant == approved,
+        )
     with pytest.raises(AdviceFault, match="consultation_not_authorized"):
-        consult(db, allowed_action_ids={"copy_1", "other"},
-                authorize=lambda grant: grant == approved)
+        consult(
+            db, allowed_action_ids={"copy_1", "other"}, authorize=lambda grant: grant == approved
+        )
     assert db.usage()["calls"] == 1
 
 
@@ -150,17 +157,21 @@ def test_astra_requires_matching_persisted_failed_or_unresolved_codex(suite):
     assert db.usage()["calls"] == 0
 
     # Model provided no usable action: explicitly unresolved advisory.
-    assert consult(db, transport=ManualCodexReview(
-        '{"summary":"No safe action","action_ids":[]}'
-    )).action_ids == []
+    assert (
+        consult(
+            db, transport=ManualCodexReview('{"summary":"No safe action","action_ids":[]}')
+        ).action_ids
+        == []
+    )
     assert db.has_unresolved_codex(
         db.db.execute("SELECT evidence_digest FROM events").fetchone()[0]
     )
     with pytest.raises(AdviceFault, match="fallback_not_authorized"):
         consult(db, provider="astra", codex_unresolved=False)
     with pytest.raises(AdviceFault, match="fallback_not_authorized"):
-        consult(db, provider="astra", codex_unresolved=True,
-                allowed_action_ids={"copy_1", "different"})
+        consult(
+            db, provider="astra", codex_unresolved=True, allowed_action_ids={"copy_1", "different"}
+        )
     assert consult(db, provider="astra", codex_unresolved=True).action_ids == ["copy_1"]
     assert db.usage()["calls"] == 2
     assert db.usage()["cost"] > 0
@@ -168,8 +179,10 @@ def test_astra_requires_matching_persisted_failed_or_unresolved_codex(suite):
 
 def test_codex_failed_call_charged_and_allows_explicit_fallback(suite):
     db, *_ = suite
+
     def failed(*args):
         raise TimeoutError("synthetic")
+
     with pytest.raises(TimeoutError):
         consult(db, transport=failed)
     assert db.usage()["calls"] == 1
@@ -203,8 +216,10 @@ def test_missing_database_does_not_recreate_budget(suite):
 
 def test_crash_ambiguous_completion_never_refunds(suite):
     db, directory, session, policy = suite
+
     def dying(*_args):
         raise TimeoutError("mock transport timeout")
+
     with pytest.raises(TimeoutError):
         consult(db, transport=dying)
     assert db.usage()["calls"] == 1

@@ -34,7 +34,8 @@ def test_graph_rejects_revision_drift_and_avoids_string_false_positives():
     graph = scan_python(source, "fixture")
     assert not search_graph(graph, "phantom_function", source)
     assert {edge.relation for edge in search_graph(graph, "real", source)} == {
-        "declares", "calls-name"
+        "declares",
+        "calls-name",
     }
     with pytest.raises(ValueError, match="graph_stale"):
         search_graph(graph, "real", source + b"# changed\n")
@@ -46,7 +47,9 @@ def test_compaction_preserves_ids_hashes_paths_and_errors_automatically():
         "unused intro\n" * 10
         + "job_id=abc123\n"
         + "trace /srv/app/out.txt\n"
-        + "check sha256=" + full_hash + "\n"
+        + "check sha256="
+        + full_hash
+        + "\n"
         + "ERROR result_uncertain\n"
         + "irrelevant trace\n" * 10
     )
@@ -83,12 +86,16 @@ def test_compaction_refuses_unavailable_original_or_tampered_excerpt():
 
 class _FakeReply:
     status = 200
+
     def __init__(self, raw):
         self.raw = raw
+
     def __enter__(self):
         return self
+
     def __exit__(self, *args):
         return False
+
     def read(self, limit):
         return self.raw[:limit]
 
@@ -97,18 +104,22 @@ class _FakeTransport:
     def __init__(self, raw):
         self.raw = raw
         self.calls = []
+
     def open(self, request, timeout):
         self.calls.append((request, timeout))
         return _FakeReply(self.raw)
 
 
-@pytest.mark.parametrize("invalid", [
-    b"not-json",
-    b'{"status":"incomplete","output":[]}',
-    b'{"status":"completed","output":[]}',
-    b'{"status":"completed","output":[{"type":"tool_call","content":[]}]}',
-    b'{"status":"completed","output":[{"type":"message","content":[{"type":"output_text","text":"ok"},{"type":"output_text","text":"more"}]}]}',
-])
+@pytest.mark.parametrize(
+    "invalid",
+    [
+        b"not-json",
+        b'{"status":"incomplete","output":[]}',
+        b'{"status":"completed","output":[]}',
+        b'{"status":"completed","output":[{"type":"tool_call","content":[]}]}',
+        b'{"status":"completed","output":[{"type":"message","content":[{"type":"output_text","text":"ok"},{"type":"output_text","text":"more"}]}]}',
+    ],
+)
 def test_astra_does_not_accept_invalid_or_tool_outputs(invalid):
     from jangus.integrations.advice.providers import AdviceFault as ProviderFault
 

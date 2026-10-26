@@ -55,9 +55,7 @@ class ConsultationLedger:
                 self.db.execute(
                     "CREATE TABLE meta(instance TEXT NOT NULL, generation INTEGER NOT NULL)"
                 )
-                self.db.execute(
-                    "INSERT INTO meta VALUES (?,0)", (secrets.token_hex(32),)
-                )
+                self.db.execute("INSERT INTO meta VALUES (?,0)", (secrets.token_hex(32),))
             self.db.execute(
                 "CREATE TABLE IF NOT EXISTS sessions("
                 "id TEXT PRIMARY KEY,revision TEXT NOT NULL,calls INTEGER NOT NULL,"
@@ -111,7 +109,8 @@ class ConsultationLedger:
             raise AdviceFault("ledger_identity_invalid")
         return json.dumps(
             {"version": 2, "instance": row["instance"], "generation": row["generation"]},
-            sort_keys=True, separators=(",", ":"),
+            sort_keys=True,
+            separators=(",", ":"),
         ).encode()
 
     def _check_anchor(self):

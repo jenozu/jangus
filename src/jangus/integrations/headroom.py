@@ -38,7 +38,9 @@ def compact(
     for i, line in enumerate(lines):
         if any(term in line for term in required_exact):
             protected.add(i)
-        elif re.search(r"\b(MUST|NEVER|ERROR|SHA-256|INVALID|FAILED)\b", line) or critical.search(line):
+        elif re.search(r"\b(MUST|NEVER|ERROR|SHA-256|INVALID|FAILED)\b", line) or critical.search(
+            line
+        ):
             protected.add(i)
     # Start with exact required and high-impact lines, always in original order.
     chosen = set(protected)
