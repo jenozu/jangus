@@ -2,6 +2,7 @@
 
 import json
 import os
+import secrets
 import sqlite3
 import stat
 import threading
@@ -43,6 +44,13 @@ class JobLedger:
         no_links(self.outputs)
         self.outputs.mkdir(exist_ok=True, mode=0o700)
         self.path = self.root / "jobs.sqlite3"
+        self.anchor = self.root / "ledger-identity.json"
+        no_links(self.anchor)
+        existing = self.path.exists()
+        if existing != self.anchor.exists() or (
+            not existing and any(self.outputs.iterdir())
+        ):
+            raise RemoteFault("ledger_identity_missing")
         for name in (self.path, Path(str(self.path) + "-wal"), Path(str(self.path) + "-shm")):
             no_links(name)
         self._thread_lock = threading.RLock()
@@ -56,9 +64,18 @@ class JobLedger:
             with self._thread_lock:
                 self.db.execute("BEGIN IMMEDIATE")
                 version = self.db.execute("PRAGMA user_version").fetchone()[0]
-                if version not in {0, 1}:
+                if version not in {0, 2}:
                     raise RemoteFault("unsupported_state_version")
                 if version == 0:
+                    self.db.execute("CREATE TABLE meta (instance TEXT NOT NULL)")
+                    self.db.execute(
+                        "INSERT INTO meta VALUES (?)", (secrets.token_hex(32),)
+                    )
+                    self.db.execute(
+                        "CREATE TABLE events (sequence INTEGER PRIMARY KEY, "
+                        "job_id TEXT NOT NULL, event TEXT NOT NULL, state TEXT NOT NULL, "
+                        "attempts INTEGER NOT NULL, recorded REAL NOT NULL)"
+                    )
                     self.db.execute(
                         "CREATE TABLE jobs (job_id TEXT PRIMARY KEY, "
                         "idempotency_key TEXT NOT NULL UNIQUE, payload_sha256 TEXT NOT NULL, "
@@ -66,8 +83,24 @@ class JobLedger:
                         "cancel_requested INTEGER NOT NULL, created REAL NOT NULL, "
                         "deadline REAL NOT NULL, result_sha256 TEXT, error TEXT)"
                     )
-                    self.db.execute("PRAGMA user_version=1")
+                    self.db.execute("PRAGMA user_version=2")
                 self.db.execute("COMMIT")
+            instance = self.db.execute("SELECT instance FROM meta").fetchone()
+            if instance is None or type(instance[0]) is not str or len(instance[0]) != 64:
+                raise RemoteFault("ledger_identity_invalid")
+            expected = canonical({"version": 2, "instance": instance[0]})
+            if existing:
+                if self.anchor.read_bytes() != expected:
+                    raise RemoteFault("ledger_identity_mismatch")
+            else:
+                # Incomplete initialization fails closed on restart rather than
+                # silently replacing accepted work with an empty database.
+                with self.anchor.open("xb") as stream:
+                    if os.name != "nt":
+                        self.anchor.chmod(0o600)
+                    stream.write(expected)
+                    stream.flush()
+                    os.fsync(stream.fileno())
             if os.name != "nt":
                 self.path.chmod(0o600)
         except (sqlite3.Error, OSError):
@@ -84,6 +117,25 @@ class JobLedger:
     def close(self):
         with self._thread_lock:
             self.db.close()
+
+    def _event(self, job_id: str, event: str, state: str, attempts: int):
+        """Insert sanitized job transition evidence in the same transaction."""
+        self.db.execute(
+            "INSERT INTO events(job_id,event,state,attempts,recorded) VALUES (?,?,?,?,?)",
+            (job_id, event, state, attempts, time.time()),
+        )
+
+    def audit(self, job_id: str) -> list[dict]:
+        """Private operator-facing event history (never exposed over HTTP)."""
+        with self._thread_lock:
+            self._one(job_id)
+            return [
+                dict(row)
+                for row in self.db.execute(
+                    "SELECT sequence,event,state,attempts,recorded FROM events "
+                    "WHERE job_id=? ORDER BY sequence LIMIT 64", (job_id,)
+                )
+            ]
 
     def _one(self, job_id: str) -> dict:
         valid_id(job_id)
@@ -167,6 +219,7 @@ class JobLedger:
                             None,
                         ),
                     )
+                    self._event(spec.job_id, "submitted", "queued", 0)
                 self.db.execute("COMMIT")
             except BaseException as exc:
                 if self.db.in_transaction:
@@ -206,11 +259,15 @@ class JobLedger:
                 self.db.execute("BEGIN IMMEDIATE")
                 row = self._one(job_id)
                 if row["state"] not in TERMINAL:
-                    state = "cancelled" if row["state"] == "queued" else row["state"]
+                    state = (
+                        "cancelled" if row["state"] in {"queued", "waiting"}
+                        else row["state"]
+                    )
                     self.db.execute(
                         "UPDATE jobs SET cancel_requested=1,state=? WHERE job_id=?",
                         (state, job_id),
                     )
+                    self._event(job_id, "cancel_requested", state, row["attempts"])
                 self.db.execute("COMMIT")
             except BaseException as exc:
                 if self.db.in_transaction:
@@ -227,6 +284,8 @@ class JobLedger:
                 "UPDATE jobs SET state=?,result_sha256=?,error=? WHERE job_id=?",
                 (state, digest, error, job_id),
             )
+            attempts = self._one(job_id)["attempts"]
+            self._event(job_id, "transition", state, attempts)
             self.db.execute("COMMIT")
         except sqlite3.Error:
             if self.db.in_transaction:
@@ -269,6 +328,8 @@ class JobLedger:
                     "UPDATE jobs SET state='intent',attempts=attempts+1 WHERE job_id=?",
                     (job_id,),
                 )
+                attempts = self._one(job_id)["attempts"]
+                self._event(job_id, "intent", "intent", attempts)
                 self.db.execute("COMMIT")
             except sqlite3.Error:
                 if self.db.in_transaction:

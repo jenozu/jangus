@@ -93,14 +93,47 @@ class ClientJournal:
         except ValueError:
             raise RemoteFault("client_state_unavailable") from None
 
+    def has_terminal_receipt(self, job_id: str) -> bool:
+        row = self.db.execute(
+            "SELECT last_state FROM pending WHERE job_id=?", (job_id,)
+        ).fetchone()
+        if row is None:
+            raise RemoteFault("job_missing")
+        return row["last_state"] in {"succeeded", "failed", "cancelled"}
+
     def record(self, status: dict):
+        """Accept verified receipts monotonically, even across client processes."""
         try:
+            self.db.execute("BEGIN IMMEDIATE")
+            row = self.db.execute(
+                "SELECT last_state,receipt_sha256 FROM pending WHERE job_id=?",
+                (status["job_id"],),
+            ).fetchone()
+            if row is None:
+                raise RemoteFault("job_missing")
+            if (
+                row["last_state"] in {"succeeded", "failed", "cancelled"}
+                and (
+                    status["state"] != row["last_state"]
+                    or status["result_sha256"] != row["receipt_sha256"]
+                )
+            ) or (
+                row["receipt_sha256"] is not None
+                and row["receipt_sha256"] != status["result_sha256"]
+            ):
+                raise RemoteFault("receipt_regressed")
             self.db.execute(
                 "UPDATE pending SET last_state=?,receipt_sha256=? WHERE job_id=?",
                 (status["state"], status["result_sha256"], status["job_id"]),
             )
-        except sqlite3.Error:
-            raise RemoteFault("client_state_unavailable") from None
+            self.db.execute("COMMIT")
+        except BaseException as exc:
+            if self.db.in_transaction:
+                self.db.execute("ROLLBACK")
+            if isinstance(exc, sqlite3.Error):
+                raise RemoteFault("client_state_unavailable") from None
+            raise
+
 
 
 class NoRedirect(HTTPRedirectHandler):
@@ -112,7 +145,11 @@ class RemoteClient:
     """Refuse off-loopback transport; SSH tunnel provides host auth/encryption."""
 
     def __init__(self, base_url: str, token: str, journal: ClientJournal, *, opener=None):
-        url = urlsplit(base_url)
+        try:
+            url = urlsplit(base_url)
+            port = url.port
+        except ValueError:
+            raise RemoteFault("tunnel_required") from None
         if (
             url.scheme != "http"
             or url.hostname not in {"127.0.0.1", "::1"}
@@ -121,8 +158,8 @@ class RemoteClient:
             or url.path not in {"", "/"}
             or url.query
             or url.fragment
-            or url.port is None
-            or not 1024 <= url.port <= 65535
+            or port is None
+            or not 1024 <= port <= 65535
         ):
             raise RemoteFault("tunnel_required")
         if len(token) < 32:
@@ -170,6 +207,10 @@ class RemoteClient:
         except RemoteFault as exc:
             if exc.code != "job_missing":
                 raise
+            # A completed job that vanished is a rollback/identity incident,
+            # not permission to duplicate the accepted effect on another host.
+            if self.journal.has_terminal_receipt(spec.job_id):
+                raise RemoteFault("receipt_regressed")
             status = self.request("POST", "/v1/jobs", spec.model_dump())
         verify_receipt(status, spec)
         self.journal.record(status)

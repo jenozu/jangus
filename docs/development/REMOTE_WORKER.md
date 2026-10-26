@@ -35,12 +35,12 @@ The worker persists a charged attempt and intent **before** an exclusive-create
 result file. On restart, matching bytes are adopted without a second effect,
 a missing result may be retried within its original attempt/deadline budgets,
 and a partial or mismatched artifact enters `waiting` without overwrite.
-Cancellation prevents new effects when observed, but an already written and
+Cancellation now permits an uncertain `waiting` job to transition to `cancelled` while preserving its `output_uncertain` error and never overwriting the partial artifact. Cancellation prevents new effects when observed, but an already written and
 verified effect is reported with `cancelled` and the result digest. Terminals
 are never silently retried. Test limits: 500 queued/terminal records per state
 directory, 2 charged attempts/job, 15-minute deadline from initial submission;
 no automated pruning in this phase. Manual maintenance needs a separate plan.
-The private paths are assumed exclusively controlled by a dedicated worker
+The private SQLite server ledger now includes a separate immutable identity anchor, version-2 schema and sanitized persisted transition events, rejecting missing/replaced state and orphaned artifacts rather than silently issuing a new job on lost state. **This is not complete rollback protection** against restoration of both the database and identity file; older v1 databases require a separate reviewed migration, not file deletion. The client prevents terminal receipts from regressing, and a failed worker liveness check returns unhealthy while the supervisor exits nonzero for systemd restart. The private paths are assumed exclusively controlled by a dedicated worker
 account; this is not a hostile-administrator sandbox.
 
 ## Reproducible synthetic developer checks
@@ -53,11 +53,13 @@ uv run --locked pytest tests/remote
 uv run --locked pytest
 ```
 
-Tests exercise actual loopback HTTP, authentication, conflicts, a lost accepted
+Tests also cover the read-only deployment preflight, verified SSH tunnel helper, ledger identity, transition audit, terminal client receipt rollback, uncertain-output cancellation, worker health failure and actual service/client object restart. Tests exercise actual loopback HTTP, authentication, conflicts, a lost accepted
 submit acknowledgement, status reconciliation, cancellation, simulated
 power loss immediately before and after a file effect, restart, corrupt output,
 immutable identity and digest checks. They do **not** prove live VPS connectivity
 or systemd recovery on your actual host. See [the phase review](../reviews/PHASE_7.md).
+
+For the detailed read-only operator preflight, manual SSH tunnel, actual host acceptance and stop conditions, see [the deployment checklist](REMOTE_DEPLOYMENT_CHECKLIST.md). No installer is run or enabled by CI.
 
 ## Future Ubuntu operator setup — not executed
 
@@ -81,7 +83,7 @@ identity, storage and existing service collisions before any actual deployment.
    SSH target and no password prompts disabled:
 
 ```powershell
-ssh -N -L 8765:127.0.0.1:8765 YOUR_VERIFIED_SSH_HOST
+./scripts/windows/open-remote-tunnel.ps1 -HostAlias YOUR_VERIFIED_SSH_HOST
 ```
 
 6. Supply the same private application token to the owner-operated client
@@ -111,7 +113,7 @@ effect; disconnect/reconnect; actual systemd service interruption immediately
 before and after effect; resumed verification and attempt accounting; a
 partial output that stays uncertain; cancellation; audit/backup, storage
 permissions and artifact integrity. Record machine, installed version,
-service identity, branch SHA, run/job IDs, expected/actual evidence, and
+service identity, exact installed branch SHA, run/job IDs, ledger identity preservation, sanitized transition audit, expected/actual evidence, and
 owner approval before claiming task 26 complete.
 
 No real machine, host address, SSH key or token belongs in the repository.

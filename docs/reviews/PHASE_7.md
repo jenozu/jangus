@@ -17,6 +17,7 @@ owner-acceptance gates are still pending.
   queries the original ID after a lost response and resubmits only unchanged
   content when remote status explicitly says missing. Both client/server
   independently check result identities and hashes.
+- Additional developer-side safeguards: schema-v2 private SQLite ledger identity anchor, persistent sanitized transition audit, fail-closed missing/changed ledger and orphan artifacts, terminal client receipt monotonicity, cancellation of uncertain output without overwrite, worker-liveness health and fatal-failure supervision, a non-deploying Ubuntu preflight verifier, strict PowerShell tunnel helper, and private operator audit CLI.
 - Owner-operated optional CLI, restrictive systemd unit template, SSH host-key
   and tunnel operating instructions, registered reviewed remote-worker skill,
   and synthetic network+restart tests.
@@ -38,5 +39,5 @@ FR14 VPS acceptance can be claimed.
 
 Only synthetic hashing is registered. This does not implement general remote
 file processing, shell/code execution, a sandbox against administrators,
-remote LLM inference, or Phase 8 consultants. No cloud secrets, real VPS data,
+remote LLM inference, or Phase 8 consultants. Schema v2 requires a reviewed migration if any v1 state exists; deleting an identity or database to bypass preflight is not permitted. A joint rollback of both private DB and identity anchor remains outside current detection. No cloud secrets, real VPS data,
 service credentials, deployment or PR merges are included.
