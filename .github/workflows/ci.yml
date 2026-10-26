@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, 'foundation/**', 'runtime/**', 'memory/**', 'remote/**', 'integrations/**']
+    branches: [main, 'foundation/**', 'runtime/**', 'memory/**', 'remote/**', 'integrations/**', 'release/**']
   pull_request:
   workflow_dispatch:
 
@@ -47,6 +47,8 @@ jobs:
         run: uv run --locked pytest
       - name: Run fixed offline integration comparisons (no provider access)
         run: uv run --locked python scripts/benchmark_optional_integrations.py
+      - name: Read-only Taskmaster readiness and dependency audit
+        run: uv run --locked python scripts/check_release_readiness.py --check foundation
       - name: Check repository documents and exclusions
         run: uv run --locked python scripts/check_repository.py
       - name: Validate example configuration
@@ -60,6 +62,10 @@ jobs:
       - name: Linux setup health check
         if: runner.os == 'Linux'
         run: bash scripts/linux/check-setup.sh
+      - name: Read-only Windows owner prerequisite report
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./scripts/windows/check-owner-readiness.ps1
       - name: Windows setup health check
         if: runner.os == 'Windows'
         shell: pwsh

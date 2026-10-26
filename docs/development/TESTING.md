@@ -2,6 +2,8 @@
 
 Phase 2 tests cover installation, configuration parsing, path boundaries, and the CLI. Phase 3 adds actual Taskmaster MCP tests on disposable development tasks. Phase 4 adds executable A01–A08 scenarios under `tests/execution/`. Phase 5 adds provisional simulated-provider, skill and handoff checks under `tests/agents/`; real A09–A13 and integrated A14–A17 remain pending. Phase 6 adds synthetic approval/retrieval/proposal checks under `tests/memory/`. Phase 7 adds authenticated loopback transport, private SQLite job and restart-reconciliation checks under `tests/remote/`; hardening tests additionally verify identity anchors, immutable terminal client receipts, durable audit, uncertain-output cancellation, read-only service preflight and actual loopback service/client object restart. No actual VPS testing is claimed. Phase 8 adds default-off advice-contract and synthetic AST/context comparison tests under `tests/integrations/`, including revision-bound trusted reviewer gates, persistent session identity and no-reset cost/call budgets, exact matching Codex-to-Astra fallback evidence, and multiple offline baseline fixtures.
 
+A post-Phase-8 release-readiness checkpoint adds `tests/release/` with a fully synthetic integration rehearsal and read-only Taskmaster dependency validator. No real owner-machine acceptance is asserted; see [ACCEPTANCE_HANDOFF.md](ACCEPTANCE_HANDOFF.md).
+
 ## Reproducible environment
 
 Use uv 0.12.23 and Python 3.12 or 3.13. `uv sync --locked` installs the checked-in resolution and fails if dependency declarations drift from it. The lock includes production and development dependencies from public PyPI; it contains no private index URL or credentials.
@@ -17,6 +19,7 @@ uv sync --locked
 uv run --locked ruff check .
 uv run --locked ruff format --check .
 uv run --locked pytest
+uv run --locked python scripts/check_release_readiness.py --check foundation
 uv run --locked python scripts/check_repository.py
 uv run --locked jangus config validate --config config/jangus.example.yaml
 uv build --no-build-isolation

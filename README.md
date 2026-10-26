@@ -4,7 +4,7 @@ Jangus is a planned self-hosted agent system for coordinating bounded tasks acro
 
 ## Current status
 
-**Phase 5 in progress:** Phase 4's deterministic file execution is implemented. Phase 5 now has provisional local Ollama/planning components, a reviewed skill loader and durable handoff helpers tested with mock responses. Target-desktop model benchmarks and Phase 5 acceptance remain pending. Phase 6 now has a tested synthetic end-to-end local memory/agent integration and authenticated local reviewer CLI; no live vault has been connected or accepted. Phase 7 has provisional registered-job client/server code and synthetic tests; no real VPS has been contacted. Phase 8 proposes default-off consultation gates and local AST/context comparison fixtures; no paid provider has been contacted.
+**Eight phases are implemented as stacked, unmerged draft PRs.** Phases 1–4 passed their stated software checks. Phases 5–8 include synthetic end-to-end tests and developer-side hardening, **not** real Windows Ollama, live Obsidian or VPS acceptance. Taskmaster task 12 is in progress and tasks 13–27 depend on owner hardware/access/acceptance; optional tasks 28–30 remain deferred. This release-readiness checkpoint adds cross-phase rehearsal and read-only handoff checks. No paid provider or live infrastructure was accessed.
 
 | Capability | Status |
 |---|---|
@@ -12,10 +12,10 @@ Jangus is a planned self-hosted agent system for coordinating bounded tasks acro
 | Package, dependency lock, configuration validation, setup guides, CI workflow | Implemented: Phase 2; verification recorded on the phase PR |
 | Taskmaster MCP development workflow | Implemented: Phase 3; four offline tools and reviewed backlog |
 | Logging, deterministic tools, reliable execution | Implemented: Phase 4; synthetic workflow and A01–A08 checks |
-| Local agents, skills, context handoffs | Phase 5: provisional components and simulated tests; real hardware gates pending |
-| Approved Obsidian memory | Phase 6: provisional private approval/retrieval and draft procedures; integrated acceptance pending |
-| Durable VPS jobs | Phase 7: provisional authenticated loopback worker and durable client; VPS acceptance pending |
-| Optional consultation and optimization | Phase 8 provisional advice gates and toy offline experiments; disabled in normal runtime |
+| Local agents, skills, context handoffs | Phase 5: role coordinator CI-tested; real Windows Ollama benchmark/acceptance pending |
+| Approved Obsidian memory | Phase 6: review CLI and approved-memory retrieval CI-tested; live Obsidian approval pending |
+| Durable VPS jobs | Phase 7: hardened durable private worker CI-tested; live VPS approval pending |
+| Optional consultation and optimization | Phase 8: bounded default-off advice and synthetic baselines; external provider access not accepted |
 
 ## How it will work
 
@@ -75,8 +75,10 @@ Project specifications:
 - [Phase 7 provisional verification record](docs/reviews/PHASE_7.md)
 - [Phase 8 optional advice, Codex/Astra restrictions and optimization baselines](docs/development/OPTIONAL_INTEGRATIONS.md)
 - [Phase 8 provisional review](docs/reviews/PHASE_8.md)
+- [Owner acceptance and release handoff](docs/development/ACCEPTANCE_HANDOFF.md)
+- [Cross-phase readiness checkpoint review](docs/reviews/RELEASE_READINESS.md)
 
-The implemented execution foundation is a synthetic file workflow with durable logs and independent verification. The full local MVP adds a local model, context handoffs, reviewed skills, and approved memory through Phase 6. VPS execution is a subsequent milestone.
+Use `uv run --locked python scripts/check_release_readiness.py` to read (not change) the Taskmaster gate states. It does not replace real owner testing. The implemented execution foundation is a synthetic file workflow with durable logs and independent verification. The full local MVP adds a local model, context handoffs, reviewed skills, and approved memory through Phase 6. VPS execution is a subsequent milestone.
 
 ## Data and scope
 

@@ -3,8 +3,7 @@
 This is a **provisional implementation with mocked end-to-end local-agent tests** on `memory/06-obsidian`.
 The complete local MVP cannot be accepted until the Windows local-model gates
 from Phase 5 (Taskmaster 12–17) and the real A09–A17 integration demonstration
-pass. No personal vault, trusted human-review UI, or desktop Obsidian session
-is connected to CI. The PR is stacked on unmerged Phase 5.
+pass. No personal vault or desktop Obsidian session is connected to CI. An operator-only passphrase review CLI is tested synthetically; real operator enrollment/OS trust and owner acceptance remain pending. The PR is stacked on unmerged Phase 5.
 
 ## Vault and metadata
 
@@ -43,8 +42,7 @@ SQLite **outside the vault and Git checkout**. Each review binds stable note ID,
 raw revision SHA, review scope/sharing, reviewer identity and evidence. It
 requires a trusted caller-supplied authorization callback and the caller's
 expected exact SHA; frontmatter text and agent claims alone never authorize
-anything. Human review integration must authenticate reviewers independently
-before supplying that callback. No public `approve` CLI is included.
+anything. The operator-only `scripts/review_memory.py` CLI authenticates a reviewer independently with a private passphrase before supplying that callback. No agent-accessible or network-exposed approval endpoint exists.
 
 On approval a private, immutable-by-convention snapshot of the exact bytes
 is saved under the SHA, while operational retrieval still rechecks the **live**
