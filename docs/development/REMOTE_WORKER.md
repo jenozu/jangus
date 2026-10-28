@@ -118,3 +118,14 @@ owner approval before claiming task 26 complete.
 
 No real machine, host address, SSH key or token belongs in the repository.
 No Phase 8 consultants or external-model integration is enabled.
+
+## Quota, retention and timeouts (audit batch F)
+
+At most 500 jobs may be non-terminal (queued, intent, waiting) at once, and at
+most 5000 are retained in total. Both limits fail with `job_quota`. Reclaim
+space with `python -m jangus.remote.service --state-dir DIR --prune-older-than-days N`,
+which deletes only terminal jobs (with their artifacts and events) and exits. A
+pruned job's idempotency key is forgotten, so replaying the same submission
+afterwards is accepted as new work. Each HTTP connection has a 10-second socket
+timeout, and the health check takes the ledger's thread lock like every other
+operation.

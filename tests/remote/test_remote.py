@@ -302,3 +302,39 @@ def test_client_does_not_expose_token_in_journal(tmp_path):
         assert "synthetic-canary" in dump
     finally:
         journal.close()
+
+
+def test_quota_counts_only_active_jobs_and_prune_reclaims_terminal(ledger, monkeypatch):
+    import jangus.remote.ledger as module
+
+    monkeypatch.setattr(module, "MAX_JOBS", 2)
+    first, second, third = job("a"), job("b"), job("c")
+    ledger.submit(first)
+    ledger.submit(second)
+    with pytest.raises(RemoteFault, match="job_quota"):
+        ledger.submit(third)
+    ledger.process_once()  # first succeeds; no longer active
+    assert ledger.status(first.job_id)["state"] == "succeeded"
+    ledger.submit(third)  # accepted now that only two are active
+    # Active job is never pruned; terminal one is.
+    assert ledger.prune(0) == 1
+    assert (ledger.outputs / (first.job_id + ".json")).exists() is False
+    with pytest.raises(RemoteFault, match="job_missing"):
+        ledger.status(first.job_id)
+    assert ledger.status(second.job_id)["state"] == "queued"
+    with pytest.raises(RemoteFault, match="invalid_request"):
+        ledger.prune(-1)
+
+
+def test_prune_keeps_recent_terminal_jobs(ledger):
+    spec = job()
+    ledger.submit(spec)
+    ledger.process_once()
+    assert ledger.prune(3600) == 0
+    assert ledger.status(spec.job_id)["state"] == "succeeded"
+
+
+def test_handler_has_socket_timeout_and_health_uses_lock(ledger):
+    handler = handler_for(ledger, TOKEN)
+    assert 0 < handler.timeout <= 30
+    ledger.ping()

@@ -5,10 +5,13 @@ All memory is lower-trust reference data, never a rule or tool permission.
 
 from dataclasses import dataclass
 
+from jangus.logs import get
 from jangus.memory.proposals import Proposal, propose_lesson
 from jangus.memory.registry import ApprovalRegistry
 from jangus.memory.retrieval import render_for_prompt, select
 from jangus.memory.schema import MemoryFault, Vault
+
+_LOG = get("memory")
 
 
 @dataclass(frozen=True)
@@ -46,9 +49,10 @@ class MemoryContext:
                 evidence="run:" + run_id,
                 max_bytes=self.max_bytes,
             )
-        except MemoryFault:
+        except MemoryFault as exc:
             if self.required:
                 raise
+            _LOG.warning("memory render skipped: %s", exc)
             return "", ()
         return text, tuple((choice.note_id, choice.sha256) for choice in choices)
 

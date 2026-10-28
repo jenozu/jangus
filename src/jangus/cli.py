@@ -13,6 +13,7 @@ from jangus.config import ConfigurationError, JangusConfig, load_config
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="jangus", description="Jangus local execution")
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
+    parser.add_argument("--debug", action="store_true", help="verbose logs (or JANGUS_DEBUG=1)")
     commands = parser.add_subparsers(dest="command", required=True)
     config_parser = commands.add_parser("config", help="Inspect the configuration contract")
     config_commands = config_parser.add_subparsers(dest="config_command", required=True)
@@ -52,6 +53,9 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     try:
         config = load_config(Path(selected).expanduser())
+        from jangus.logs import configure
+
+        configure(config.logging.level, debug=args.debug)
         if args.command != "config":
             return runtime_command(args, config)
     except ConfigurationError as exc:

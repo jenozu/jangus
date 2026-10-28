@@ -31,6 +31,8 @@ def handler_for(ledger: JobLedger, secret: str, worker_alive: Callable[[], bool]
 
     class Handler(BaseHTTPRequestHandler):
         protocol_version = "HTTP/1.1"
+        # Per-connection socket timeout so a stalled client cannot pin a thread.
+        timeout = 10
 
         def log_message(self, *_args):
             # Never log private input, job identifiers, or bearer credentials.
@@ -77,7 +79,7 @@ def handler_for(ledger: JobLedger, secret: str, worker_alive: Callable[[], bool]
                     if worker_alive is not None and not worker_alive():
                         self.reply(503, {"error": "worker_unavailable"})
                         return
-                    ledger.db.execute("SELECT 1").fetchone()
+                    ledger.ping()
                     self.reply(200, {"version": PROTOCOL_VERSION, "healthy": True})
                     return
                 if self.command == "POST" and path == "/v1/jobs":
@@ -150,7 +152,22 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--state-dir", type=Path, required=True)
     parser.add_argument("--port", type=int, default=8765)
+    parser.add_argument(
+        "--prune-older-than-days",
+        type=float,
+        default=None,
+        help="delete terminal jobs older than this many days, then exit",
+    )
     args = parser.parse_args()
+    if args.prune_older_than_days is not None:
+        if args.prune_older_than_days < 0:
+            parser.error("--prune-older-than-days must not be negative")
+        ledger = JobLedger(args.state_dir)
+        try:
+            print(json.dumps({"pruned_jobs": ledger.prune(args.prune_older_than_days * 86400)}))
+        finally:
+            ledger.close()
+        return 0
     token = os.environ.get("JANGUS_REMOTE_TOKEN", "")
     if len(token) < 32:
         parser.error("JANGUS_REMOTE_TOKEN must be securely configured (32+ characters)")
