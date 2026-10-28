@@ -1,12 +1,20 @@
 # Development verification
 
-Phase 2 tests cover installation, configuration parsing, path boundaries, and the CLI. Phase 3 adds actual Taskmaster MCP tests on disposable development tasks. Phase 4 adds executable A01–A08 scenarios under `tests/execution/`. Phase 5 adds provisional simulated-provider, skill and handoff checks under `tests/agents/`; real A09–A13 and integrated A14–A17 remain pending. Phase 6 adds synthetic approval/retrieval/proposal checks under `tests/memory/`. Phase 7 adds authenticated loopback transport, private SQLite job and restart-reconciliation checks under `tests/remote/`; hardening tests additionally verify identity anchors, immutable terminal client receipts, durable audit, uncertain-output cancellation, read-only service preflight and actual loopback service/client object restart. No actual VPS testing is claimed. Phase 8 adds default-off advice-contract and synthetic AST/context comparison tests under `tests/integrations/`, including revision-bound trusted reviewer gates, persistent session identity and no-reset cost/call budgets, exact matching Codex-to-Astra fallback evidence, and multiple offline baseline fixtures.
+Tests are grouped by phase:
+
+- **Phase 2:** installation, configuration parsing, path boundaries, and the CLI.
+- **Phase 3:** actual Taskmaster MCP tests on disposable development tasks.
+- **Phase 4:** executable A01–A08 scenarios under `tests/execution/`.
+- **Phase 5:** provisional simulated-provider, skill and handoff checks under `tests/agents/`. Real A09–A13 and integrated A14–A17 remain pending.
+- **Phase 6:** synthetic approval, retrieval and proposal checks under `tests/memory/`.
+- **Phase 7:** authenticated loopback transport, private SQLite job and restart-reconciliation checks under `tests/remote/`. Hardening tests additionally verify identity anchors, immutable terminal client receipts, durable audit, uncertain-output cancellation, read-only service preflight and actual loopback service/client object restart. No actual VPS testing is claimed.
+- **Phase 8:** default-off advice-contract and synthetic AST/context comparison tests under `tests/integrations/`. They include revision-bound trusted reviewer gates, persistent session identity, no-reset cost/call budgets, exact matching Codex-to-Astra fallback evidence, and multiple offline baseline fixtures.
 
 A post-Phase-8 release-readiness checkpoint adds `tests/release/` with a fully synthetic integration rehearsal and read-only Taskmaster dependency validator. No real owner-machine acceptance is asserted; see [ACCEPTANCE_HANDOFF.md](ACCEPTANCE_HANDOFF.md).
 
 ## Reproducible environment
 
-Use uv 0.12.23 and Python 3.12 or 3.13. `uv sync --locked` installs the checked-in resolution and fails if dependency declarations drift from it. The lock includes production and development dependencies from public PyPI; it contains no private index URL or credentials.
+Use uv 0.12.23 or a later 0.12.x release (CI pins 0.12.23; `pyproject.toml` accepts `>=0.12.23,<0.13`) and Python 3.12 or 3.13. `uv sync --locked` installs the checked-in resolution and fails if dependency declarations drift from it. The lock includes production and development dependencies from public PyPI; it contains no private index URL or credentials.
 
 Hatchling is pinned in both the build requirements and development group. After syncing, `uv build --no-build-isolation` uses its locked dependencies. This is the verified build route; a separate generic pip build resolves isolated build dependencies independently.
 
@@ -57,9 +65,13 @@ Run `uv run --locked pytest tests/integrations` and `uv run --locked python scri
 
 ## CI
 
-The [workflow](../../.github/workflows/ci.yml) runs for pushes to project branches and pull requests. It has read-only repository permissions and no model, VPS, or deployment credentials. Third-party actions are pinned to reviewed commit SHAs.
+The [workflow](../../.github/workflows/ci.yml) runs for pull requests and for pushes to `main` (pull-request runs cover feature branches, so a branch push is not run twice). It has read-only repository permissions and no model, VPS, or deployment credentials. Third-party actions are pinned to reviewed commit SHAs.
 
 The matrix covers Ubuntu 22.04 and Windows on Python 3.12 and 3.13, including locked install, lint/format, tests, document/ignore checks, example validation, build, isolated wheel verification, and OS health scripts. Record the actual workflow result on the phase PR. A configured workflow is not evidence of a successful run.
+
+## Dependency audits
+
+On Ubuntu with Python 3.13 the workflow also runs `pip-audit` against the locked Python dependencies, and the Taskmaster job runs `npm audit --audit-level=high` against the npm lockfile. Both steps are non-blocking (`continue-on-error`): they surface advisories in the job log without failing the build, because most npm advisories arrive through the development-only `task-master-ai` tree. Review the output when it changes; accepted risks belong in the pull request description.
 
 ## Taskmaster checks
 

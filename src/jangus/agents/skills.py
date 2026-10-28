@@ -27,7 +27,8 @@ class ReviewedSkill:
 
 def _git_blob(content: bytes) -> str:
     header = f"blob {len(content)}\0".encode()
-    return hashlib.sha1(header + content).hexdigest()
+    # Git blob IDs are SHA-1 by definition; used only for catalog compatibility.
+    return hashlib.sha1(header + content).hexdigest()  # nosec B324
 
 
 class SkillRegistry:

@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import ntpath
 import re
 from pathlib import PureWindowsPath
 from typing import Literal
@@ -32,13 +33,21 @@ def digest(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
+def _reserved_name(part: str) -> bool:
+    """Windows reserved-device names, without the pathlib API removed in 3.15."""
+    isreserved = getattr(ntpath, "isreserved", None)  # Python 3.13+
+    if isreserved is not None:
+        return bool(isreserved(part))
+    return PureWindowsPath(part).is_reserved()
+
+
 def relative_name(value: str) -> str:
     parts = value.split("/")
     if len(value) > 240 or any(
         p in {"", ".", ".."}
         or not re.fullmatch(r"[A-Za-z0-9_.-]+", p)
         or p.endswith(".")
-        or PureWindowsPath(p).is_reserved()
+        or _reserved_name(p)
         for p in parts
     ):
         raise ValueError("Use portable relative paths without traversal or reserved names")

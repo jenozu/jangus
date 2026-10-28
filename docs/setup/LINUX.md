@@ -2,7 +2,7 @@
 
 This guide covers the Python package on Ubuntu, including Ubuntu 22.04. See [Taskmaster](../development/TASKMASTER.md) and [Phase 4 execution](../development/EXECUTION.md) for the implemented development and deterministic runtime workflows. No daemon, open port, SSH tunnel, or remote-job service is installed.
 
-Install Git and the pinned uv tool using the [official uv installation guidance](https://docs.astral.sh/uv/getting-started/installation/). If you have a suitable Python/pip environment, `python3 -m pip install --user uv==0.12.23` is another option. Do not use sudo pip or overwrite the distribution's managed Python. Ensure `uv --version` prints `0.12.23` and that `uv` is on PATH.
+Install Git and the pinned uv tool using the [official uv installation guidance](https://docs.astral.sh/uv/getting-started/installation/). If you have a suitable Python/pip environment, `python3 -m pip install --user uv==0.12.23` is another option. Do not use sudo pip or overwrite the distribution's managed Python. Ensure `uv --version` prints `0.12.23` or a later `0.12.x` release and that `uv` is on PATH.
 
 Ubuntu 22.04's system Python may be older than the supported range. uv can install a separate Python without replacing it:
 

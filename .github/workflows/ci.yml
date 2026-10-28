@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, 'foundation/**', 'runtime/**', 'memory/**', 'remote/**', 'integrations/**', 'release/**']
+    branches: [main]
   pull_request:
   workflow_dispatch:
 
@@ -39,6 +39,12 @@ jobs:
           enable-cache: false
       - name: Install locked dependencies
         run: uv sync --locked
+      - name: Python dependency audit (non-blocking)
+        if: runner.os == 'Linux' && matrix.python == '3.13'
+        continue-on-error: true
+        run: |
+          uv export --locked --no-hashes --no-emit-project --format requirements-txt -o "$RUNNER_TEMP/requirements.txt"
+          uvx --from pip-audit==2.10.1 pip-audit -r "$RUNNER_TEMP/requirements.txt" --no-deps --disable-pip
       - name: Lint
         run: uv run --locked ruff check .
       - name: Format
@@ -91,6 +97,10 @@ jobs:
         run: npm install --global npm@11.9.0 --ignore-scripts
       - name: Install locked tooling without lifecycle scripts
         run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: npm dependency audit (non-blocking)
+        if: runner.os == 'Linux'
+        continue-on-error: true
+        run: npm audit --audit-level=high
       - name: Validate reviewed backlog and local-only profile
         run: npm run tasks:check
       - name: Exercise real MCP workflow on disposable tasks

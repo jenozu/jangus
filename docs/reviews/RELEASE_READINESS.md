@@ -36,10 +36,18 @@ model access were used.
 
 ## Hosted verification
 
-Add actual commit SHA, Ubuntu/Windows Python test counts, Taskmaster MCP
-results, strict Ruff/repository/document checks and final PR URL here after
-the GitHub Actions matrix finishes. Synthetic pass does not constitute
-release approval.
+GitHub Actions results for commit `a40027329e12175b789cd2a930bdf010ee72c4df`
+(`release/acceptance-readiness`, PR #9):
+
+| Run | Event | Result |
+|---|---|---|
+| [40342885364](https://github.com/jenozu/jangus/actions/runs/40342885364) | push | all six jobs succeeded |
+| [40342907740](https://github.com/jenozu/jangus/actions/runs/40342907740) | pull_request | all six jobs succeeded |
+
+The six jobs are Ubuntu 22.04 and Windows on Python 3.12 and 3.13, plus the
+Taskmaster MCP job on Ubuntu and Windows. This records hosted CI only. Per-job
+test counts were not captured here; open the run for them. A green run does not
+constitute release approval or owner-machine acceptance.
 
 ## Remaining owner gates
 
