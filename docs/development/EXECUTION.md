@@ -114,6 +114,13 @@ and stop new dispatch. Recovery can verify an already completed effect after a
 deadline. A backwards clock before run creation fails closed. Machine clock and
 filesystem integrity remain host responsibilities.
 
+When model roles run before dispatch, the submitting workflow reserves their
+time: `Controller.submit(..., deadline_extension_seconds=N)` adds a fixed,
+validated allowance (0–900 s; two `model.call_timeout_seconds` for the
+coordinated planner and worker, one for the single planner) to the persisted
+deadline. The allowance is set once at submission and can never be renewed, so
+slow inference cannot consume the budget for file effects and cannot extend it.
+
 Cancellation is a persisted request that a second process may make during
 execution. The current bounded action can finish; its effect is verified or
 marked unresolved. No later action is dispatched. For an idle interrupted run,

@@ -17,8 +17,12 @@ class ContextFailure(ValueError):
 
 
 def estimate_tokens(text: str) -> int:
-    """Bytes/4 approximation only; this is never a measured tokenizer count."""
-    return (len(text.encode("utf-8")) + 3) // 4
+    """Conservative bytes/3 approximation; never a measured tokenizer count.
+
+    Hash- and JSON-heavy prompts tokenize at well under four bytes per token, so
+    three is used until real-model benchmark data (`prompt_eval_count`) replaces it.
+    """
+    return (len(text.encode("utf-8")) + 2) // 3
 
 
 def bounded_output(text: str, *, max_bytes: int, reference: str) -> dict:

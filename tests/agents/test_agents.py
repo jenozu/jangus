@@ -11,7 +11,13 @@ from jangus.agents.context import HandoffStore, bounded_output, estimate_tokens
 from jangus.agents.provider import Message, ModelFailure, ModelReply, OllamaProvider
 from jangus.agents.skills import SkillFailure, SkillRegistry, load_rules
 from jangus.agents.workflow import PlanningFailure, run_verified_workflow
-from jangus.config import JangusConfig, ModelConfig, PathsConfig, PermissionsConfig
+from jangus.config import (
+    JangusConfig,
+    LimitsConfig,
+    ModelConfig,
+    PathsConfig,
+    PermissionsConfig,
+)
 from jangus.execution.contracts import FileExpectation, Manifest
 from jangus.execution.controller import RULES_HASH, Controller
 
@@ -257,3 +263,53 @@ def test_cross_instance_single_inference_and_malformed_port():
         thread.join(timeout=3)
     assert not thread.is_alive()
     assert not failures
+
+
+def test_provider_sends_configured_context_response_and_keep_alive():
+    fake = FakeOpener(b'{"message":{"content":"{}"}}')
+    provider = OllamaProvider(
+        ModelConfig(name="local-model", keep_alive="5m"),
+        limits=LimitsConfig(context_tokens=8192, response_tokens=2048),
+        opener=fake,
+    )
+    provider.generate([Message(role="user", content="synthetic")])
+    body = json.loads(fake.calls[0][0].data)
+    assert body["options"]["num_ctx"] == 8192
+    assert body["options"]["num_predict"] == 2048
+    assert body["keep_alive"] == "5m"
+
+
+def test_provider_defaults_match_default_limits():
+    fake = FakeOpener(b'{"message":{"content":"{}"}}')
+    provider = OllamaProvider(ModelConfig(name="local-model"), opener=fake)
+    provider.generate([Message(role="user", content="synthetic")])
+    body = json.loads(fake.calls[0][0].data)
+    defaults = LimitsConfig()
+    assert body["options"]["num_ctx"] == defaults.context_tokens
+    assert body["options"]["num_predict"] == defaults.response_tokens
+    assert body["keep_alive"] == "0"
+
+
+def test_provider_timeout_defaults_to_configured_call_timeout():
+    fake = FakeOpener(b'{"message":{"content":"{}"}}')
+    provider = OllamaProvider(ModelConfig(name="local-model", call_timeout_seconds=42), opener=fake)
+    provider.generate([Message(role="user", content="synthetic")])
+    assert fake.calls[0][1] == 42
+    provider.generate([Message(role="user", content="synthetic")], timeout=7)
+    assert fake.calls[1][1] == 7
+
+
+@pytest.mark.parametrize("endpoint", ["http://127.0.0.1:11434", "http://[::1]:11434"])
+def test_every_configurable_endpoint_builds_a_provider(endpoint):
+    config = ModelConfig(name="local-model", endpoint=endpoint)
+    OllamaProvider(config, opener=FakeOpener(b"{}"))
+
+
+def test_localhost_hostname_is_rejected_by_configuration_not_at_runtime():
+    with pytest.raises(ValueError, match="loopback"):
+        ModelConfig(name="local-model", endpoint="http://localhost:11434")
+
+
+def test_token_estimate_is_conservative_for_hash_heavy_text():
+    assert estimate_tokens("x" * 300) == 100
+    assert estimate_tokens("a" * 64) >= 64 // 4

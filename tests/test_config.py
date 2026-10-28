@@ -60,6 +60,12 @@ def test_valid_configuration_is_read_only(tmp_path, valid_data):
         {"model": {"endpoint": "http://user:canary-secret@localhost:11434"}},
         {"model": {"endpoint": "http://localhost:11434/?key=canary-secret"}},
         {"model": {"endpoint": "http://localhost:invalid"}},
+        {"model": {"endpoint": "http://localhost:11434"}},
+        {"model": {"keep_alive": "forever"}},
+        {"model": {"keep_alive": "0m"}},
+        {"model": {"keep_alive": "5 m"}},
+        {"model": {"call_timeout_seconds": 0}},
+        {"model": {"call_timeout_seconds": 301}},
         {"model": {"api_key": "canary-secret"}},
     ],
 )
@@ -149,3 +155,17 @@ def test_existing_file_is_not_a_storage_directory(tmp_path, valid_data):
     valid_data["paths"]["data_dir"] = str(file)
     with pytest.raises(ConfigurationError, match="directories"):
         load_config(write_config(tmp_path, valid_data))
+
+
+@pytest.mark.parametrize("keep_alive", ["0", "-1", "30s", "5m", "2h"])
+def test_model_keep_alive_and_call_timeout_are_configurable(tmp_path, valid_data, keep_alive):
+    valid_data["model"] = {"keep_alive": keep_alive, "call_timeout_seconds": 90}
+    config = load_config(write_config(tmp_path, valid_data))
+    assert config.model.keep_alive == keep_alive
+    assert config.model.call_timeout_seconds == 90
+
+
+def test_model_defaults_preserve_existing_behaviour(tmp_path, valid_data):
+    config = load_config(write_config(tmp_path, valid_data))
+    assert config.model.keep_alive == "0"
+    assert config.model.call_timeout_seconds == 60

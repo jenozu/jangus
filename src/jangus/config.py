@@ -24,11 +24,19 @@ class PathsConfig(StrictModel):
     workspace_dir: str = Field(min_length=1)
 
 
+KEEP_ALIVE_PATTERN = r"0|-1|[1-9][0-9]{0,4}[smh]"
+
+
 class ModelConfig(StrictModel):
     provider: str = "ollama"
     endpoint: str = "http://127.0.0.1:11434"
     name: str | None = None
     max_concurrent_inference: int = Field(default=1, ge=1, le=1)
+    # How long Ollama keeps the model loaded after a call: "0" unloads at once
+    # (lowest memory, slowest repeated calls), "5m" keeps it warm, "-1" forever.
+    keep_alive: str = Field(default="0", pattern=f"^({KEEP_ALIVE_PATTERN})$")
+    # Upper bound for one inference request; the run deadline reserves this time.
+    call_timeout_seconds: int = Field(default=60, ge=1, le=300)
 
     @field_validator("provider")
     @classmethod
@@ -54,7 +62,7 @@ class ModelConfig(StrictModel):
             raise ValueError("invalid local endpoint") from exc
         if (
             url.scheme != "http"
-            or url.hostname not in {"127.0.0.1", "localhost", "::1"}
+            or url.hostname not in {"127.0.0.1", "::1"}
             or url.username is not None
             or url.password is not None
             or url.query
@@ -63,7 +71,10 @@ class ModelConfig(StrictModel):
             or port is None
             or not 1 <= port <= 65535
         ):
-            raise ValueError("endpoint must be a loopback HTTP URL with a port")
+            raise ValueError(
+                "endpoint must be a loopback HTTP URL with a port "
+                "(use 127.0.0.1 or [::1]; hostnames such as localhost are not accepted)"
+            )
         return value
 
 

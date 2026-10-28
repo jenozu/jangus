@@ -88,11 +88,16 @@ def run_verified_workflow(
     estimated = estimate_tokens(system) + estimate_tokens(user)
     if estimated > available:
         raise ContextFailure("prompt_budget_exhausted")
-    run_id = controller.submit(workspace, manifest)
+    # The single planning call runs before dispatch; reserve its time in the deadline.
+    run_id = controller.submit(
+        workspace,
+        manifest,
+        deadline_extension_seconds=controller.config.model.call_timeout_seconds,
+    )
     try:
         reply = provider.generate(
             [Message(role="system", content=system), Message(role="user", content=user)],
-            timeout=min(300, controller.config.limits.run_timeout_seconds),
+            timeout=controller.config.model.call_timeout_seconds,
             cancelled=lambda: bool(controller.status(run_id)["cancel_requested"]),
         )
         _plan_response(reply, expected)

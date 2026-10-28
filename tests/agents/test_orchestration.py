@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import time
 from pathlib import Path
 
 import pytest
@@ -11,7 +12,7 @@ from jangus.agents.orchestration import run_coordinated_workflow
 from jangus.agents.provider import ModelReply
 from jangus.agents.workflow import PlanningFailure
 from jangus.config import JangusConfig, PathsConfig, PermissionsConfig
-from jangus.execution.contracts import FileExpectation, Manifest
+from jangus.execution.contracts import FileExpectation, Manifest, RuntimeFault
 from jangus.execution.controller import Controller
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -196,3 +197,41 @@ def test_diagnostician_receives_safe_failure_state_without_retrying(fixture):
     assert not (workspace / "out/test.txt").exists()
     assert controller.status(outcome.run_id)["state"] == "failed"
     assert not any("changed-after-submission" in str(msg) for msg in model.messages)
+
+
+def test_pre_dispatch_model_time_does_not_consume_the_effect_deadline(fixture, monkeypatch):
+    controller, workspace, manifest = fixture
+    real, offset = time.time, {"seconds": 0.0}
+    monkeypatch.setattr(time, "time", lambda: real() + offset["seconds"])
+
+    def slow(role):
+        if role in {"planner", "worker"}:
+            offset["seconds"] += 200  # two calls: 400 s > the 300 s run budget
+
+    outcome = run_coordinated_workflow(
+        controller, RoleModel(on_role=slow), workspace, manifest, ROOT
+    )
+    assert outcome.controller_state == "succeeded"
+
+
+def test_without_a_reservation_slow_model_time_exhausts_the_deadline(fixture, monkeypatch):
+    controller, workspace, manifest = fixture
+    real, offset = time.time, {"seconds": 0.0}
+    monkeypatch.setattr(time, "time", lambda: real() + offset["seconds"])
+    run_id = controller.submit(workspace, manifest)
+    offset["seconds"] += 400
+    status = controller.execute(run_id)
+    assert status["state"] == "failed"
+    assert status["error"] == "deadline"
+
+
+def test_deadline_extension_is_persisted_and_validated(fixture):
+    controller, workspace, manifest = fixture
+    run_id = controller.submit(workspace, manifest, deadline_extension_seconds=120)
+    run = controller.store.run(run_id)
+    assert run["deadline"] - run["created"] == pytest.approx(
+        controller.config.limits.run_timeout_seconds + 120
+    )
+    for bad in (-1, 901, True, "5"):
+        with pytest.raises(RuntimeFault, match="invalid_deadline_extension"):
+            controller.submit(workspace, manifest, deadline_extension_seconds=bad)

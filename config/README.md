@@ -25,10 +25,10 @@ Data and workspace paths must be distinct, non-overlapping directories outside d
 |---|---|
 | `schema_version` | Integer 1; future incompatible schemas need migration |
 | `paths` | Required private data/workspace locations; tilde expansion supported |
-| `model` | Planned Ollama loopback HTTP endpoint with explicit port; model name may be null; one inference at a time |
+| `model` | Ollama loopback HTTP endpoint with explicit port (`127.0.0.1` or `[::1]`; hostnames such as `localhost` are rejected); model name may be null; one inference at a time. `keep_alive` (default `"0"`: unload after each call; use e.g. `"5m"` to keep the model warm between role calls) and `call_timeout_seconds` (default 60, max 300) bound each inference |
 | `features` | Remote/Codex/Astra flags must remain false while integrations are absent |
 | `permissions` | Explicit unique allowlist from `file.list`, `file.read`, `file.hash`, `file.copy`, `file.report`; empty by default; network disabled |
-| `limits` | Persistent total dispatch attempts, per-action attempts, and deadline; context limits reserved for Phase 5 |
+| `limits` | Persistent total dispatch attempts, per-action attempts, and deadline; `context_tokens` and `response_tokens` are sent to the model as `num_ctx` and `num_predict` and also bound the prompt-size check |
 | `logging` | Explicit terminal-record retention and operational database size limit; structured disclosure filtering always enabled |
 
 The `config validate` command remains read-only. Explicit `run` commands create runtime state and enforce permissions/budgets; `state prune` performs retention maintenance. No model is loaded. No credentials belong in this file. Model endpoint fields reject authentication, query strings, and external hosts.
