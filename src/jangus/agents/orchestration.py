@@ -204,7 +204,7 @@ def _call(
         raise ContextFailure("prompt_budget_exhausted")
     reply = provider.generate(
         [Message(role="system", content=system), Message(role="user", content=user)],
-        timeout=min(controller.config.limits.run_timeout_seconds, 300),
+        timeout=controller.config.model.call_timeout_seconds,
         cancelled=lambda: bool(controller.status(run_id)["cancel_requested"]),
     )
     decision = _role_result(reply, role, assignment["focus_action_ids"], fingerprint)
@@ -246,7 +246,9 @@ def run_coordinated_workflow(
     plan = compile_plan(manifest)
     if len(plan.actions) > MAX_ROLE_ACTIONS:
         raise PlanningFailure("too_many_actions")
-    run_id = controller.submit(workspace, manifest)
+    # Planner and worker run before dispatch; reserve their time in the deadline.
+    pre_dispatch = 2 * controller.config.model.call_timeout_seconds
+    run_id = controller.submit(workspace, manifest, deadline_extension_seconds=pre_dispatch)
     receipts: list[RoleReceipt] = []
     attempted_calls = 0
     handoffs = HandoffStore(Path(controller.config.paths.data_dir).expanduser() / "handoffs")

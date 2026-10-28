@@ -48,7 +48,7 @@ def main() -> int:
         parser.error("Memory requires --coordinated, --vault and --registry together.")
     try:
         config = load_config(args.config)
-        provider = OllamaProvider(config.model)
+        provider = OllamaProvider(config.model, limits=config.limits)
         controller = Controller(config)
         registry = None
         try:

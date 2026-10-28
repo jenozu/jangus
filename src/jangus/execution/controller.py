@@ -72,7 +72,18 @@ class Controller:
             raise RuntimeFault("unsafe_path")
         return FileTools(resolved, set(self.config.permissions.allowed_tools))
 
-    def submit(self, workspace: Path, manifest: Manifest) -> str:
+    def submit(
+        self, workspace: Path, manifest: Manifest, *, deadline_extension_seconds: int = 0
+    ) -> str:
+        """Queue a run. The extension reserves time for pre-dispatch model calls.
+
+        It is fixed here, persisted in the deadline, and never renewable later.
+        """
+        if (
+            type(deadline_extension_seconds) is not int
+            or not 0 <= deadline_extension_seconds <= 900
+        ):
+            raise RuntimeFault("invalid_deadline_extension")
         plan = compile_plan(manifest)
         if len(plan.actions) > self.config.limits.max_actions:
             raise RuntimeFault("budget_exhausted")
@@ -99,7 +110,7 @@ class Controller:
                         "queued",
                         now,
                         now,
-                        now + self.config.limits.run_timeout_seconds,
+                        now + self.config.limits.run_timeout_seconds + deadline_extension_seconds,
                         self.config_hash,
                         POLICY_VERSION,
                         RULES_HASH,

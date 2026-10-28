@@ -9,7 +9,7 @@ from urllib.request import ProxyHandler, Request, build_opener
 
 from pydantic import Field, field_validator
 
-from jangus.config import ModelConfig, StrictModel
+from jangus.config import LimitsConfig, ModelConfig, StrictModel
 
 MAX_RESPONSE = 64 * 1024
 MAX_PROMPT = 24 * 1024
@@ -52,7 +52,7 @@ def _unique_pairs(pairs):
 class OllamaProvider:
     """One request at a time; cancellation is cooperative around a bounded HTTP call."""
 
-    def __init__(self, config: ModelConfig, *, opener=None):
+    def __init__(self, config: ModelConfig, *, limits: LimitsConfig | None = None, opener=None):
         if not config.name or not config.name.strip():
             raise ModelFailure("model_unconfigured")
         try:
@@ -73,6 +73,13 @@ class OllamaProvider:
         ):
             raise ModelFailure("non_loopback_endpoint")
         self.model = config.name
+        # Send the configured budgets: the caller's prompt-size check uses the same
+        # values, so the provider can never silently run with a smaller window.
+        limits = limits if limits is not None else LimitsConfig()
+        self.num_ctx = limits.context_tokens
+        self.num_predict = limits.response_tokens
+        self.keep_alive = config.keep_alive
+        self.call_timeout = float(config.call_timeout_seconds)
         self.endpoint = config.endpoint.rstrip("/") + "/api/chat"
         # Explicitly ignore HTTP_PROXY and HTTPS_PROXY for local inference.
         self.opener = opener if opener is not None else build_opener(ProxyHandler({}))
@@ -82,9 +89,10 @@ class OllamaProvider:
         self,
         messages: list[Message],
         *,
-        timeout: float = 60,
+        timeout: float | None = None,
         cancelled: Callable[[], bool] | None = None,
     ) -> ModelReply:
+        timeout = self.call_timeout if timeout is None else timeout
         if not messages or not 1 <= timeout <= 300:
             raise ModelFailure("invalid_request")
         if cancelled is not None and cancelled():
@@ -95,8 +103,12 @@ class OllamaProvider:
                 "messages": [m.model_dump() for m in messages],
                 "format": "json",
                 "stream": False,
-                "keep_alive": "0",
-                "options": {"temperature": 0, "num_ctx": 4096, "num_predict": 512},
+                "keep_alive": self.keep_alive,
+                "options": {
+                    "temperature": 0,
+                    "num_ctx": self.num_ctx,
+                    "num_predict": self.num_predict,
+                },
             },
             separators=(",", ":"),
         ).encode()
