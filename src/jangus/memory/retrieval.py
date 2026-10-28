@@ -63,7 +63,7 @@ def select(
         terms = set(re.findall(r"[a-z0-9_-]+", query.casefold()))
         # Multiple independently approved revisions for one topic/scope are a
         # human-review conflict, never choose an arbitrary winning revision.
-        counts = {}
+        counts: dict[tuple[str, str], int] = {}
         for candidate in eligible:
             key = (candidate.metadata.topic, candidate.metadata.scope)
             counts[key] = counts.get(key, 0) + 1
@@ -130,7 +130,7 @@ def render_for_prompt(
         for item in notes.values()
         if _eligible_graph(item, notes, registry, scope, destination)
     ]
-    counts = {}
+    counts: dict[tuple[str, str], int] = {}
     for item in eligible:
         key = (item.metadata.topic, item.metadata.scope)
         counts[key] = counts.get(key, 0) + 1

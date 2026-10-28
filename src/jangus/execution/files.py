@@ -99,7 +99,7 @@ class FileTools:
             raise RuntimeFault("tool_denied")
         if action.tool == "file.list":
             directory = self.path(action.path)
-            result = []
+            result: list[str] = []
             with os.scandir(directory) as entries:
                 for entry in entries:
                     if len(result) >= 100:
@@ -108,6 +108,8 @@ class FileTools:
                     result.append(entry.name)
             return {"entries": sorted(result)}
         if action.tool == "file.copy":
+            if action.source is None:
+                raise RuntimeFault("input_mismatch")
             content = self.read(action.source)
             if digest(content) != action.expected_sha256:
                 raise RuntimeFault("input_mismatch")

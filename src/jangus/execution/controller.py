@@ -222,8 +222,8 @@ class Controller:
                 if all(r["state"] == "verified" for r in rows):
                     # Final independent sweep catches changes to earlier outputs.
                     try:
-                        for row in rows:
-                            verify(files, Action.model_validate_json(row["definition"]))
+                        for item in rows:
+                            verify(files, Action.model_validate_json(item["definition"]))
                     except (RuntimeFault, OSError):
                         self._finish(run_id, "failed", "verification_failed")
                     else:

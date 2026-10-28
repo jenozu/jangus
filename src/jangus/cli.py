@@ -5,6 +5,7 @@ import json
 import os
 import sys
 from pathlib import Path
+from typing import Any
 
 from jangus import __version__
 from jangus.config import ConfigurationError, JangusConfig, load_config
@@ -91,6 +92,7 @@ def runtime_command(args, config):
             print(json.dumps({"restored": True}))
             return 0
         controller = Controller(config)
+        result: dict[str, Any]
         if args.command == "state":
             if args.state_command == "backup":
                 controller.store.backup(args.output)
