@@ -24,6 +24,7 @@ class ApprovalRequest:
     provider: str
     evidence_sha256: str
     action_scope_sha256: str
+    packet: str  # exact text that will be sent; show it to the owner verbatim
 
 
 class AdviceBroker:
@@ -62,6 +63,7 @@ class AdviceBroker:
             provider=provider,
             evidence_sha256=packet_digest,
             action_scope_sha256=scope_digest,
+            packet=packet,
         )
         if authorize is None or authorize(approval) is not True:
             raise AdviceFault("consultation_not_authorized")

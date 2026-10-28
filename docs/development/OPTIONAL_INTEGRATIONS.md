@@ -139,3 +139,14 @@ access/cost, real permitted-evidence review, measured tokens, and useful
 Graphify/Headroom comparative studies remain pending. Do not mark this
 phase fully released, wire these transports to automatic runtime decisions,
 merge PRs, or authorize a paid test based only on synthetic CI.
+
+## Disclosure scanner and approval packet
+
+`pack_evidence` no longer trusts the caller-supplied `redacted` flag alone. Each
+item's text and reference also pass a deterministic scan
+(`jangus.integrations.advice.scanner`) for private keys, common token shapes,
+credential assignments, URL credentials, home-directory paths and long hex
+strings. Any hit fails with `evidence_unsafe`; the error never echoes content.
+This is a deny-list, not proof of safety. `ApprovalRequest.packet` carries the
+exact text that will be sent, so the approval UI must show it verbatim before
+the owner approves.
