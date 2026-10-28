@@ -198,7 +198,8 @@ def load_config(path: Path, *, repository_root: Path | None = None) -> JangusCon
         text = raw.decode("utf-8-sig")
         if any(isinstance(token, (AliasToken, AnchorToken)) for token in yaml.scan(text)):
             raise ConfigurationError("YAML anchors and aliases are not supported.")
-        data = yaml.load(text, Loader=_UniqueSafeLoader)
+        # _UniqueSafeLoader subclasses SafeLoader, so this is safe loading.
+        data = yaml.load(text, Loader=_UniqueSafeLoader)  # nosec B506
     except (UnicodeError, yaml.YAMLError, RecursionError):
         raise ConfigurationError("Invalid UTF-8 YAML configuration.") from None
     if not isinstance(data, dict):

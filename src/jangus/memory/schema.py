@@ -131,7 +131,8 @@ def parse_note(path: Path, root: Path) -> Note:
         frontmatter = text[4:closing]
         if any(isinstance(token, (AliasToken, AnchorToken)) for token in yaml.scan(frontmatter)):
             raise ValueError("aliases not allowed")
-        metadata = yaml.load(frontmatter, Loader=UniqueLoader)
+        # UniqueLoader subclasses SafeLoader, so this is safe loading.
+        metadata = yaml.load(frontmatter, Loader=UniqueLoader)  # nosec B506
         if not isinstance(metadata, dict):
             raise ValueError("metadata not mapping")
         parsed = NoteMetadata.model_validate(metadata)
