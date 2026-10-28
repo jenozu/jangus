@@ -257,3 +257,12 @@ def test_cross_instance_single_inference_and_malformed_port():
         thread.join(timeout=3)
     assert not thread.is_alive()
     assert not failures
+
+
+def test_catalog_itself_is_pinned(tmp_path):
+    copy = tmp_path / "review"
+    (copy / "skills").mkdir(parents=True)
+    raw = (ROOT / "skills/catalog.json").read_text()
+    (copy / "skills/catalog.json").write_text(raw.replace('"version": 1', '"version":  1'))
+    with pytest.raises(SkillFailure, match="catalog_revision_changed"):
+        SkillRegistry(copy)

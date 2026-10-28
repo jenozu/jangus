@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+from pathlib import Path
 
 import pytest
 
@@ -130,3 +131,73 @@ def test_astra_does_not_accept_invalid_or_tool_outputs(invalid):
     assert len(transport.calls) == 1
     args = json.loads(transport.calls[0][0].data)
     assert args["tools"] == [] and args["store"] is False
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "-----BEGIN OPENSSH PRIVATE KEY-----",
+        "key AKIAABCDEFGHIJKLMNOP leaked",
+        "token ghp_abcdefghijklmnopqrstuvwxyz0123",
+        "password=hunter2hunter2",
+        "see /home/someone/project/notes.txt",
+        "C:\\Users\\someone\\Documents\\a.txt",
+        "https://user:pass@example.com/x",
+    ],
+)
+def test_scanner_blocks_secrets_even_when_flagged_redacted(text):
+    item = Evidence(
+        reference="case:scan",
+        text=text,
+        sha256=hashlib.sha256(text.encode()).hexdigest(),
+        sharing="external-ok",
+        redacted=True,
+    )
+    with pytest.raises(AdviceFault, match="evidence_unsafe") as error:
+        pack_evidence([item])
+    assert text not in str(error.value)
+
+
+def test_approval_request_carries_exact_packet():
+    import tempfile
+    import uuid
+
+    from jangus.integrations.advice.broker import AdviceBroker
+    from jangus.integrations.advice.contracts import AdvicePolicy
+    from jangus.integrations.advice.ledger import ConsultationLedger
+    from jangus.integrations.advice.providers import ManualCodexReview
+
+    text = "synthetic note"
+    item = Evidence(
+        reference="case:ok",
+        text=text,
+        sha256=hashlib.sha256(text.encode()).hexdigest(),
+        sharing="external-ok",
+        redacted=True,
+    )
+    seen = []
+    with tempfile.TemporaryDirectory() as root:
+        ledger = ConsultationLedger(
+            Path(root) / "p",
+            str(uuid.uuid4()),
+            AdvicePolicy(
+                codex_enabled=True,
+                max_calls=1,
+                max_estimated_tokens=12000,
+                max_reserved_microdollars=300000,
+            ),
+        )
+        try:
+            AdviceBroker(ledger).consult(
+                provider="codex",
+                evidence=[item],
+                allowed_action_ids={"copy_1"},
+                local_recovery_exhausted=True,
+                owner_approved_call=True,
+                authorize=lambda grant: seen.append(grant) or True,
+                transport=ManualCodexReview('{"summary":"ok","action_ids":[]}'),
+            )
+        finally:
+            ledger.close()
+    assert seen[0].packet == pack_evidence([item])
+    assert hashlib.sha256(seen[0].packet.encode()).hexdigest() == seen[0].evidence_sha256

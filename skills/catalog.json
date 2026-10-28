@@ -3,6 +3,7 @@
   "reviewed": {
     "file-workflow": {
       "blob_sha": "f04597e28032b896a5ad0e31af4a5bca5fa4674b",
+      "sha256": "5831647373e31489262e30040d548108b8647fef7fbcb39fcc5646f0ed87eb42",
       "required_tools": [
         "file.copy",
         "file.report"
@@ -10,22 +11,27 @@
     },
     "diagnose-failure": {
       "blob_sha": "d699e5f1cf52b416c6409a797bc628bad028dc58",
+      "sha256": "332ec29baabeed7dc72fa3f1b014a8caaf58e1ae5f1b791fd5ea6ab1a63ecc69",
       "required_tools": []
     },
     "export-diagnostics": {
       "blob_sha": "8b52917bae4b1a2e3b0a7e6e83cbfb092c52b6da",
+      "sha256": "da4144acdb87c61dbd7cfe1344c7e80b4936e6f10188b271777e31e01bf0ec80",
       "required_tools": []
     },
     "create-handoff": {
       "blob_sha": "adb49bcb632866a7a1ce235edb6a81ca0484cfdd",
+      "sha256": "2188d47a2f8f3b2673ca2048475a8dcbc9d59d9d28cc177a8e5f2cadc4fb7120",
       "required_tools": []
     },
     "propose-lesson": {
       "blob_sha": "7800def282b1c812d236528fbcd0874bc1e56e70",
+      "sha256": "d03d55f2b5f8e24b40b34d29b50e7810d49f05111dc73ef8858e009f44e60518",
       "required_tools": []
     },
     "remote-worker": {
       "blob_sha": "0ab5417dcc566f96fb2061f5d9876d7400c42b3a",
+      "sha256": "6586d597d481266a259f35391aa208ece006372d10adf2d099d9dac9070461b7",
       "required_tools": []
     }
   }

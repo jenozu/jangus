@@ -8,6 +8,7 @@ from typing import Literal
 from pydantic import Field, field_validator, model_validator
 
 from jangus.config import StrictModel
+from jangus.integrations.advice.scanner import scan_text
 
 
 class AdviceFault(ValueError):
@@ -63,6 +64,10 @@ def pack_evidence(items: list[Evidence]) -> str:
     items = [Evidence.model_validate(item.model_dump()) for item in items]
     if any(item.sharing != "external-ok" or not item.redacted for item in items):
         raise AdviceFault("disclosure_denied")
+    # The redacted flag is caller-asserted; the scanner is the mechanical check.
+    # The sha256 field is intentionally not scanned: it is a digest, not content.
+    if any(scan_text(item.text) or scan_text(item.reference) for item in items):
+        raise AdviceFault("evidence_unsafe")
     raw = json.dumps(
         [{"reference": e.reference, "sha256": e.sha256, "text": e.text} for e in items],
         sort_keys=True,
