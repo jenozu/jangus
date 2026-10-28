@@ -7,8 +7,8 @@ from pathlib import Path
 
 import yaml
 
-from jangus.config import _checkout_roots
 from jangus.execution.files import no_links
+from jangus.paths import checkout_roots
 
 
 def create(root: Path):
@@ -16,7 +16,7 @@ def create(root: Path):
     no_links(root)
     if any(
         root.resolve().is_relative_to(repo) or repo.is_relative_to(root.resolve())
-        for repo in _checkout_roots()
+        for repo in checkout_roots()
     ):
         raise ValueError("Choose a new directory outside the repository")
     root.mkdir(mode=0o700)  # Existing directories are rejected, never reused.
