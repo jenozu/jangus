@@ -16,8 +16,11 @@ from jangus.agents.skills import SkillRegistry, load_rules
 from jangus.agents.workflow import PlanningFailure
 from jangus.execution.contracts import Manifest, compile_plan
 from jangus.execution.controller import RULES_HASH, Controller
+from jangus.logs import get
 from jangus.memory.integration import MemoryContext
 from jangus.memory.schema import MemoryFault
+
+_LOG = get("agents")
 
 Role = Literal["planner", "worker", "verifier", "diagnostician"]
 MAX_MODEL_CALLS = 4
@@ -332,6 +335,7 @@ def run_coordinated_workflow(
             # Human edits, missing vault, or write errors cannot change canonical
             # execution outcomes and must never be overwritten by an agent.
             lesson_status = "conflict_or_unavailable"
+            _LOG.warning("lesson proposal skipped")
     return CoordinatedOutcome(
         run_id=run_id,
         controller_state=status["state"],

@@ -14,7 +14,8 @@ from jangus.config import StrictModel
 from jangus.execution.files import no_links
 
 MAX_NOTE = 32 * 1024
-MAX_SCAN = 300
+MAX_SCAN = 300  # eligible notes
+MAX_WALK = 3000  # all markdown files, including archived and templates
 NOTE_KINDS = {"environment", "runbook", "tool", "lesson", "run", "preference", "index"}
 SHARING = {"local", "external-ok"}
 
@@ -164,9 +165,12 @@ class Vault:
         """Index is optional: bounded direct scan, no symlink following or silent duplicates."""
         notes = {}
         count = 0
+        walked = 0
         for path in sorted(self.root.rglob("*.md")):
-            count += 1
-            if count > MAX_SCAN:
+            # Bound the raw walk separately so archived or template files cannot
+            # exhaust the note budget, yet a hostile tree cannot run unbounded.
+            walked += 1
+            if walked > MAX_WALK:
                 raise MemoryFault("vault_scan_limit")
             # Reject unsafe files, even if archived; never follow linked directories.
             no_links(path)
@@ -175,6 +179,9 @@ class Vault:
             relative = path.relative_to(self.root)
             if relative.parts[0] in {"70_Inbox_Agent", "90_Archive", "_templates"}:
                 continue
+            count += 1
+            if count > MAX_SCAN:
+                raise MemoryFault("vault_scan_limit")
             note = self.load(path)
             if note.metadata.id in notes:
                 raise MemoryFault("duplicate_note_id")

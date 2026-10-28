@@ -21,7 +21,8 @@ from jangus.remote.protocol import (
     valid_id,
 )
 
-MAX_JOBS = 500
+MAX_JOBS = 500  # non-terminal (queued/intent/waiting) jobs at once
+MAX_STORED_JOBS = 5000  # all retained jobs; reclaim space with prune()
 MAX_ATTEMPTS = 2
 JOB_TIMEOUT_SECONDS = 900
 TERMINAL = {"succeeded", "failed", "cancelled"}
@@ -196,8 +197,12 @@ class JobLedger:
                     ):
                         raise RemoteFault("idempotency_conflict")
                 else:
-                    count = self.db.execute("SELECT COUNT(*) FROM jobs").fetchone()[0]
-                    if count >= MAX_JOBS:
+                    marks = ",".join("?" * len(TERMINAL))
+                    active, stored = self.db.execute(
+                        f"SELECT COALESCE(SUM(state NOT IN ({marks})),0), COUNT(*) FROM jobs",
+                        tuple(sorted(TERMINAL)),
+                    ).fetchone()
+                    if active >= MAX_JOBS or stored >= MAX_STORED_JOBS:
                         raise RemoteFault("job_quota")
                     now = time.time()
                     self.db.execute(
@@ -225,6 +230,53 @@ class JobLedger:
                     raise RemoteFault("state_unavailable") from None
                 raise
             return self.status(spec.job_id)
+
+    def ping(self) -> None:
+        """Cheap liveness probe that respects the connection's thread lock."""
+        with self._thread_lock:
+            try:
+                self.db.execute("SELECT 1").fetchone()
+            except sqlite3.Error:
+                raise RemoteFault("state_unavailable") from None
+
+    def prune(self, older_than_seconds: float) -> int:
+        """Delete terminal jobs created before the cutoff, with artifacts and events.
+
+        Non-terminal jobs are never touched. A pruned job's idempotency key is
+        forgotten, so a replay of the same submission would be accepted as new.
+        """
+        if not isinstance(older_than_seconds, int | float) or older_than_seconds < 0:
+            raise RemoteFault("invalid_request")
+        cutoff = time.time() - older_than_seconds
+        marks = ",".join("?" * len(TERMINAL))
+        with self._thread_lock:
+            try:
+                self.db.execute("BEGIN IMMEDIATE")
+                ids = [
+                    row[0]
+                    for row in self.db.execute(
+                        f"SELECT job_id FROM jobs WHERE state IN ({marks}) AND created<?",
+                        (*sorted(TERMINAL), cutoff),
+                    )
+                ]
+                for job_id in ids:
+                    self.db.execute("DELETE FROM events WHERE job_id=?", (job_id,))
+                    self.db.execute("DELETE FROM jobs WHERE job_id=?", (job_id,))
+                self.db.execute("COMMIT")
+            except BaseException as exc:
+                if self.db.in_transaction:
+                    self.db.execute("ROLLBACK")
+                if isinstance(exc, sqlite3.Error):
+                    raise RemoteFault("state_unavailable") from None
+                raise
+            # Files go after the commit: a leftover artifact is harmless, a
+            # missing artifact for a retained job would not be.
+            for job_id in ids:
+                try:
+                    self._artifact(job_id).unlink(missing_ok=True)
+                except OSError:
+                    pass
+            return len(ids)
 
     def status(self, job_id: str) -> dict:
         with self._thread_lock:

@@ -262,3 +262,60 @@ class ApprovalRegistry:
             "VALUES (?,?,?,?,?,?)",
             (note.metadata.id, note.sha256, scope, destination, evidence, time.time()),
         )
+
+
+def reconcile_anchor(directory: Path) -> dict:
+    """Repair only the benign crash window: committed generation N, anchor N-1.
+
+    The anchor is written after COMMIT, so a crash between the two leaves the
+    anchor exactly one generation behind with the same instance id. Any other
+    difference (different instance, anchor ahead of the database, a gap larger
+    than one) may be a rollback or tampering and is refused. Every repair is
+    appended to an audit file next to the anchor. Run only with no other
+    process using the registry.
+    """
+    directory = directory.resolve()
+    db_path = directory / "approvals.sqlite3"
+    anchor_path = directory / "approval-anchor.json"
+    for path in (directory, db_path, anchor_path):
+        no_links(path)
+    try:
+        with process_lock(directory / "approval-writer.lock"):
+            db = sqlite3.connect(db_path, timeout=5, isolation_level=None)
+            try:
+                meta = {row[0]: row[1] for row in db.execute("SELECT key,value FROM meta")}
+                anchor = json.loads(anchor_path.read_bytes())
+                if (
+                    set(anchor) != {"instance", "generation"}
+                    or type(anchor["generation"]) is not int
+                ):
+                    raise ValueError("anchor shape")
+                current = int(meta["generation"])
+                if anchor["instance"] != meta["instance"]:
+                    raise ValueError("instance")
+                if anchor["generation"] == current:
+                    return {"repaired": False, "generation": current}
+                if anchor["generation"] != current - 1:
+                    raise ValueError("not a one-step crash gap")
+                data = json.dumps(
+                    {"instance": meta["instance"], "generation": current}, sort_keys=True
+                ).encode()
+                temporary = directory / "approval-anchor.repair"
+                with temporary.open("wb") as stream:
+                    stream.write(data)
+                    stream.flush()
+                    os.fsync(stream.fileno())
+                os.replace(temporary, anchor_path)
+                record = json.dumps(
+                    {"recorded": time.time(), "from": anchor["generation"], "to": current},
+                    sort_keys=True,
+                )
+                with (directory / "anchor-repairs.log").open("a", encoding="utf-8") as log:
+                    log.write(record + "\n")
+                    log.flush()
+                    os.fsync(log.fileno())
+                return {"repaired": True, "generation": current}
+            finally:
+                db.close()
+    except (OSError, sqlite3.Error, ValueError, TypeError, KeyError):
+        raise MemoryFault("anchor_not_repairable") from None

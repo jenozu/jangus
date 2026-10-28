@@ -298,3 +298,62 @@ def test_no_raw_private_note_content_in_registry(memory):
     dumped = "\n".join(registry.db.iterdump())
     assert "Verify local copy and report hashes" not in dumped
     assert hashlib.sha256(note.raw).hexdigest() in dumped
+
+
+def test_archived_and_inbox_notes_do_not_consume_the_scan_budget(memory, monkeypatch):
+    import jangus.memory.schema as schema
+
+    vault, _registry = memory
+    monkeypatch.setattr(schema, "MAX_SCAN", 2)
+    for _ in range(5):
+        make_note(vault, folder="90_Archive")
+        make_note(vault, folder="70_Inbox_Agent")
+    make_note(vault)
+    make_note(vault)
+    assert len(vault.scan()) == 2
+    make_note(vault)
+    with pytest.raises(MemoryFault, match="vault_scan_limit"):
+        vault.scan()
+
+
+def test_raw_walk_is_still_bounded(memory, monkeypatch):
+    import jangus.memory.schema as schema
+
+    vault, _registry = memory
+    monkeypatch.setattr(schema, "MAX_WALK", 3)
+    for _ in range(4):
+        make_note(vault, folder="90_Archive")
+    with pytest.raises(MemoryFault, match="vault_scan_limit"):
+        vault.scan()
+
+
+def test_anchor_reconcile_repairs_only_the_one_step_crash_gap(memory, tmp_path):
+    import json
+
+    from jangus.memory.registry import reconcile_anchor
+
+    vault, registry = memory
+    approve(registry, make_note(vault))
+    directory = registry.directory
+    anchor = directory / "approval-anchor.json"
+    good = json.loads(anchor.read_text())
+    assert reconcile_anchor(directory) == {"repaired": False, "generation": good["generation"]}
+
+    # Simulate a crash after COMMIT and before the anchor write: anchor one behind.
+    anchor.write_text(json.dumps({**good, "generation": good["generation"] - 1}))
+    with pytest.raises(MemoryFault):
+        registry._check_anchor()
+    assert reconcile_anchor(directory) == {"repaired": True, "generation": good["generation"]}
+    registry._check_anchor()
+    assert (directory / "anchor-repairs.log").read_text().count("\n") == 1
+
+    # Anchor ahead of the database (rollback), a larger gap, or another instance: refuse.
+    for bad in (
+        {**good, "generation": good["generation"] + 1},
+        {**good, "generation": good["generation"] - 2},
+        {**good, "instance": "x" * 32},
+    ):
+        anchor.write_text(json.dumps(bad))
+        with pytest.raises(MemoryFault, match="anchor_not_repairable"):
+            reconcile_anchor(directory)
+        assert json.loads(anchor.read_text()) == bad

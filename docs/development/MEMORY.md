@@ -156,3 +156,19 @@ a locally installed Ollama model before running the above. It does not
 authenticate the external Obsidian app or verify a real Windows model call
 in GitHub CI. No production backup, live vault, or user credential belongs in
 the repository.
+
+## Scan budget, logging and anchor repair (audit batch F)
+
+- `Vault.scan` counts only eligible notes toward `MAX_SCAN` (300). Files under
+  `70_Inbox_Agent`, `90_Archive` and `_templates` no longer consume it, but a
+  separate `MAX_WALK` (3000) bounds every markdown file seen. Selection and
+  rendering still re-scan on purpose, so approvals are rechecked immediately
+  before exposure.
+- Optional memory that is skipped logs a warning with the stable fault code
+  only (never note content). Configure with `logging.level`, `--debug` or
+  `JANGUS_DEBUG=1`; credential shapes are masked and `redact_secrets` stays on.
+- `jangus.memory.registry.reconcile_anchor(directory)` repairs only the benign
+  crash window (database generation N, anchor N-1, same instance) and appends to
+  `anchor-repairs.log`. An anchor that is ahead, further behind or from another
+  instance is refused with `anchor_not_repairable`. Run it with nothing else
+  using the registry. The consultation ledger has no equivalent repair yet.

@@ -3,8 +3,11 @@
 import re
 from dataclasses import dataclass
 
+from jangus.logs import get
 from jangus.memory.registry import ApprovalRegistry
 from jangus.memory.schema import MemoryFault, Note, Vault
+
+_LOG = get("memory")
 
 
 @dataclass(frozen=True)
@@ -105,9 +108,11 @@ def select(
         if required and not chosen:
             raise MemoryFault("memory_required_unavailable")
         return chosen
-    except MemoryFault:
+    except MemoryFault as exc:
         if required:
             raise
+        # Optional memory is skipped, but never silently: log the stable code only.
+        _LOG.warning("memory skipped: %s", exc)
         return []
 
 

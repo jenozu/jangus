@@ -149,3 +149,24 @@ def test_existing_file_is_not_a_storage_directory(tmp_path, valid_data):
     valid_data["paths"]["data_dir"] = str(file)
     with pytest.raises(ConfigurationError, match="directories"):
         load_config(write_config(tmp_path, valid_data))
+
+
+def test_logging_honors_level_and_masks_credentials(capsys):
+    import logging
+
+    from jangus.logs import configure, get
+
+    configure("WARNING")
+    get("t").info("hidden-info")
+    get("t").warning("password=hunter2 Bearer abcdefghijklmnop sk-abcdefghijklmnopqrst ok-text")
+    err = capsys.readouterr().err
+    assert "hidden-info" not in err
+    assert "hunter2" not in err and "abcdefghijklmnop" not in err
+    assert "ok-text" in err and "[redacted]" in err
+    configure("ERROR", debug=True)
+    assert logging.getLogger("jangus").level == logging.DEBUG
+    get("t").debug("visible-debug")
+    assert "visible-debug" in capsys.readouterr().err
+    assert (
+        len([h for h in logging.getLogger("jangus").handlers if getattr(h, "_jangus", False)]) == 1
+    )
