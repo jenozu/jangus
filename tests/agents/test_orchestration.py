@@ -74,7 +74,6 @@ class RoleModel:
             if role == "diagnostician"
             else ("verified" if role == "verifier" else "ready"),
             "action_ids": assignment["focus_action_ids"],
-            "assignment_sha256": sha,
         }
         reply.update(self.changes.get(role, {}))
         return ModelReply(
@@ -138,7 +137,7 @@ def test_worker_rejection_blocks_effect_and_preserves_cancelled_run(fixture):
     "tampered",
     [
         {"action_ids": ["new_admin_action"]},
-        {"assignment_sha256": "0" * 64},
+        {"assignment_sha256": "0" * 64},  # echoed hashes are no longer part of the contract
         {"role": "verifier"},
         {"tools": ["shell.exec"]},
         {"decision": "verified"},

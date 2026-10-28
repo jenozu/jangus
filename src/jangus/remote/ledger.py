@@ -9,9 +9,9 @@ import threading
 import time
 from pathlib import Path
 
-from jangus.config import _checkout_roots
 from jangus.execution.files import no_links
 from jangus.execution.storage import process_lock
+from jangus.paths import checkout_roots
 from jangus.remote.protocol import (
     PROTOCOL_VERSION,
     JobSpec,
@@ -36,7 +36,7 @@ class JobLedger:
         if any(
             self.root.resolve().is_relative_to(checkout)
             or checkout.is_relative_to(self.root.resolve())
-            for checkout in _checkout_roots()
+            for checkout in checkout_roots()
         ):
             raise RemoteFault("state_inside_checkout")
         self.root.mkdir(parents=True, exist_ok=True, mode=0o700)

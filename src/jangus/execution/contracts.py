@@ -15,6 +15,11 @@ MAX_FILE_BYTES = 1024 * 1024
 MAX_MANIFEST_BYTES = 64 * 1024
 POLICY_VERSION = "phase4-v1"
 
+# Single source of truth for persisted states. The SQLite CHECK constraints in
+# storage.py are tested against these, so the two cannot drift apart silently.
+RunStatus = Literal["queued", "running", "waiting", "succeeded", "failed", "cancelled"]
+ActionStatus = Literal["pending", "intent", "verified", "failed", "uncertain"]
+
 
 class RuntimeFault(Exception):
     """A stable, safe diagnostic code; never include arbitrary exception text."""

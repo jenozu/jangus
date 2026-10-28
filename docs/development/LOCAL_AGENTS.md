@@ -30,3 +30,14 @@ Do not re-run against the same output directory; exclusive creation prevents ove
 ## Known boundaries
 
 No automatic model selection, arbitrary natural-language plan execution, OS-isolated worker process, independent model-directed file retries, preemptive inference cancellation, Taskmaster AI planning, Obsidian integration, VPS integration, or paid consultant integration is provided. The coordinated mode extends reasoning isolation within the reviewed deterministic plan; it cannot perform new actions the manifest did not authorize. Stable Phase 4 state and budgets are authoritative. Handoff snapshots are not recovery authorization. The task-12 benchmark remains the prerequisite for Taskmaster tasks 13–17 to be marked complete, even though their code can be tested provisionally in CI.
+
+## Role replies and assignment binding (audit batch G, ADR-008)
+
+A role reply is exactly `{role, decision, action_ids}`. The model no longer echoes
+the assignment hash. The harness issues one call per assignment fingerprint and
+records that fingerprint in the receipt, so a reply cannot be attached to another
+assignment. Any extra key, including a model-supplied hash, fails as
+`role_schema_invalid`. Run and action state vocabularies live in
+`jangus.execution.contracts` (`RunStatus`, `ActionStatus`) and a test keeps them
+equal to the SQLite CHECK constraints. Shared path-boundary logic is public as
+`jangus.paths.checkout_roots`.

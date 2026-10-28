@@ -15,8 +15,8 @@ from urllib.request import (
     build_opener,
 )
 
-from jangus.config import _checkout_roots
 from jangus.execution.files import no_links
+from jangus.paths import checkout_roots
 from jangus.remote.protocol import (
     JobSpec,
     RemoteFault,
@@ -38,7 +38,7 @@ class ClientJournal:
         if any(
             self.directory.resolve().is_relative_to(checkout)
             or checkout.is_relative_to(self.directory.resolve())
-            for checkout in _checkout_roots()
+            for checkout in checkout_roots()
         ):
             raise RemoteFault("state_inside_checkout")
         self.directory.mkdir(parents=True, exist_ok=True, mode=0o700)

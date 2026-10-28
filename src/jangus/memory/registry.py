@@ -15,10 +15,10 @@ import time
 from collections.abc import Callable
 from pathlib import Path
 
-from jangus.config import _checkout_roots
 from jangus.execution.files import no_links
 from jangus.execution.storage import process_lock
 from jangus.memory.schema import MemoryFault, Note, Vault
+from jangus.paths import checkout_roots
 
 ALLOWED_DECISIONS = {"approved", "revoked", "retired"}
 
@@ -30,7 +30,7 @@ class ApprovalRegistry:
         self.directory = directory.resolve()
         if any(
             self.directory.is_relative_to(checkout) or checkout.is_relative_to(self.directory)
-            for checkout in _checkout_roots()
+            for checkout in checkout_roots()
         ):
             raise MemoryFault("registry_inside_checkout")
         if self.directory.is_relative_to(vault.root) or vault.root.is_relative_to(self.directory):

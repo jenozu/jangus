@@ -114,7 +114,6 @@ class SyntheticRoles:
                 "role": role,
                 "decision": decision,
                 "action_ids": assignment["focus_action_ids"],
-                "assignment_sha256": digest,
             }
         )
 

@@ -9,9 +9,9 @@ import time
 import uuid
 from pathlib import Path
 
-from jangus.config import _checkout_roots
 from jangus.execution.files import no_links
 from jangus.integrations.advice.contracts import AdviceFault, AdvicePolicy
+from jangus.paths import checkout_roots
 
 
 class ConsultationLedger:
@@ -24,9 +24,7 @@ class ConsultationLedger:
         no_links(directory)
         home = directory.expanduser().resolve()
         self.directory = home
-        if any(
-            home.is_relative_to(root) or root.is_relative_to(home) for root in _checkout_roots()
-        ):
+        if any(home.is_relative_to(root) or root.is_relative_to(home) for root in checkout_roots()):
             raise AdviceFault("ledger_inside_checkout")
         home.mkdir(parents=True, mode=0o700, exist_ok=True)
         self.path = home / "consultations.sqlite3"
