@@ -8,6 +8,8 @@ import yaml
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 from yaml.tokens import AliasToken, AnchorToken
 
+from jangus.paths import checkout_roots
+
 MAX_CONFIG_BYTES = 64 * 1024
 
 
@@ -153,17 +155,6 @@ class _UniqueSafeLoader(yaml.SafeLoader):
         return result
 
 
-def _checkout_roots() -> set[Path]:
-    roots = set()
-    for start in (Path.cwd(), Path(__file__).resolve().parent):
-        for candidate in (start, *start.parents):
-            if (candidate / ".git").exists() or (
-                (candidate / "pyproject.toml").exists() and (candidate / "rules.md").exists()
-            ):
-                roots.add(candidate.resolve())
-    return roots
-
-
 def _external_path(value: str, repositories: set[Path]) -> Path:
     try:
         path = Path(value).expanduser()
@@ -213,7 +204,7 @@ def load_config(path: Path, *, repository_root: Path | None = None) -> JangusCon
 
     if config.limits.response_tokens >= config.limits.context_tokens:
         raise ConfigurationError("Response tokens must be smaller than the context budget.")
-    repositories = _checkout_roots()
+    repositories = checkout_roots()
     if repository_root is not None:
         repositories.add(repository_root.resolve())
     data_dir = _external_path(config.paths.data_dir, repositories)

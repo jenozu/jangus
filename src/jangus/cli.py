@@ -64,12 +64,12 @@ def main(argv: list[str] | None = None) -> int:
 def runtime_command(args, config):
     import sqlite3
 
-    from jangus.config import _checkout_roots
     from jangus.execution.contracts import RuntimeFault
     from jangus.execution.controller import Controller, read_manifest
     from jangus.execution.diagnostics import export
     from jangus.execution.files import no_links
     from jangus.execution.storage import restore
+    from jangus.paths import checkout_roots
 
     controller = None
     try:
@@ -77,7 +77,7 @@ def runtime_command(args, config):
         if getattr(args, "output", None):
             output = args.output.expanduser().absolute()
             no_links(output)
-            if any(output.resolve().is_relative_to(r) for r in _checkout_roots()):
+            if any(output.resolve().is_relative_to(r) for r in checkout_roots()):
                 raise RuntimeFault("output_inside_checkout")
             workspace_root = Path(config.paths.workspace_dir).expanduser().resolve()
             if output.resolve().is_relative_to(workspace_root):

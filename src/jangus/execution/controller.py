@@ -7,7 +7,7 @@ from pathlib import Path
 
 from pydantic import ValidationError
 
-from jangus.config import JangusConfig, _checkout_roots, _external_path
+from jangus.config import JangusConfig, _external_path
 from jangus.execution.contracts import (
     MAX_MANIFEST_BYTES,
     POLICY_VERSION,
@@ -21,6 +21,7 @@ from jangus.execution.contracts import (
 from jangus.execution.files import FileTools, no_links
 from jangus.execution.storage import TERMINAL, Store
 from jangus.execution.verification import verify
+from jangus.paths import checkout_roots
 
 # Reviewed root rules.md SHA-256, recorded with every run; no model loading implied.
 RULES_HASH = "1fee072c80db31cb7c7757fcc5ba3598384b2c3903b14f2ae6c8fb72c6b9ad22"
@@ -50,7 +51,7 @@ def read_manifest(path: Path) -> Manifest:
 class Controller:
     def __init__(self, config: JangusConfig):
         self.config = config
-        roots = _checkout_roots()
+        roots = checkout_roots()
         for value in (config.paths.data_dir, config.paths.workspace_dir):
             no_links(Path(value).expanduser().absolute())
         self.workspace_root = _external_path(config.paths.workspace_dir, roots)

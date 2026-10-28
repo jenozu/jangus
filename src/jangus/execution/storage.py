@@ -12,7 +12,7 @@ from jangus.execution.contracts import RuntimeFault, encoded
 from jangus.execution.files import no_links
 
 SCHEMA_VERSION = 1
-TERMINAL = {"succeeded", "failed", "cancelled"}
+TERMINAL: frozenset[str] = frozenset({"succeeded", "failed", "cancelled"})
 TRANSITIONS = {
     "queued": {"running", "cancelled", "failed"},
     "running": {"running", "waiting", "succeeded", "failed", "cancelled"},

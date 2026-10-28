@@ -11,9 +11,9 @@ import re
 import secrets
 from pathlib import Path
 
-from jangus.config import _checkout_roots
 from jangus.execution.files import no_links
 from jangus.memory.schema import MemoryFault
+from jangus.paths import checkout_roots
 
 ITERATIONS = 600_000
 
@@ -26,7 +26,7 @@ class ReviewAuthority:
         self.directory = directory.expanduser().resolve()
         if any(
             self.directory.is_relative_to(repo) or repo.is_relative_to(self.directory)
-            for repo in _checkout_roots()
+            for repo in checkout_roots()
         ):
             raise MemoryFault("review_inside_checkout")
         self.directory.mkdir(parents=True, exist_ok=True, mode=0o700)

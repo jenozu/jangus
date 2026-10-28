@@ -49,7 +49,6 @@ class MockLocalRoles:
                 "role": role,
                 "decision": "verified" if role == "verifier" else "ready",
                 "action_ids": assignment["focus_action_ids"],
-                "assignment_sha256": digest,
             }
         )
 
