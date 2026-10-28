@@ -80,3 +80,19 @@ The tests make no model calls and need no provider credentials. See
 ## References
 
 Implementation choices were checked against [uv locking and syncing](https://docs.astral.sh/uv/concepts/projects/sync/), [uv GitHub Actions guidance](https://docs.astral.sh/uv/guides/integration/github/), [Pydantic strict mode](https://docs.pydantic.dev/latest/concepts/strict_mode/), and [PyYAML documentation](https://pyyaml.org/wiki/PyYAMLDocumentation). The repository's pinned lock and tests define the tested dependency set.
+
+## Type checking and coverage
+
+CI runs `mypy` (configured in `pyproject.toml`, `src` only) and a coverage floor
+of 75% line+branch on Linux/Python 3.13. Measured baseline when added: about 80%
+locally; subprocess crash tests and Windows-only branches are not counted. Raise
+the floor after reading a few CI numbers. mypy and coverage are pinned in the CI
+commands (`--with`) rather than the locked dev group because changing the group
+requires regenerating `uv.lock` with the pinned uv; moving them there is a
+follow-up for the owner.
+
+```console
+uv run --locked --with mypy==2.4.1 mypy
+uv run --locked --with coverage==7.17.0 coverage run -m pytest
+uv run --locked --with coverage==7.17.0 coverage report
+```

@@ -85,7 +85,7 @@ DDL = [
 
 def safe_payload(payload: dict) -> dict:
     """Allowlist structured diagnostics instead of persisting arbitrary task text."""
-    result = {}
+    result: dict[str, object] = {}
     for key, value in payload.items():
         if key == "code" and isinstance(value, str) and value in CODES:
             result[key] = value
@@ -112,7 +112,7 @@ def process_lock(path: Path):
                 stream.flush()
             stream.seek(0)
             try:
-                msvcrt.locking(stream.fileno(), msvcrt.LK_NBLCK, 1)
+                msvcrt.locking(stream.fileno(), msvcrt.LK_NBLCK, 1)  # type: ignore[attr-defined]
             except OSError:
                 raise RuntimeFault("executor_busy") from None
         else:
@@ -128,7 +128,7 @@ def process_lock(path: Path):
         if locked:
             if os.name == "nt":
                 stream.seek(0)
-                msvcrt.locking(stream.fileno(), msvcrt.LK_UNLCK, 1)
+                msvcrt.locking(stream.fileno(), msvcrt.LK_UNLCK, 1)  # type: ignore[attr-defined]
             else:
                 fcntl.flock(stream.fileno(), fcntl.LOCK_UN)
         stream.close()

@@ -43,8 +43,16 @@ jobs:
         run: uv run --locked ruff check .
       - name: Format
         run: uv run --locked ruff format --check .
+      - name: Type check
+        # Tool versions are pinned here until they join the locked dev group.
+        run: uv run --locked --with mypy==2.4.1 mypy
       - name: Test configuration, CLI, and execution acceptance
         run: uv run --locked pytest
+      - name: Coverage floor (Linux, Python 3.13)
+        if: runner.os == 'Linux' && matrix.python == '3.13'
+        run: |
+          uv run --locked --with coverage==7.17.0 coverage run -m pytest -q
+          uv run --locked --with coverage==7.17.0 coverage report --fail-under=75
       - name: Run fixed offline integration comparisons (no provider access)
         run: uv run --locked python scripts/benchmark_optional_integrations.py
       - name: Read-only Taskmaster readiness and dependency audit

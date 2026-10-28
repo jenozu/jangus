@@ -40,7 +40,7 @@ def verify_unit(contents: bytes) -> None:
     try:
         text = contents.decode("utf-8")
         config = configparser.ConfigParser(interpolation=None, strict=True)
-        config.optionxform = str
+        config.optionxform = str  # type: ignore[method-assign,assignment]
         config.read_string(text)
         if "Service" not in config or set(config["Service"]) != set(EXPECTED):
             raise ValueError("directive mismatch")
