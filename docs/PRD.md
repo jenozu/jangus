@@ -1,7 +1,7 @@
 # Jangus v2 product requirements
 
-Status: DRAFT specification, not yet an authorized phase. Owner: repository owner. Date: 2026-11-01.
-Replaces the v1 PRD (in the v1 repo, jenozu/jangus) once the owner accepts [ADR-001](decisions/001-v2-orchestrator-and-agents.md). The v1 repo stays authoritative for v1 code.
+Status: ACCEPTED specification (ADR-001 accepted 2026-11-01); implementation not started. Owner: repository owner. Date: 2026-11-01.
+Replaces the v1 PRD (in the v1 repo, jenozu/jangus) per [ADR-001](decisions/001-v2-orchestrator-and-agents.md). The v1 repo stays authoritative for v1 code.
 
 ## Problem and outcome
 

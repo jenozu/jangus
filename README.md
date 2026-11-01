@@ -179,7 +179,7 @@ Rules: one task at a time; new ideas go to `.taskmaster/docs/parking-lot.md`, no
 
 | Phase | Goal | Status |
 |---|---|---|
-| 0 | Specs, ADR-001, task list | Written; awaiting owner acceptance |
+| 0 | Specs, ADR-001, task list | ADR-001 accepted; awaiting go-ahead for Phase 1 |
 | 1 | Kernel with fake tools | Not started |
 | 2a | Providers and local model benchmark | Not started |
 | 2b | Agent runtime, attempt policy, metering, budget gate, cache | Not started |

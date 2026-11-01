@@ -1,6 +1,6 @@
 # ADR-001: v2 orchestrator and specialist agents under a deterministic kernel
 
-Status: PROPOSED. Needs owner acceptance. Builds on v1 ADR-006 (deterministic execution); amends v1 rules R01, R03, R11 as listed below. Drafted as ADR-009 in the v1 repo.
+Status: ACCEPTED by the repository owner on 2026-11-01. Builds on v1 ADR-006 (deterministic execution); amends v1 rules R01, R03, R11 as listed below. Drafted as ADR-009 in the v1 repo.
 
 ## Context
 
