@@ -223,4 +223,4 @@ Acceptance is defined by 47 scenarios (B01-B47) in [docs/MVP.md](docs/MVP.md). R
 v1 lives at [github.com/jenozu/jangus](https://github.com/jenozu/jangus) (branch `release/acceptance-readiness`), a deterministic file-copy controller with advisory local models. v2 ports selected modules (strict config, SQLite state, hash verification, hash-chained ledger, loopback endpoint check, secret scanner, Ollama provider, memory registry) and replaces the fixed-manifest plan, the one-word model roles and the fixed five-tool set. v1 acceptance work is paused.
 
 ## License
-Not yet chosen. No license grant is implied. See the open items in [MEMORY.md](MEMORY.md).
+None, by owner decision (2026-11-01). All rights reserved by default; no license grant is implied. To be revisited before the repo is shared or accepts contributions.

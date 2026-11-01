@@ -6,7 +6,7 @@ Read at session start. Update at session end: add dated entries under Log, revis
 Development plan: `.taskmaster/tasks/tasks.json` (24 tasks, phases 0-7; only Phase 1 and early Phase 2 are detailed). Helper: `python3 tools/taskmaster/tasks.py status|next|show|set-status|log|add|validate`. PRD summary and decision log: `.taskmaster/docs/prd.md`. Runtime directives use the same schema (docs/DIRECTIVES.md).
 
 ## Current phase
-Phase 0: specs written; ADR-001 ACCEPTED by the owner 2026-11-01; the five stacked phase-0 branches are merged into `main`. No code yet. Still open for task 1: license and package name. Do not start Phase 1 (task 2) until the owner says so.
+Phase 0: specs written; ADR-001 ACCEPTED by the owner 2026-11-01; the five stacked phase-0 branches are merged into `main`. No code yet. Still open for task 1: confirm package name (default `jangus2`) and switch the GitHub default branch to `main`. Do not start Phase 1 (task 2) until the owner says so.
 
 ## Owner and environment
 - Owner GitHub: jenozu. Windows 11 desktop, 32,457 MB RAM (GPU unchecked). Python 3.12.10 (`py -3.12`), Git 2.56.0, Ollama 0.40.13, installed via winget. Optional Ubuntu VPS.
@@ -31,7 +31,6 @@ Phase 0: specs written; ADR-001 ACCEPTED by the owner 2026-11-01; the five stack
 15. Gate: file/backup agent must run 7 days unattended with zero manual fixes before shop or inbox agents.
 
 ## Open items (owner)
-- Choose a license.
 - Choose the package name/layout (default `src/jangus2/`).
 - Pick the local model after benchmarking (Phase 2).
 - Set the monthly Claude spend cap and create the API key (Phase 2).
@@ -44,6 +43,7 @@ Reconcile rules per Shopify/Printify/email action; test strategy for LLM-driven 
 config.py strict models; execution/storage.py (SQLite, idempotency); execution/verification.py (hashing); remote/ledger.py (hash-chained ledger); loopback endpoint check; secret scanner (PR #13); agents/provider.py (Ollama); memory/ registry (Phase 7).
 
 ## Log
+- 2026-11-01: License decision: none for now (all rights reserved by default). Owner not concerned about outside use; revisit before sharing the repo or accepting contributions.
 - 2026-11-01: Owner accepted ADR-001. Merged phase-0/specs, taskmaster, cost-discipline, attempt-limits, token-economy (linear stack, fast-forward) into main.
 - 2026-11-01: Added token economy + recipes specs, rewrote PHASES.md with scenario gates (2a benchmark first, 3b token-economy proof), README, tasks 28-34.
 - 2026-11-01: Owner's main concern is token usage and limits. Added attempt policy, repeat detection, escalation ladder, host placement (FR27-31, B31-B36, ADR-001 items 10-11), tasks 26-27.
