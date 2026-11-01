@@ -37,11 +37,29 @@ A directive is JSON, validated with strict pydantic models. It mirrors `tasks.js
 3. **One task at a time.** The runtime shows the specialist only the current task, its dependencies' verified results, and the directive goal and non-goals. Tasks run in dependency order.
 4. **Kernel-owned status.** A task becomes `done` only when its `testStrategy` check passes. Where possible the check is a kernel-run verification (hash compare, file exists, row count); otherwise it is recorded as `review` for the owner. The model saying "done" never sets status.
 5. **Log from evidence.** The kernel appends a timestamped log entry per tool call result (ledger ID), failure and verification result. Logs are written by the kernel, never by free-text from the model.
-6. **Stop conditions.** A budget exhausted, an unresolved effect, a rejected T3 approval, or two failed attempts on a task sets the task `blocked`-equivalent (`deferred` with a reason), halts the directive and raises an alert. No retries beyond the persisted limits.
+6. **Stop conditions.** A budget exhausted, an unresolved effect, a rejected T3 approval, or exhausting the attempt ladder (below) on a task sets the task `blocked`-equivalent (`deferred` with a reason), halts the directive and raises an alert. No retries beyond the persisted limits.
 7. **Drift rule.** Work outside the current task is rejected. New ideas go to the run report as suggestions for the orchestrator or owner; they never become tasks automatically.
 8. **External content is data.** Directive text is authored by the orchestrator or owner; email, orders or file contents referenced by a task are never treated as directive text.
 9. **Immutable once issued.** The directive file's hash is recorded in the ledger at issue. Changes need a new directive that supersedes the old one.
 10. **Fresh runs.** A directive is the only continuity a run gets, plus approved memory and ledger-derived facts.
+
+## Attempts, loops and step-up
+Every task has hard limits so nothing can loop. Defaults come from the agent spec; a directive may only tighten them.
+
+**What counts as one failed attempt** (the kernel counts, never the model): a rejected or failed tool call; a failed verification of the task's `testStrategy`; a model reply the kernel cannot parse into valid proposals; a repeated proposal (below); or a no-progress cycle (three consecutive proposals that produce the same result hash and no new evidence).
+
+**Repeat detection.** The kernel hashes each proposal as (tool, normalized arguments). If the same hash appears twice within one task, the second is refused without executing and counts as a failed attempt.
+
+**Ladder for `runner: model` tasks** (defaults, set in the spec's `attempts` block):
+1. Attempts 1-2 use the spec's default model.
+2. Attempt 3 is a single step-up on the spec's `escalation_model` (for example Haiku to Sonnet low effort), only if the spec names one and the budget allows. The step-up sees the failure reasons recorded by the kernel, nothing else.
+3. If that fails, the task is set `deferred` with a reason, the directive halts, and an alert is queued for the owner. The orchestrator is called only if the directive has `escalate: true` and the daily cap is not reached.
+
+`runner: kernel` tasks have no step-up: a failed scripted step gets the tool's own transient-retry allowance, then the directive halts.
+
+**Hard per-task limits** (any hit counts as a failed attempt, and the third hit stops the task): `max_model_calls` (default 6), `max_proposals` (default 12), `max_wall_seconds`, and the directive's overall budget. A task never gets a fresh budget by being retried, restarted or re-issued; a superseding directive inherits the consumed attempts for the same task.
+
+**Nothing climbs on its own.** No agent can choose a stronger model, raise a limit, or call the orchestrator. Only the kernel moves a task up the ladder, and only as specified here.
 
 ## Cost rules (the orchestrator is not in the loop)
 1. **Completion is deterministic.** Marking a task done, finishing a directive, and writing the run report are kernel actions. No model is called to say "I'm done", and the orchestrator is never asked to confirm. The run report is a fixed template filled from ledger data.

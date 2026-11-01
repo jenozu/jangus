@@ -93,8 +93,8 @@
           3,
           6
         ],
-        "details": "src/jangus2/directives/models.py per docs/DIRECTIVES.md: schema_version, goal, non_goals, budget, tasks with dependencies/testStrategy/tools. Validate: lower-id dependencies, tools subset of spec, tier ceiling <= spec max_tier, immutable hash recorded at issue. Status changes only via kernel API.\n\n[adapt 2026-11-01 cost discipline] Add task field `runner` (kernel|model, default model) with `steps` for kernel-run tasks, and directive flag `escalate` (default false). Validate steps use only tools in the task's `tools`.",
-        "testStrategy": "pytest: directive asking for a tool outside the spec rejected; cyclic/forward dependency rejected; model-supplied status ignored; directive hash logged to ledger; kernel-run task with a tool outside its tools list is rejected (B29)",
+        "details": "src/jangus2/directives/models.py per docs/DIRECTIVES.md: schema_version, goal, non_goals, budget, tasks with dependencies/testStrategy/tools. Validate: lower-id dependencies, tools subset of spec, tier ceiling <= spec max_tier, immutable hash recorded at issue. Status changes only via kernel API.\n\n[adapt 2026-11-01 cost discipline] Add task field `runner` (kernel|model, default model) with `steps` for kernel-run tasks, and directive flag `escalate` (default false). Validate steps use only tools in the task's `tools`.\n\n[adapt 2026-11-01 attempt limits] Add per-task limits fields (max_model_calls, max_proposals, max_wall_seconds) that may only tighten spec defaults; consumed attempts carry over to a superseding directive.",
+        "testStrategy": "pytest: directive asking for a tool outside the spec rejected; cyclic/forward dependency rejected; model-supplied status ignored; directive hash logged to ledger; kernel-run task with a tool outside its tools list is rejected (B29); limit loosened above the spec default is rejected (B33)",
         "complexity": 6,
         "id": 7,
         "subtasks": []
@@ -171,8 +171,8 @@
         "dependencies": [
           11
         ],
-        "details": "src/jangus2/agents/spec.py and registry file outside the checkout; `jangus spec approve <file>` records the hash.",
-        "testStrategy": "pytest B09: edited spec inactive until re-approved; unapproved spec cannot run.",
+        "details": "src/jangus2/agents/spec.py and registry file outside the checkout; `jangus spec approve <file>` records the hash.\n\n[adapt 2026-11-01 attempt limits] Spec schema adds `escalation_model`, `attempts` block (default_model 2, step_up 1, max_model_calls 6, max_proposals 12) and `host` (pc|vps|actions); kernel checks required paths/secrets exist on the host.",
+        "testStrategy": "pytest B09: edited spec inactive until re-approved; unapproved spec cannot run; spec with unavailable host requirements refused (B35)",
         "complexity": 4,
         "id": 12,
         "subtasks": []
@@ -217,8 +217,8 @@
           13,
           14
         ],
-        "details": "src/jangus2/agents/runner.py with scripted fake model; external content wrapped as quoted data; loop ends on done/budget/error.\n\n[adapt 2026-11-01 cost discipline] Run loop must meter calls/tokens/spend per role in the ledger and use the spec's cheap model; no orchestrator call anywhere in the loop.",
-        "testStrategy": "pytest B10, B12: second run receives nothing from the first; scripted proposals executed via the kernel only; ledger shows per-role usage (B30)",
+        "details": "src/jangus2/agents/runner.py with scripted fake model; external content wrapped as quoted data; loop ends on done/budget/error.\n\n[adapt 2026-11-01 cost discipline] Run loop must meter calls/tokens/spend per role in the ledger and use the spec's cheap model; no orchestrator call anywhere in the loop.\n\n[adapt 2026-11-01 attempt limits] Count failed attempts in the kernel (rejected/failed call, failed verification, unparseable reply, repeated proposal, no-progress cycle) and expose the count; model output cannot change counts, limits or model choice.\n\n[2026-11-01T18:28:43-05:00] Do task 26 right after 15; 16 uses it.",
+        "testStrategy": "pytest B10, B12: second run receives nothing from the first; scripted proposals executed via the kernel only; ledger shows per-role usage (B30); agent text requesting a stronger model or higher limit has no effect (B34)",
         "complexity": 6,
         "id": 15,
         "subtasks": []
@@ -232,8 +232,8 @@
           7,
           15
         ],
-        "details": "src/jangus2/directives/runner.py: show only current task + verified dependency results; run testStrategy check via kernel verification; log from ledger IDs; stop rules (budget, unresolved effect, rejected T3, two failed attempts).\n\n[adapt 2026-11-01 cost discipline] Kernel marks tasks done/blocked, finishes the directive and writes the run report from a fixed template with NO model call and no orchestrator confirmation. `runner: kernel` tasks execute scripted steps with zero model calls.",
-        "testStrategy": "pytest: model claiming done does not set done; out-of-task tool call rejected; blocked directive halts and alerts; tasks.py validate lints a directive file; a full standing directive completes with zero orchestrator calls (B27) and kernel-run tasks use zero tokens (B29)",
+        "details": "src/jangus2/directives/runner.py: show only current task + verified dependency results; run testStrategy check via kernel verification; log from ledger IDs; stop rules (budget, unresolved effect, rejected T3, two failed attempts).\n\n[adapt 2026-11-01 cost discipline] Kernel marks tasks done/blocked, finishes the directive and writes the run report from a fixed template with NO model call and no orchestrator confirmation. `runner: kernel` tasks execute scripted steps with zero model calls.\n\n[adapt 2026-11-01 attempt limits] Implement the ladder via task 26's policy: halt on exhaustion, set task deferred with a reason, queue an alert, call the orchestrator only if escalate=true and under the daily cap.\n\n[2026-11-01T18:28:43-05:00] Depends in practice on task 26 (attempt policy); ids are append-only so 26 is numbered later. Do 26 before finishing 16.",
+        "testStrategy": "pytest: model claiming done does not set done; out-of-task tool call rejected; blocked directive halts and alerts; tasks.py validate lints a directive file; a full standing directive completes with zero orchestrator calls (B27) and kernel-run tasks use zero tokens (B29); B26 and B32 pass",
         "complexity": 7,
         "id": 16,
         "subtasks": []
@@ -275,7 +275,7 @@
         "dependencies": [
           15
         ],
-        "details": "src/jangus2/cli.py + scheduler.py; cron-like triggers from specs; one run lock.\n\n[adapt 2026-11-01 cost discipline] Scheduler launches standing directive templates directly for the assignee (orchestrator not involved). Daily report is built deterministically from the ledger, including per-role cost.",
+        "details": "src/jangus2/cli.py + scheduler.py; cron-like triggers from specs; one run lock.\n\n[adapt 2026-11-01 cost discipline] Scheduler launches standing directive templates directly for the assignee (orchestrator not involved). Daily report is built deterministically from the ledger, including per-role cost.\n\n[adapt 2026-11-01 attempt limits] Daily report adds per-task attempt counts, step-ups and halted directives.",
         "testStrategy": "pytest B13: missed ticks coalesce; overlapping tick does not double-run; daily report totals match the ledger (B30)",
         "complexity": 5,
         "id": 19,
@@ -347,7 +347,7 @@
         "dependencies": [
           23
         ],
-        "details": "Covers B20, B22, memory scenarios, remote reconciliation.",
+        "details": "Covers B20, B22, memory scenarios, remote reconciliation.\n\n[adapt 2026-11-01 attempt limits] Includes evaluating GitHub Actions as a host (ephemeral state, ledger durability and overlapping runs, GitHub Secrets, scheduling reliability) and writing the ADR before any use.",
         "testStrategy": "Per-phase gates in docs/PHASES.md.",
         "complexity": 8,
         "id": 24,
@@ -367,11 +367,40 @@
         "testStrategy": "pytest: totals match ledger (B30); counter survives restart; call beyond cap refused (B28).",
         "complexity": 4,
         "subtasks": []
+      },
+      {
+        "id": 26,
+        "title": "Attempt policy: repeat detection, limits and escalation ladder",
+        "description": "Kernel-side attempt counting, repeat and no-progress detection, hard per-task limits and the one-step ladder.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          15
+        ],
+        "details": "src/jangus2/kernel/attempts.py: AttemptPolicy (from spec `attempts`, tightened by directive), failure reasons enum, proposal hash = sha256(tool + canonical args), no-progress = 3 consecutive proposals with identical result hash, ladder decision (DEFAULT_MODEL, STEP_UP, STOP). Counts persist in the state store and carry over to superseding directives. Only the kernel calls the ladder; no model-visible control.",
+        "testStrategy": "pytest B31 repeat refused, B32 ladder 2+1 then stop, B33 limits not reset by restart/re-issue, B34 no self-escalation, B36 no-progress counted.",
+        "complexity": 6,
+        "subtasks": []
+      },
+      {
+        "id": 27,
+        "title": "Host placement check and VPS runner",
+        "description": "Enforce `host` in specs and run agents that need no PC files on the VPS.",
+        "status": "pending",
+        "priority": "low",
+        "dependencies": [
+          19,
+          26
+        ],
+        "details": "Break down after task 21. Host capability declaration (paths, secrets, models); refuse mismatches; reuse the v1 SSH-tunnel/token worker pattern for VPS; benchmark local model on the VPS before assigning it work. GitHub Actions evaluation lives in task 24.",
+        "testStrategy": "pytest B35: host mismatch refused; VPS run reconciles by job identity after a dropped connection.",
+        "complexity": 6,
+        "subtasks": []
       }
     ],
     "metadata": {
       "created": "2026-11-01T18:19:53-05:00",
-      "updated": "2026-11-01T18:25:29-05:00"
+      "updated": "2026-11-01T18:28:43-05:00"
     }
   }
 }

@@ -17,7 +17,9 @@ v1 executes a fixed copy manifest and uses models only for one-word vetoes. The 
 7. Run on the PC first under Windows Task Scheduler; VPS later.
 8. Delivery is gated: the file/backup agent must run seven days unattended without manual fixes before any shop or inbox agent is built.
 9. Cost discipline: the orchestrator is escalation-only (new goal, spec drafting, halted directive under a daily cap). Completion, reports and standing jobs are kernel actions with no model call. Directive tasks may be `runner: kernel` (zero tokens). Specialists default to Haiku-class or local models, Sonnet at low effort when needed. Cost is metered per role.
-10. Build as a new repository, `jangus-v2`, porting selected v1 modules, because the core execution model changes. This repo's v1 line stays maintainable.
+10. Attempt policy: the kernel counts failed attempts and enforces repeat detection, hard per-task limits, and a one-step escalation ladder (2 attempts on the default model, 1 on the spec's `escalation_model`, then stop and alert). Only the kernel climbs it; limits cannot be reset by retry, restart or re-issue.
+11. Placement: run work as low-cost as possible (kernel-run, local model on PC, local model on VPS, Haiku, Sonnet low, orchestrator). Agent specs declare `host`. GitHub Actions is an option to evaluate later (ephemeral state, ledger durability, secrets) via a task and a new ADR, not a default.
+12. Build as a new repository, `jangus-v2`, porting selected v1 modules, because the core execution model changes. This repo's v1 line stays maintainable.
 
 ## Rule amendments (proposed)
 

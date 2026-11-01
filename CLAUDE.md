@@ -23,7 +23,8 @@ A local-first system where an **orchestrator** starts **specialist agents** (eac
 9. **Specs are inert until approved.** An agent spec is active only if its SHA-256 is in the owner's approval registry. The orchestrator may draft specs into `agents/drafts/`; it can never approve them.
 10. **Directives narrow, never grant.** A directive may only use tools and tiers already in the assignee's approved spec. Task status is set by the kernel from verified evidence, never by model output.
 11. **Cost discipline.** Never add a model call to confirm completion, read a finished run, or write a report; the kernel does those. The orchestrator is escalation-only and capped. Prefer `runner: kernel` tasks. Meter every model call per role.
-12. **Verify with actual output.** Run tests and show real results. Distinguish fake-model results from real local-model and real Claude results. Do not claim hardware or external-service behavior that was not executed.
+12. **No loops.** Every task has kernel-counted attempts, repeat detection and hard limits; only the kernel steps up to a stronger model (once), then stops and alerts. Limits never reset on retry, restart or re-issue. Place work as low-cost as possible (kernel-run, local, VPS, Haiku, Sonnet low, orchestrator).
+13. **Verify with actual output.** Run tests and show real results. Distinguish fake-model results from real local-model and real Claude results. Do not claim hardware or external-service behavior that was not executed.
 
 ## Task-driven build (Taskmaster)
 

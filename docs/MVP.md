@@ -48,6 +48,12 @@ Synthetic files first, then a real backup set the owner nominates. Tools: `file.
 | B28 | Escalation cap | Orchestrator calls beyond the daily cap are queued for the owner; none are made | 4 |
 | B29 | Kernel-run tasks | A `runner: kernel` task completes and verifies with zero model calls and zero tokens | 2 |
 | B30 | Cost report | Daily report shows calls, tokens and spend per role and per run; totals match the ledger | 2 |
+| B31 | Repeat detection | Second identical (tool, args) proposal in a task is refused without executing and counted as a failed attempt | 2 |
+| B32 | Escalation ladder | Failing task gets 2 attempts on the default model, one step-up on `escalation_model`, then is deferred with a reason and an alert; no further model calls | 2 |
+| B33 | Hard task limits | Hitting max_model_calls, max_proposals or wall time counts as a failed attempt; restarting or re-issuing the directive does not reset consumed attempts | 2 |
+| B34 | No self-escalation | Agent output asking for a stronger model, a higher limit or the orchestrator has no effect | 2 |
+| B35 | Host check | Spec with `host: vps` is refused on a host lacking its required paths or secrets | 3 |
+| B36 | No-progress detection | Three proposals yielding the same result hash and no new evidence count as one failed attempt | 2 |
 | B23 | Local-only degraded mode | With cloud disabled, T1 local agents still run | 4 |
 | B24 | Directive scope | Directive asking for a tool outside the assignee's approved spec, or a tier above its max_tier, is rejected at issue | 2 |
 | B25 | Kernel-owned status | Model claiming a task is done does not change status; status changes only after the task's verification passes | 2 |

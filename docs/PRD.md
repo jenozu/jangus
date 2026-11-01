@@ -57,6 +57,11 @@ Primary: the repository owner on a Windows 11 desktop (32 GB RAM) with an option
 | V2-FR24 | Kernel-run tasks: a directive task may declare `runner: kernel` and execute scripted tool steps with zero model calls; model calls are used only where judgment is needed | P2 |
 | V2-FR25 | Model tiering: specialists default to Haiku-class or local models, Sonnet at low effort for harder work; the orchestrator tier is used only on escalation, with a daily escalation cap; at the cap the escalation is queued for the owner, never silently raised | P2 |
 | V2-FR26 | Per-role cost metering: tokens, calls and spend recorded per run and per role (kernel-run, specialist, orchestrator) and shown in the daily report | P2 |
+| V2-FR27 | Attempt policy: the kernel counts failed attempts (failed/rejected call, failed verification, unparseable reply, repeated proposal, no-progress cycle). Defaults: 2 on the default model, 1 step-up, then stop and alert | P2 |
+| V2-FR28 | Repeat detection: an identical (tool, args) proposal twice in one task is refused and counted | P2 |
+| V2-FR29 | Hard per-task limits (model calls, proposals, wall time); limits cannot be reset by retry, restart or re-issue | P2 |
+| V2-FR30 | One-step escalation ladder per spec (`escalation_model`); only the kernel climbs it; agents cannot pick models, raise limits or call the orchestrator | P2 |
+| V2-FR31 | Host placement: specs declare `host` (pc, vps, actions); the kernel refuses to run an agent where required paths or secrets are unavailable. Work runs as low-cost as possible (kernel-run, local model, VPS, Haiku, Sonnet, orchestrator) | P3-P7 |
 | V2-FR20 | Optional VPS execution of agents that need no local files | P7 |
 | V2-FR21 | Directives: the orchestrator delegates work to specialists as Taskmaster-style task lists (see [DIRECTIVES.md](DIRECTIVES.md)); the kernel owns task status and log entries, derived from verified evidence | P2 |
 | V2-FR22 | The development backlog and runtime directives share one schema and tooling (`tools/taskmaster/tasks.py`) | P2 |
@@ -71,6 +76,7 @@ Primary: the repository owner on a Windows 11 desktop (32 GB RAM) with an option
 | V2-NFR04 | Secrets and private content never reach logs, exports, or non-permitted models | Canary tests |
 | V2-NFR05 | Unattended runs are bounded: no infinite loops, no unbounded spend, no unbounded queue growth | Budget and soak tests |
 | V2-NFR06 | The system works with the cloud model disabled (local-only degraded mode) for tiers T1 | Disabled-provider test |
+| V2-NFR08 | Token and spend use is the primary operating constraint: normal operation spends tokens only where a local or cheap model is insufficient; all spend is capped and metered | Cost report; soak token totals |
 | V2-NFR07 | Every side effect has correlated intent, outcome, verification or unresolved status | Timeline inspection |
 
 ## Success measures

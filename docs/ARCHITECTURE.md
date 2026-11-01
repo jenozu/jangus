@@ -50,6 +50,9 @@ secrets: []
 memory_scope: [env.backups]
 triggers: [{cron: "0 2 * * *"}]
 budget: {calls: 40, tokens: 60000, wall_seconds: 900, spend_usd: 0}
+escalation_model: {provider: claude, name: <haiku-or-sonnet tag>, effort: low}   # optional single step-up
+attempts: {default_model: 2, step_up: 1, max_model_calls: 6, max_proposals: 12}
+host: pc          # pc | vps | actions; the kernel refuses to run where required paths/secrets are unavailable
 ```
 
 A spec is active only if its SHA-256 appears in the owner's approval registry. Editing it deactivates it. The orchestrator can write a draft to a `drafts/` directory; drafts are inert.
@@ -70,6 +73,20 @@ Supervision tokens are the main avoidable cost, so the design keeps expensive mo
 | Orchestrator | Highest tier used | Only on escalation: new owner goal, spec drafting, halted directive with `escalate: true`, under a daily cap |
 
 The orchestrator is never called to confirm completion, to read a finished run, or to write the daily report. Standing jobs start from the scheduler. Cost per role is metered in the ledger and shown in the daily report. At the escalation cap the request waits for the owner; the system never raises the cap or switches model on its own.
+
+## Where work runs
+
+The cheapest token is the one never spent, so work is placed as low on this list as it can go:
+
+1. **Kernel-run tasks** (no model): anywhere the kernel runs.
+2. **Local model on the PC** (Ollama): routine judgment, free, private, can reach local files.
+3. **Local model on the VPS** (if it has the memory or a GPU): always-on, for work that needs no PC files. Needs a benchmark; model size and speed are unknown.
+4. **Haiku-class API**, then **Sonnet at low effort**: only where local models are not reliable enough, or as the single step-up.
+5. **Orchestrator tier**: escalation only, under a daily cap.
+
+`host:` in the agent spec says where an agent runs, and the kernel checks that the host has the paths and secrets the spec needs. Agents that need local files stay on the PC. Agents that only call web APIs (shop monitoring, for example) can move to the VPS.
+
+**GitHub Actions** is a possible host for kernel-only or API-only jobs, but it is not a free lunch. Runners are ephemeral, so the SQLite state and the audit ledger would need durable storage between runs, and the ledger's hash chain must not be forkable by two overlapping runs. Secrets would live in GitHub Secrets rather than Credential Manager, and scheduled workflows can be delayed or paused. Running a model on a runner is likely too slow and weak to be useful. Treat Actions as an option to evaluate after the PC and VPS paths work, through a task and a new ADR, not as the default.
 
 ## Run lifecycle
 
