@@ -54,6 +54,8 @@ Primary: the repository owner on a Windows 11 desktop (32 GB RAM) with an option
 | V2-FR18 | Tier promotion/demotion is an owner-signed, logged change, per action and per agent | P4 |
 | V2-FR19 | Approved Obsidian memory retrieval ported from v1 (exact-hash approval, lower trust) | P7 |
 | V2-FR20 | Optional VPS execution of agents that need no local files | P7 |
+| V2-FR21 | Directives: the orchestrator delegates work to specialists as Taskmaster-style task lists (see [DIRECTIVES.md](DIRECTIVES.md)); the kernel owns task status and log entries, derived from verified evidence | P2 |
+| V2-FR22 | The development backlog and runtime directives share one schema and tooling (`tools/taskmaster/tasks.py`) | P2 |
 
 ## Non-functional requirements
 

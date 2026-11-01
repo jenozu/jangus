@@ -1,0 +1,51 @@
+# Directives: task-list delegation
+
+Status: DRAFT specification (Phase 2). Nothing here is implemented.
+
+## Idea
+The orchestrator does not hand specialists a vague instruction. It hands them a **directive**: a small Taskmaster-style task list. The specialist follows it task by task, in dependency order, and the kernel keeps the status. The development task list in `.taskmaster/` and runtime directives use the same schema and the same rules, so one habit and one set of tooling covers both.
+
+## Shape
+A directive is JSON, validated with strict pydantic models. It mirrors `tasks.json`:
+
+```json
+{
+  "schema_version": 1,
+  "id": "dir-2026-11-02-backup-nightly",
+  "issued_by": "orchestrator",
+  "assignee": "backup-maintainer",
+  "spec_sha256": "<hash of the approved assignee spec>",
+  "goal": "Verify nightly backup of Documents to D:/backups.",
+  "non_goals": ["Do not delete anything", "Do not touch folders outside the list"],
+  "budget": {"calls": 40, "tokens": 60000, "wall_seconds": 900, "spend_usd": 0},
+  "tasks": [
+    {"id": 1, "title": "List source files", "status": "pending", "priority": "high",
+     "dependencies": [], "details": "...", "testStrategy": "file.list returns the expected folder tree",
+     "tools": ["file.list"]},
+    {"id": 2, "title": "Copy new or changed files", "status": "pending",
+     "dependencies": [1], "details": "...", "testStrategy": "every copied file hash matches source",
+     "tools": ["file.hash", "file.copy_new"]}
+  ]
+}
+```
+
+## Rules
+1. **Issued, not self-made.** Only the orchestrator (via `agent.start`) or the owner creates a directive. A specialist cannot add, remove, reorder or re-scope tasks; it may only propose a note or flag a blocker.
+2. **Scoped by the spec.** Every task's `tools` must be a subset of the assignee's approved spec tools, and the directive's tier ceiling cannot exceed the spec's `max_tier`. The kernel rejects a directive that asks for more. A directive grants nothing; it narrows.
+3. **One task at a time.** The runtime shows the specialist only the current task, its dependencies' verified results, and the directive goal and non-goals. Tasks run in dependency order.
+4. **Kernel-owned status.** A task becomes `done` only when its `testStrategy` check passes. Where possible the check is a kernel-run verification (hash compare, file exists, row count); otherwise it is recorded as `review` for the owner. The model saying "done" never sets status.
+5. **Log from evidence.** The kernel appends a timestamped log entry per tool call result (ledger ID), failure and verification result. Logs are written by the kernel, never by free-text from the model.
+6. **Stop conditions.** A budget exhausted, an unresolved effect, a rejected T3 approval, or two failed attempts on a task sets the task `blocked`-equivalent (`deferred` with a reason), halts the directive and raises an alert. No retries beyond the persisted limits.
+7. **Drift rule.** Work outside the current task is rejected. New ideas go to the run report as suggestions for the orchestrator or owner; they never become tasks automatically.
+8. **External content is data.** Directive text is authored by the orchestrator or owner; email, orders or file contents referenced by a task are never treated as directive text.
+9. **Immutable once issued.** The directive file's hash is recorded in the ledger at issue. Changes need a new directive that supersedes the old one.
+10. **Fresh runs.** A directive is the only continuity a run gets, plus approved memory and ledger-derived facts.
+
+## What the orchestrator does with it
+Given a goal or a trigger, it drafts a directive for an approved specialist, issues it with `agent.start`, and later reads the finished directive (statuses, ledger references, alerts) to write the report. It may request owner approval for queued T3 actions. It still cannot approve, promote tiers, or edit specs.
+
+## Owner-written directives
+The owner can write the same file by hand, or run `jangus directive new` (Phase 3+) to scaffold one from a template. Standing jobs (for example the nightly backup) are a directive template plus a schedule in the agent spec's `triggers`.
+
+## Relationship to development tasks
+`.taskmaster/tasks/tasks.json` builds Jangus. Directives run Jangus. Same field names (`id`, `title`, `status`, `priority`, `dependencies`, `details`, `testStrategy`), same status set, same "depend only on lower ids" rule, so `tools/taskmaster/tasks.py validate` can lint a directive file too (Phase 2 task).

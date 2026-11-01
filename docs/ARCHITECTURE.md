@@ -54,9 +54,13 @@ budget: {calls: 40, tokens: 60000, wall_seconds: 900, spend_usd: 0}
 
 A spec is active only if its SHA-256 appears in the owner's approval registry. Editing it deactivates it. The orchestrator can write a draft to a `drafts/` directory; drafts are inert.
 
+## Directives
+
+The orchestrator hands specialists a **directive**, a Taskmaster-style task list ([DIRECTIVES.md](DIRECTIVES.md)), instead of a free-form instruction. `agent.start` carries the directive. The kernel validates it against the assignee's approved spec (tools subset, tier ceiling), records its hash, shows the agent one task at a time, and sets task status only from verified evidence. The development backlog in `.taskmaster/` uses the same schema.
+
 ## Run lifecycle
 
-1. Trigger (schedule or owner command) creates a job with a stable idempotency key.
+1. Trigger (schedule, owner command, or orchestrator) creates a job with a stable idempotency key and a directive.
 2. Kernel loads the approved spec, creates budgets, opens the ledger.
 3. Runtime builds the prompt: spec role, task, mandatory rules core, relevant approved memory, bounded tool results. External content is wrapped as data.
 4. Model returns structured proposals.

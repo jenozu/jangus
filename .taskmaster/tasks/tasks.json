@@ -1,0 +1,362 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "title": "Owner accepts ADR-001 and v2 docs",
+        "description": "Owner reviews docs/PRD.md, MVP, ARCHITECTURE, DIRECTIVES and ADR-001, then accepts or amends them. OWNER TASK.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [],
+        "details": "Set ADR-001 status to accepted; choose license; confirm package name (default jangus2); make the docs branch the default branch of jangus-2.0.\n\n[2026-11-01T18:20:18-05:00] Docs and task list prepared on branch phase-0/taskmaster; waiting on owner to review ADR-001 and decide license/package name.",
+        "testStrategy": "ADR-001 status reads 'accepted' on the default branch; LICENSE file present or decision logged in the PRD decision log.",
+        "complexity": 1,
+        "id": 1,
+        "subtasks": []
+      },
+      {
+        "title": "Scaffold repo, tooling and CI",
+        "description": "Python 3.12 project with uv, ruff, mypy, pytest and a CI workflow.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "details": "Create pyproject.toml (src layout, package jangus2), uv.lock, src/jangus2/__init__.py, tests/test_smoke.py, .github/workflows/ci.yml (ubuntu + windows matrix: ruff, mypy --strict on kernel, pytest). Pin versions; .gitignore for runtime data.",
+        "testStrategy": "Run `uv run pytest`, `uv run ruff check`, `uv run mypy --strict src/jangus2/kernel`: all pass; CI green on both OSes.",
+        "complexity": 3,
+        "id": 2,
+        "subtasks": []
+      },
+      {
+        "title": "Strict config and error types",
+        "description": "Pydantic strict config models and stable fault codes.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          2
+        ],
+        "details": "src/jangus2/config.py: StrictModel base (extra=forbid), paths outside checkout, loopback-only model endpoint check (127.0.0.1, ::1), RuntimeFault(code). Port ideas from v1 config.py.",
+        "testStrategy": "pytest: invalid/extra fields rejected; non-loopback endpoint rejected; valid config loads.",
+        "complexity": 3,
+        "id": 3,
+        "subtasks": []
+      },
+      {
+        "title": "SQLite state store with idempotency",
+        "description": "Durable runs, actions, budgets tables with WAL and synchronous=FULL.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          3
+        ],
+        "details": "src/jangus2/kernel/state.py: schema v1, transactional intent+attempt charge, idempotency keys, schema version check. Port from v1 execution/storage.py.",
+        "testStrategy": "pytest: duplicate idempotency key returns same record; reopened DB keeps budgets; unreadable DB blocks writes.",
+        "complexity": 5,
+        "id": 4,
+        "subtasks": []
+      },
+      {
+        "title": "Hash-chained audit ledger",
+        "description": "Append-only ledger; each entry hashes the previous.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          3
+        ],
+        "details": "src/jangus2/kernel/ledger.py: append(event), verify_chain(), fail-closed on write error. Port from v1 remote/ledger.py.",
+        "testStrategy": "pytest: tamper with an entry and verify_chain fails; write failure raises and blocks new effects (B06).",
+        "complexity": 5,
+        "id": 5,
+        "subtasks": []
+      },
+      {
+        "title": "Tool registry and tier policy",
+        "description": "Registry of tools with schema, tier, reversibility, verify, reconcile; policy engine.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          4,
+          5
+        ],
+        "details": "src/jangus2/kernel/registry.py + policy.py. Tool without verify+reconcile cannot be T2/T3. decide(tool, agent_max_tier) returns RUN, RUN_LOG, QUEUE or REJECT. Elevation rules (target outside workspace).",
+        "testStrategy": "pytest B01-B04: unknown tool rejected; T1 runs, T2 runs+logs, T3 queues; call above max_tier rejected not queued; malformed args rejected.",
+        "complexity": 6,
+        "id": 6,
+        "subtasks": []
+      },
+      {
+        "title": "Directive models and validation",
+        "description": "Strict directive/task models, status rules, scope narrowing against a spec, linting with tasks.py.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          3,
+          6
+        ],
+        "details": "src/jangus2/directives/models.py per docs/DIRECTIVES.md: schema_version, goal, non_goals, budget, tasks with dependencies/testStrategy/tools. Validate: lower-id dependencies, tools subset of spec, tier ceiling <= spec max_tier, immutable hash recorded at issue. Status changes only via kernel API.",
+        "testStrategy": "pytest: directive asking for a tool outside the spec rejected; cyclic/forward dependency rejected; model-supplied status ignored; directive hash logged to ledger.",
+        "complexity": 6,
+        "id": 7,
+        "subtasks": []
+      },
+      {
+        "title": "Kernel executor with intent, verify and reconcile",
+        "description": "Core loop: persist intent, execute, verify, persist result; reconcile after crash.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          4,
+          5,
+          6
+        ],
+        "details": "src/jangus2/kernel/executor.py plus fake tools. Intent+attempt in one transaction before effect; independent verify; reconcile adopts matching result, retries only proven absence, otherwise marks unresolved.",
+        "testStrategy": "pytest B05: kill the process before effect, after effect before result, after verification; restart yields no duplicate or overwrite.",
+        "complexity": 8,
+        "id": 8,
+        "subtasks": []
+      },
+      {
+        "title": "Secret resolver interface",
+        "description": "Kernel resolves named secrets and injects them into a tool call only.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          6,
+          8
+        ],
+        "details": "src/jangus2/kernel/secrets.py: Protocol, EnvBackend, fake backend for tests, WindowsCredentialBackend (keyring/pywin32, import-guarded) per agent allow-list. Never returns secrets to prompts or logs.",
+        "testStrategy": "pytest B07: agent without the secret named in spec gets denied; canary secret absent from ledger, logs, exports, error text.",
+        "complexity": 4,
+        "id": 9,
+        "subtasks": []
+      },
+      {
+        "title": "Approval queue storage",
+        "description": "Queue for T3 actions bound to payload hash, run id and expiry.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          4,
+          5,
+          6
+        ],
+        "details": "src/jangus2/kernel/approvals.py: enqueue, list, approve, reject, expire; approval valid only for the exact normalized payload hash.",
+        "testStrategy": "pytest: changed payload invalidates approval; expired approval refused; approve records owner id in ledger.",
+        "complexity": 4,
+        "id": 10,
+        "subtasks": []
+      },
+      {
+        "title": "Phase 1 evidence, MEMORY update and PR",
+        "description": "Collect B01-B07 evidence and open the Phase 1 PR.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          7,
+          8,
+          9,
+          10
+        ],
+        "details": "Write docs/reviews/PHASE_1.md with commands run and actual outputs; update MEMORY.md current phase; open PR from phase-1/kernel.",
+        "testStrategy": "PR open with CI green and evidence file listing pass/fail for B01-B07.",
+        "complexity": 2,
+        "id": 11,
+        "subtasks": []
+      },
+      {
+        "title": "Agent spec schema, loader and approval registry",
+        "description": "Load YAML specs; active only if SHA-256 is owner-approved.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          11
+        ],
+        "details": "src/jangus2/agents/spec.py and registry file outside the checkout; `jangus spec approve <file>` records the hash.",
+        "testStrategy": "pytest B09: edited spec inactive until re-approved; unapproved spec cannot run.",
+        "complexity": 4,
+        "id": 12,
+        "subtasks": []
+      },
+      {
+        "title": "Model providers: Ollama, Claude, no silent fallback",
+        "description": "One provider interface; loopback Ollama; Claude API; failure means stop and alert.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          3
+        ],
+        "details": "src/jangus2/agents/providers/*. Token/cost accounting; recorded-transcript tests; no network in unit tests.",
+        "testStrategy": "pytest B11: failing or disabled provider stops the run and alerts; never switches provider.",
+        "complexity": 5,
+        "id": 13,
+        "subtasks": []
+      },
+      {
+        "title": "Durable budgets and spend cap",
+        "description": "Calls, tokens, wall time and monthly USD survive restarts.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          4,
+          13
+        ],
+        "details": "Extend state store; spend ledger entries; stop at cap with alert.",
+        "testStrategy": "pytest B08: exhausted budget persists after restart and new session.",
+        "complexity": 4,
+        "id": 14,
+        "subtasks": []
+      },
+      {
+        "title": "Propose-then-execute run loop",
+        "description": "Fresh run: build prompt, get structured proposals, kernel validates and executes, return results as data.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          8,
+          12,
+          13,
+          14
+        ],
+        "details": "src/jangus2/agents/runner.py with scripted fake model; external content wrapped as quoted data; loop ends on done/budget/error.",
+        "testStrategy": "pytest B10, B12: second run receives nothing from the first; scripted proposals executed via the kernel only.",
+        "complexity": 6,
+        "id": 15,
+        "subtasks": []
+      },
+      {
+        "title": "Directive runner (task-by-task execution)",
+        "description": "Run a directive one task at a time with kernel-owned status and logs.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          7,
+          15
+        ],
+        "details": "src/jangus2/directives/runner.py: show only current task + verified dependency results; run testStrategy check via kernel verification; log from ledger IDs; stop rules (budget, unresolved effect, rejected T3, two failed attempts).",
+        "testStrategy": "pytest: model claiming done does not set done; out-of-task tool call rejected; blocked directive halts and alerts; tasks.py validate lints a directive file.",
+        "complexity": 7,
+        "id": 16,
+        "subtasks": []
+      },
+      {
+        "title": "Local model benchmark script",
+        "description": "Measure timing, RAM and tool-call reliability for candidate Ollama models. OWNER RUNS IT.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          13
+        ],
+        "details": "scripts/benchmark_ollama.py: fixed proposal-format prompts, JSON schema conformance rate, latency, cold load; output JSON kept out of Git.",
+        "testStrategy": "Script runs against a fake server in tests; owner sends results from Windows.",
+        "complexity": 3,
+        "id": 17,
+        "subtasks": []
+      },
+      {
+        "title": "File tool pack",
+        "description": "Tools: file.list/read/hash (T1), file.copy_new/report.write (T2), file.delete/overwrite (T3).",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          8,
+          9
+        ],
+        "details": "src/jangus2/tools/files.py with workspace canonicalization, symlink/junction rejection, no silent overwrite, verify by SHA-256, reconcile by inspecting output.",
+        "testStrategy": "pytest B14: corrupted destination detected; traversal and symlink escapes rejected; overwrite/delete queue as T3.",
+        "complexity": 6,
+        "id": 18,
+        "subtasks": []
+      },
+      {
+        "title": "Scheduler tick and daily report",
+        "description": "`jangus tick` runs due agents, coalesces missed ticks; status and daily report.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          15
+        ],
+        "details": "src/jangus2/cli.py + scheduler.py; cron-like triggers from specs; one run lock.",
+        "testStrategy": "pytest B13: missed ticks coalesce; overlapping tick does not double-run.",
+        "complexity": 5,
+        "id": 19,
+        "subtasks": []
+      },
+      {
+        "title": "Backup agent spec and directive template",
+        "description": "First specialist: verified backups from a standing directive.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          16,
+          18,
+          19
+        ],
+        "details": "agents/backup-maintainer.yaml + directives/templates/nightly-backup.json; owner names folders at approval time.",
+        "testStrategy": "Scripted fake-model run completes the template directive; kernel verifies every copy.",
+        "complexity": 4,
+        "id": 20,
+        "subtasks": []
+      },
+      {
+        "title": "Windows Task Scheduler setup and 7-day soak",
+        "description": "Install the schedule and run unattended for 7 days. OWNER TASK.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          20
+        ],
+        "details": "scripts/install_task.ps1 + docs/SOAK.md checklist. Owner logs any manual fix.",
+        "testStrategy": "Seven consecutive days, zero manual fixes, zero unresolved effects (B15) recorded in docs/reviews/PHASE_3.md.",
+        "complexity": 3,
+        "id": 21,
+        "subtasks": []
+      },
+      {
+        "title": "Phase 4: orchestrator, approval CLI, alerting",
+        "description": "Orchestrator issues directives; owner approves T3; alerts; tier promotion.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          21
+        ],
+        "details": "Break down after task 21 is done. Covers B16-B19, B23.",
+        "testStrategy": "B16-B19 and B23 pass.",
+        "complexity": 8,
+        "id": 22,
+        "subtasks": []
+      },
+      {
+        "title": "Phase 5: shop agent (Shopify/Printify)",
+        "description": "Read-only first, then per-action writes with injection tests.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          22
+        ],
+        "details": "Break down after task 22. Covers B20, B21.",
+        "testStrategy": "B20, B21 pass plus a clean unattended week.",
+        "complexity": 8,
+        "id": 23,
+        "subtasks": []
+      },
+      {
+        "title": "Phase 6-7: inbox agent, memory, optional VPS",
+        "description": "Break down after task 23.",
+        "status": "pending",
+        "priority": "low",
+        "dependencies": [
+          23
+        ],
+        "details": "Covers B20, B22, memory scenarios, remote reconciliation.",
+        "testStrategy": "Per-phase gates in docs/PHASES.md.",
+        "complexity": 8,
+        "id": 24,
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "created": "2026-11-01T18:19:53-05:00",
+      "updated": "2026-11-01T18:20:18-05:00"
+    }
+  }
+}

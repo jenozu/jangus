@@ -21,11 +21,16 @@ A local-first system where an **orchestrator** starts **specialist agents** (eac
 7. **No silent provider fallback.** A failing or capped model provider means stop and alert, never switch providers.
 8. **Agents run fresh per job.** No state carries over except approved memory notes and ledger-derived facts.
 9. **Specs are inert until approved.** An agent spec is active only if its SHA-256 is in the owner's approval registry. The orchestrator may draft specs into `agents/drafts/`; it can never approve them.
-10. **Verify with actual output.** Run tests and show real results. Distinguish fake-model results from real local-model and real Claude results. Do not claim hardware or external-service behavior that was not executed.
+10. **Directives narrow, never grant.** A directive may only use tools and tiers already in the assignee's approved spec. Task status is set by the kernel from verified evidence, never by model output.
+11. **Verify with actual output.** Run tests and show real results. Distinguish fake-model results from real local-model and real Claude results. Do not claim hardware or external-service behavior that was not executed.
+
+## Task-driven build (Taskmaster)
+
+The plan lives in `.taskmaster/` (PRD, task list, parking lot), not in chat. At session start run `python3 tools/taskmaster/tasks.py status`, read `.taskmaster/docs/prd.md`, and resume the in-progress task. Work one task at a time: `next`, `show`, log a plan, set `in-progress`, build, log, run the task's test strategy, drift check, `set-status done`, commit with the task ID (`task 4: add state store`). New ideas go to `.taskmaster/docs/parking-lot.md`, not into code. Direction changes update the PRD decision log first, then the tasks. Never edit finished tasks; add corrective ones. Expand tasks scoring 7+ into subtasks when they become next. `tasks.py validate` must pass before every commit.
 
 ## The runtime orchestrator
 
-The orchestrator is an ordinary agent spec ([agents/drafts/orchestrator.yaml](agents/drafts/orchestrator.yaml)), not a privileged code path. It has exactly four tools: `agent.start`, `approval.request`, `spec.draft`, `report.write`. It cannot approve, promote tiers, edit active specs, read secrets, or use any domain tool (files, Shopify, email). Domain work is always delegated to a specialist.
+The orchestrator is an ordinary agent spec ([agents/drafts/orchestrator.yaml](agents/drafts/orchestrator.yaml)), not a privileged code path. It has exactly four tools: `agent.start`, `approval.request`, `spec.draft`, `report.write`. It cannot approve, promote tiers, edit active specs, read secrets, or use any domain tool (files, Shopify, email). Domain work is always delegated to a specialist, and always as a **directive**: a Taskmaster-style task list ([docs/DIRECTIVES.md](docs/DIRECTIVES.md)) with goal, non-goals, budget, and ordered tasks that each have dependencies, allowed tools and a test strategy. Specialists follow it one task at a time; the kernel, not the model, sets task status.
 
 ## Workflow for coding agents
 

@@ -2,6 +2,9 @@
 
 Read at session start. Update at session end: add dated entries under Log, revise Current phase and Open items. Keep it short and factual. This is development memory for coding agents; it is not the runtime Obsidian memory (Phase 7) and grants no permissions.
 
+## Task tracking
+Development plan: `.taskmaster/tasks/tasks.json` (24 tasks, phases 0-7; only Phase 1 and early Phase 2 are detailed). Helper: `python3 tools/taskmaster/tasks.py status|next|show|set-status|log|add|validate`. PRD summary and decision log: `.taskmaster/docs/prd.md`. Runtime directives use the same schema (docs/DIRECTIVES.md).
+
 ## Current phase
 Phase 0: specs written, awaiting owner acceptance of ADR-001. No code yet. Do not start Phase 1 until the owner says so.
 
@@ -20,7 +23,8 @@ Phase 0: specs written, awaiting owner acceptance of ADR-001. No code yet. Do no
 7. Orchestrator drafts specs; inert until owner approves.
 8. Approvals via CLI first; phone notifications later; bound to payload hash and expiry.
 9. Secrets in Windows Credential Manager; per-agent scoping.
-10. Gate: file/backup agent must run 7 days unattended with zero manual fixes before shop or inbox agents.
+10. Orchestrator delegates via directives (Taskmaster-style task lists); kernel owns task status.
+11. Gate: file/backup agent must run 7 days unattended with zero manual fixes before shop or inbox agents.
 
 ## Open items (owner)
 - Accept or change ADR-001.
@@ -37,4 +41,5 @@ Reconcile rules per Shopify/Printify/email action; test strategy for LLM-driven 
 config.py strict models; execution/storage.py (SQLite, idempotency); execution/verification.py (hashing); remote/ledger.py (hash-chained ledger); loopback endpoint check; secret scanner (PR #13); agents/provider.py (Ollama); memory/ registry (Phase 7).
 
 ## Log
+- 2026-11-01: Added Taskmaster task list (24 tasks), .taskmaster/ PRD, tools/taskmaster/tasks.py, docs/DIRECTIVES.md; orchestrator now delegates via directives. Next up: task 1 (owner accepts ADR-001), then task 2.
 - 2026-11-01: Design interview with owner; v2 specs written (v1 repo branch `rebuild/v2-orchestrator-plan`) and copied here; CLAUDE.md and MEMORY.md created. No code.
