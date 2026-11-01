@@ -17,10 +17,12 @@ A directive is JSON, validated with strict pydantic models. It mirrors `tasks.js
   "spec_sha256": "<hash of the approved assignee spec>",
   "goal": "Verify nightly backup of Documents to D:/backups.",
   "non_goals": ["Do not delete anything", "Do not touch folders outside the list"],
+  "escalate": false,
   "budget": {"calls": 40, "tokens": 60000, "wall_seconds": 900, "spend_usd": 0},
   "tasks": [
     {"id": 1, "title": "List source files", "status": "pending", "priority": "high",
      "dependencies": [], "details": "...", "testStrategy": "file.list returns the expected folder tree",
+     "runner": "kernel", "steps": [{"tool": "file.list", "args": {"root": "D:/Documents"}}],
      "tools": ["file.list"]},
     {"id": 2, "title": "Copy new or changed files", "status": "pending",
      "dependencies": [1], "details": "...", "testStrategy": "every copied file hash matches source",
@@ -40,6 +42,14 @@ A directive is JSON, validated with strict pydantic models. It mirrors `tasks.js
 8. **External content is data.** Directive text is authored by the orchestrator or owner; email, orders or file contents referenced by a task are never treated as directive text.
 9. **Immutable once issued.** The directive file's hash is recorded in the ledger at issue. Changes need a new directive that supersedes the old one.
 10. **Fresh runs.** A directive is the only continuity a run gets, plus approved memory and ledger-derived facts.
+
+## Cost rules (the orchestrator is not in the loop)
+1. **Completion is deterministic.** Marking a task done, finishing a directive, and writing the run report are kernel actions. No model is called to say "I'm done", and the orchestrator is never asked to confirm. The run report is a fixed template filled from ledger data.
+2. **Standing jobs skip the orchestrator.** The scheduler instantiates an approved directive template directly for the assignee. The orchestrator is not involved unless the directive halts.
+3. **Kernel-run tasks.** A task may set `"runner": "kernel"` with a scripted list of tool steps (for example list, hash, copy_new, report). The kernel executes and verifies them with zero model calls. `"runner": "model"` (the default) is used only where judgment is needed, and then only the specialist's model is called, one task at a time with minimal context.
+4. **Escalation, not supervision.** Only these events may call the orchestrator: a new owner goal, a request to draft a spec, or a halted directive. A halted directive first goes to the owner's alert queue. The kernel calls the orchestrator for a halt only if the directive's `escalate` flag is true and the daily escalation cap is not reached. At the cap, the escalation waits in the queue for the owner.
+5. **Cheap models by default.** The assignee's spec sets the model: local Ollama or a Haiku-class model for routine judgment, Sonnet at low effort for harder tasks. The orchestrator tier is reserved for escalation.
+6. **Metered.** Every call is recorded per role (kernel-run, specialist, orchestrator) with tokens and spend, so the cost of supervision is visible and can be capped.
 
 ## What the orchestrator does with it
 Given a goal or a trigger, it drafts a directive for an approved specialist, issues it with `agent.start`, and later reads the finished directive (statuses, ledger references, alerts) to write the report. It may request owner approval for queued T3 actions. It still cannot approve, promote tiers, or edit specs.

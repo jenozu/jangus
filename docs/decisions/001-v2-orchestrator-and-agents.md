@@ -16,7 +16,8 @@ v1 executes a fixed copy manifest and uses models only for one-word vetoes. The 
 6. Secrets live in Windows Credential Manager; each agent receives only the secrets its spec names.
 7. Run on the PC first under Windows Task Scheduler; VPS later.
 8. Delivery is gated: the file/backup agent must run seven days unattended without manual fixes before any shop or inbox agent is built.
-9. Build as a new repository, `jangus-v2`, porting selected v1 modules, because the core execution model changes. This repo's v1 line stays maintainable.
+9. Cost discipline: the orchestrator is escalation-only (new goal, spec drafting, halted directive under a daily cap). Completion, reports and standing jobs are kernel actions with no model call. Directive tasks may be `runner: kernel` (zero tokens). Specialists default to Haiku-class or local models, Sonnet at low effort when needed. Cost is metered per role.
+10. Build as a new repository, `jangus-v2`, porting selected v1 modules, because the core execution model changes. This repo's v1 line stays maintainable.
 
 ## Rule amendments (proposed)
 

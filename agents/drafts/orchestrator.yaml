@@ -15,5 +15,6 @@ tools: [agent.start, approval.request, spec.draft, report.write]
 max_tier: T2
 secrets: []
 memory_scope: [orchestration]
-triggers: [{manual: true}, {cron: "0 6 * * *"}]
-budget: {calls: 30, tokens: 80000, wall_seconds: 600, spend_usd: 0.50}
+# Escalation-only: never scheduled, never called to confirm completion or write reports (kernel does that).
+triggers: [{manual: true}, {escalation: [new_goal, spec_draft_request, halted_directive]}]
+budget: {calls: 10, tokens: 40000, wall_seconds: 300, spend_usd: 0.25, daily_escalations: 5}

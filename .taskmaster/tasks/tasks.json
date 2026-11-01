@@ -93,8 +93,8 @@
           3,
           6
         ],
-        "details": "src/jangus2/directives/models.py per docs/DIRECTIVES.md: schema_version, goal, non_goals, budget, tasks with dependencies/testStrategy/tools. Validate: lower-id dependencies, tools subset of spec, tier ceiling <= spec max_tier, immutable hash recorded at issue. Status changes only via kernel API.",
-        "testStrategy": "pytest: directive asking for a tool outside the spec rejected; cyclic/forward dependency rejected; model-supplied status ignored; directive hash logged to ledger.",
+        "details": "src/jangus2/directives/models.py per docs/DIRECTIVES.md: schema_version, goal, non_goals, budget, tasks with dependencies/testStrategy/tools. Validate: lower-id dependencies, tools subset of spec, tier ceiling <= spec max_tier, immutable hash recorded at issue. Status changes only via kernel API.\n\n[adapt 2026-11-01 cost discipline] Add task field `runner` (kernel|model, default model) with `steps` for kernel-run tasks, and directive flag `escalate` (default false). Validate steps use only tools in the task's `tools`.",
+        "testStrategy": "pytest: directive asking for a tool outside the spec rejected; cyclic/forward dependency rejected; model-supplied status ignored; directive hash logged to ledger; kernel-run task with a tool outside its tools list is rejected (B29)",
         "complexity": 6,
         "id": 7,
         "subtasks": []
@@ -217,8 +217,8 @@
           13,
           14
         ],
-        "details": "src/jangus2/agents/runner.py with scripted fake model; external content wrapped as quoted data; loop ends on done/budget/error.",
-        "testStrategy": "pytest B10, B12: second run receives nothing from the first; scripted proposals executed via the kernel only.",
+        "details": "src/jangus2/agents/runner.py with scripted fake model; external content wrapped as quoted data; loop ends on done/budget/error.\n\n[adapt 2026-11-01 cost discipline] Run loop must meter calls/tokens/spend per role in the ledger and use the spec's cheap model; no orchestrator call anywhere in the loop.",
+        "testStrategy": "pytest B10, B12: second run receives nothing from the first; scripted proposals executed via the kernel only; ledger shows per-role usage (B30)",
         "complexity": 6,
         "id": 15,
         "subtasks": []
@@ -232,8 +232,8 @@
           7,
           15
         ],
-        "details": "src/jangus2/directives/runner.py: show only current task + verified dependency results; run testStrategy check via kernel verification; log from ledger IDs; stop rules (budget, unresolved effect, rejected T3, two failed attempts).",
-        "testStrategy": "pytest: model claiming done does not set done; out-of-task tool call rejected; blocked directive halts and alerts; tasks.py validate lints a directive file.",
+        "details": "src/jangus2/directives/runner.py: show only current task + verified dependency results; run testStrategy check via kernel verification; log from ledger IDs; stop rules (budget, unresolved effect, rejected T3, two failed attempts).\n\n[adapt 2026-11-01 cost discipline] Kernel marks tasks done/blocked, finishes the directive and writes the run report from a fixed template with NO model call and no orchestrator confirmation. `runner: kernel` tasks execute scripted steps with zero model calls.",
+        "testStrategy": "pytest: model claiming done does not set done; out-of-task tool call rejected; blocked directive halts and alerts; tasks.py validate lints a directive file; a full standing directive completes with zero orchestrator calls (B27) and kernel-run tasks use zero tokens (B29)",
         "complexity": 7,
         "id": 16,
         "subtasks": []
@@ -275,8 +275,8 @@
         "dependencies": [
           15
         ],
-        "details": "src/jangus2/cli.py + scheduler.py; cron-like triggers from specs; one run lock.",
-        "testStrategy": "pytest B13: missed ticks coalesce; overlapping tick does not double-run.",
+        "details": "src/jangus2/cli.py + scheduler.py; cron-like triggers from specs; one run lock.\n\n[adapt 2026-11-01 cost discipline] Scheduler launches standing directive templates directly for the assignee (orchestrator not involved). Daily report is built deterministically from the ledger, including per-role cost.",
+        "testStrategy": "pytest B13: missed ticks coalesce; overlapping tick does not double-run; daily report totals match the ledger (B30)",
         "complexity": 5,
         "id": 19,
         "subtasks": []
@@ -291,8 +291,8 @@
           18,
           19
         ],
-        "details": "agents/backup-maintainer.yaml + directives/templates/nightly-backup.json; owner names folders at approval time.",
-        "testStrategy": "Scripted fake-model run completes the template directive; kernel verifies every copy.",
+        "details": "agents/backup-maintainer.yaml + directives/templates/nightly-backup.json; owner names folders at approval time.\n\n[adapt 2026-11-01 cost discipline] Backup agent's spec may use provider `none` (kernel-only): nightly backup directive is entirely `runner: kernel` tasks, so it costs zero tokens.",
+        "testStrategy": "Scripted fake-model run completes the template directive; kernel verifies every copy; nightly backup runs end to end with zero model calls",
         "complexity": 4,
         "id": 20,
         "subtasks": []
@@ -319,8 +319,8 @@
         "dependencies": [
           21
         ],
-        "details": "Break down after task 21 is done. Covers B16-B19, B23.",
-        "testStrategy": "B16-B19 and B23 pass.",
+        "details": "Break down after task 21 is done. Covers B16-B19, B23.\n\n[adapt 2026-11-01 cost discipline] Orchestrator is escalation-only: kernel calls it for a new owner goal, spec draft request, or a halted directive with escalate=true, under `daily_escalations` cap; at the cap the escalation is queued for the owner.\n\n[2026-11-01T18:25:29-05:00] Depends on task 25 (metering/cap) in practice; task ids stay append-only. Re-check dependencies before starting 22.",
+        "testStrategy": "B16-B19 and B23 pass; calls beyond the cap are queued and none are made (B28)",
         "complexity": 8,
         "id": 22,
         "subtasks": []
@@ -352,11 +352,26 @@
         "complexity": 8,
         "id": 24,
         "subtasks": []
+      },
+      {
+        "id": 25,
+        "title": "Cost metering and escalation cap",
+        "description": "Record calls, tokens and spend per role and enforce the daily orchestrator escalation cap.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          16,
+          19
+        ],
+        "details": "src/jangus2/kernel/metering.py: per-role usage records in the ledger (kernel-run, specialist, orchestrator); daily escalation counter in the state store; report section. Added by adapt 2026-11-01 (cost discipline). Needed before task 22 uses it, so task 22 should be re-checked when this is done.",
+        "testStrategy": "pytest: totals match ledger (B30); counter survives restart; call beyond cap refused (B28).",
+        "complexity": 4,
+        "subtasks": []
       }
     ],
     "metadata": {
       "created": "2026-11-01T18:19:53-05:00",
-      "updated": "2026-11-01T18:20:18-05:00"
+      "updated": "2026-11-01T18:25:29-05:00"
     }
   }
 }

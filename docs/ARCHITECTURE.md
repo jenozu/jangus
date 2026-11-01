@@ -58,6 +58,19 @@ A spec is active only if its SHA-256 appears in the owner's approval registry. E
 
 The orchestrator hands specialists a **directive**, a Taskmaster-style task list ([DIRECTIVES.md](DIRECTIVES.md)), instead of a free-form instruction. `agent.start` carries the directive. The kernel validates it against the assignee's approved spec (tools subset, tier ceiling), records its hash, shows the agent one task at a time, and sets task status only from verified evidence. The development backlog in `.taskmaster/` uses the same schema.
 
+## Model tiers and cost
+
+Supervision tokens are the main avoidable cost, so the design keeps expensive models off the happy path:
+
+| Role | Model | When called |
+|---|---|---|
+| Kernel | none | Always: status, verification, reports, scheduling, approvals queue |
+| Specialist, `runner: kernel` task | none | Scripted steps, zero tokens |
+| Specialist, `runner: model` task | Haiku-class or local; Sonnet at low effort for harder work | One task at a time, minimal context |
+| Orchestrator | Highest tier used | Only on escalation: new owner goal, spec drafting, halted directive with `escalate: true`, under a daily cap |
+
+The orchestrator is never called to confirm completion, to read a finished run, or to write the daily report. Standing jobs start from the scheduler. Cost per role is metered in the ledger and shown in the daily report. At the escalation cap the request waits for the owner; the system never raises the cap or switches model on its own.
+
 ## Run lifecycle
 
 1. Trigger (schedule, owner command, or orchestrator) creates a job with a stable idempotency key and a directive.

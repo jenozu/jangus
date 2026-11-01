@@ -5,6 +5,9 @@ Full product spec: [docs/PRD.md](../../docs/PRD.md). This file is the short drif
 ## Goal
 Build an orchestrator that starts specialist agents to do the owner's day-to-day work (file/backup upkeep, shop monitoring, inbox triage) without intervention, where a deterministic kernel is the only thing allowed to act. Done means: the file/backup agent runs on a schedule for 7 days with zero manual fixes, the orchestrator delegates to it using a task-list directive, and every action is tiered, approved where required, and in a tamper-evident audit log.
 
+## Cost discipline
+The orchestrator model is called only on escalation (new goal, spec drafting, halted directive under a daily cap). Completion, reports and standing jobs are kernel work. Tasks may be kernel-run with zero tokens. Specialists use Haiku-class/local models, Sonnet at low effort when needed. See docs/DIRECTIVES.md.
+
 ## Non-goals
 - No model ever executes anything directly, changes policy, edits a spec, approves an action, or reads a secret.
 - No unrestricted shell or generated-code execution; no GUI/browser automation.
@@ -67,3 +70,4 @@ Prompt injection via email/orders (structural defense: tiers, spec-scoped tools)
 ## Decision log
 - 2026-11-01: Kernel is sole actor; tiers T1/T2/T3; hybrid models; PC first; fresh runs; spec approval by hash; 7-day gate before business agents (owner, design interview). Affects tasks 3-27.
 - 2026-11-01: Added directives: the orchestrator delegates work as Taskmaster-style task lists; the kernel owns task status. Owner request. Adds task 8 and 18; changes orchestrator `agent.start` to carry a directive.
+- 2026-11-01: Cost discipline: orchestrator is escalation-only; kernel-run tasks; cheap-model defaults; per-role metering; daily escalation cap. Owner request (token cost of supervision). Changes tasks 7, 15, 16, 19, 20, 22; adds task 25. Adds V2-FR23-26 and B27-B30.
