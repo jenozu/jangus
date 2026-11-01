@@ -69,6 +69,12 @@ Every task has hard limits so nothing can loop. Defaults come from the agent spe
 5. **Cheap models by default.** The assignee's spec sets the model: local Ollama or a Haiku-class model for routine judgment, Sonnet at low effort for harder tasks. The orchestrator tier is reserved for escalation.
 6. **Metered.** Every call is recorded per role (kernel-run, specialist, orchestrator) with tokens and spend, so the cost of supervision is visible and can be capped.
 
+## Recipes, caching and watchers
+- A task may name `recipe: <name>` (or match a recipe by `task_type`). It then runs as `runner: kernel` with zero tokens; see [RECIPES.md](RECIPES.md). A failing recipe falls back to the model once through the ladder and is marked stale.
+- A task may set `max_input_tokens`; the kernel trims or summarizes inputs to fit and refuses the call if it cannot.
+- Results of model-run tasks are cached by content hash ([TOKEN_ECONOMY.md](TOKEN_ECONOMY.md)); a cache hit makes no call.
+- A directive may be gated by a watcher (a kernel-evaluated change check). No change means the directive does not start and nothing is spent.
+
 ## What the orchestrator does with it
 Given a goal or a trigger, it drafts a directive for an approved specialist, issues it with `agent.start`, and later reads the finished directive (statuses, ledger references, alerts) to write the report. It may request owner approval for queued T3 actions. It still cannot approve, promote tiers, or edit specs.
 

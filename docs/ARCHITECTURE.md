@@ -52,6 +52,9 @@ triggers: [{cron: "0 2 * * *"}]
 budget: {calls: 40, tokens: 60000, wall_seconds: 900, spend_usd: 0}
 escalation_model: {provider: claude, name: <haiku-or-sonnet tag>, effort: low}   # optional single step-up
 attempts: {default_model: 2, step_up: 1, max_model_calls: 6, max_proposals: 12}
+max_input_tokens: 6000                 # per-task default; directives may only lower it
+recipes: [sort-downloads-by-extension]  # approved recipes this agent may run (zero-token)
+watchers: [new-orders-since-cursor]     # kernel-evaluated change checks gating runs
 host: pc          # pc | vps | actions; the kernel refuses to run where required paths/secrets are unavailable
 ```
 
@@ -73,6 +76,21 @@ Supervision tokens are the main avoidable cost, so the design keeps expensive mo
 | Orchestrator | Highest tier used | Only on escalation: new owner goal, spec drafting, halted directive with `escalate: true`, under a daily cap |
 
 The orchestrator is never called to confirm completion, to read a finished run, or to write the daily report. Standing jobs start from the scheduler. Cost per role is metered in the ledger and shown in the daily report. At the escalation cap the request waits for the owner; the system never raises the cap or switches model on its own.
+
+## Token economy components
+
+| Component | Role |
+|---|---|
+| Metering | Wraps every provider call; writes role, reason, model, measured tokens and cost to the ledger |
+| Price table | Owner-maintained `prices.yaml`; unknown paid model refused |
+| Budget gate | Pre-call worst-case check against task, directive, daily, orchestrator and monthly limits |
+| Alerts | 50/80/100% thresholds, big-call and runaway flags |
+| Result cache | Content-hash cache for model-run task results with TTL and spec/prompt invalidation |
+| Recipe engine | Runs approved recipes; detects candidates from verified solves ([RECIPES.md](RECIPES.md)) |
+| Watchers | Kernel-evaluated change checks that decide whether anything runs |
+| Reporter | Builds the daily and monthly cost reports from the ledger with no model call |
+
+Full specification: [TOKEN_ECONOMY.md](TOKEN_ECONOMY.md).
 
 ## Where work runs
 

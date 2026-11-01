@@ -27,7 +27,8 @@ Phase 0: specs written, awaiting owner acceptance of ADR-001. No code yet. Do no
 11. Cost discipline: orchestrator is escalation-only with a daily cap; completion/reports/standing jobs are kernel-only; kernel-run tasks use zero tokens; specialists on Haiku-class/local, Sonnet low effort when needed; cost metered per role.
 12. Attempt policy: kernel-counted failures; repeat detection; hard per-task limits; ladder 2 + 1 step-up then stop/alert; only the kernel climbs.
 13. Placement: cheapest first (kernel-run, local PC, VPS local model, Haiku, Sonnet low, orchestrator); specs declare `host`; GitHub Actions to be evaluated later (state/ledger durability, secrets).
-14. Gate: file/backup agent must run 7 days unattended with zero manual fixes before shop or inbox agents.
+14. Token economy (docs/TOKEN_ECONOMY.md, docs/RECIPES.md): metering per call, price table, pre-call check, alerts 50/80/100%, result cache, recipes from repeated verified solves (owner-approved), watchers, monthly reconciliation, dedicated API key with provider spend limit.
+15. Gate: file/backup agent must run 7 days unattended with zero manual fixes before shop or inbox agents.
 
 ## Open items (owner)
 - Accept or change ADR-001.
@@ -44,6 +45,7 @@ Reconcile rules per Shopify/Printify/email action; test strategy for LLM-driven 
 config.py strict models; execution/storage.py (SQLite, idempotency); execution/verification.py (hashing); remote/ledger.py (hash-chained ledger); loopback endpoint check; secret scanner (PR #13); agents/provider.py (Ollama); memory/ registry (Phase 7).
 
 ## Log
+- 2026-11-01: Added token economy + recipes specs, rewrote PHASES.md with scenario gates (2a benchmark first, 3b token-economy proof), README, tasks 28-34.
 - 2026-11-01: Owner's main concern is token usage and limits. Added attempt policy, repeat detection, escalation ladder, host placement (FR27-31, B31-B36, ADR-001 items 10-11), tasks 26-27.
 - 2026-11-01: Owner asked to avoid orchestrator round-trips and use cheap models. Added cost-discipline design (FR23-26, B27-B30), task 25, updated DIRECTIVES/ARCHITECTURE/ADR-001.
 - 2026-11-01: Added Taskmaster task list (24 tasks), .taskmaster/ PRD, tools/taskmaster/tasks.py, docs/DIRECTIVES.md; orchestrator now delegates via directives. Next up: task 1 (owner accepts ADR-001), then task 2.

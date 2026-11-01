@@ -24,7 +24,8 @@ A local-first system where an **orchestrator** starts **specialist agents** (eac
 10. **Directives narrow, never grant.** A directive may only use tools and tiers already in the assignee's approved spec. Task status is set by the kernel from verified evidence, never by model output.
 11. **Cost discipline.** Never add a model call to confirm completion, read a finished run, or write a report; the kernel does those. The orchestrator is escalation-only and capped. Prefer `runner: kernel` tasks. Meter every model call per role.
 12. **No loops.** Every task has kernel-counted attempts, repeat detection and hard limits; only the kernel steps up to a stronger model (once), then stops and alerts. Limits never reset on retry, restart or re-issue. Place work as low-cost as possible (kernel-run, local, VPS, Haiku, Sonnet low, orchestrator).
-13. **Verify with actual output.** Run tests and show real results. Distinguish fake-model results from real local-model and real Claude results. Do not claim hardware or external-service behavior that was not executed.
+13. **Zero-token first.** Prefer recipes, `runner: kernel` tasks, watchers and the result cache before any model call. Recipes and watchers are inert until the owner approves their hash; a recipe never grants more than the agent spec allows, and T3 steps still queue. Every model call is metered from provider usage and pre-checked against budgets.
+14. **Verify with actual output.** Run tests and show real results. Distinguish fake-model results from real local-model and real Claude results. Do not claim hardware or external-service behavior that was not executed.
 
 ## Task-driven build (Taskmaster)
 

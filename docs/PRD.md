@@ -62,6 +62,15 @@ Primary: the repository owner on a Windows 11 desktop (32 GB RAM) with an option
 | V2-FR29 | Hard per-task limits (model calls, proposals, wall time); limits cannot be reset by retry, restart or re-issue | P2 |
 | V2-FR30 | One-step escalation ladder per spec (`escalation_model`); only the kernel climbs it; agents cannot pick models, raise limits or call the orchestrator | P2 |
 | V2-FR31 | Host placement: specs declare `host` (pc, vps, actions); the kernel refuses to run an agent where required paths or secrets are unavailable. Work runs as low-cost as possible (kernel-run, local model, VPS, Haiku, Sonnet, orchestrator) | P3-P7 |
+| V2-FR32 | Token ledger: every model call records role, reason, model, measured input/output/cached tokens and cost; kernel-run tasks record zero | P2 |
+| V2-FR33 | Owner-maintained price table; unknown paid model refused; stale table alerts | P2 |
+| V2-FR34 | Pre-call worst-case budget check against task, directive, daily, orchestrator and monthly limits; refusal counts as a failed attempt | P2 |
+| V2-FR35 | Spend alerts at 50/80/100% plus big-call and runaway flags; provider blocked at 100% | P2 |
+| V2-FR36 | Result cache keyed by task type, input hash, spec hash and prompt version | P2 |
+| V2-FR37 | Recipes: candidate detection from repeated verified solves, owner-approved by hash, zero-token execution, fallback and stale marking ([RECIPES.md](RECIPES.md)) | P3b |
+| V2-FR38 | Watchers: kernel-evaluated change checks gate runs so unchanged input costs nothing | P3b |
+| V2-FR39 | Per-task `max_input_tokens`, kernel-side summarization of large outputs, and use of prompt caching and batch endpoints where measured to save | P2-P3b |
+| V2-FR40 | Daily and monthly cost reports from the ledger, with monthly reconciliation against provider usage and a dedicated API key with a provider-side spend limit | P3 |
 | V2-FR20 | Optional VPS execution of agents that need no local files | P7 |
 | V2-FR21 | Directives: the orchestrator delegates work to specialists as Taskmaster-style task lists (see [DIRECTIVES.md](DIRECTIVES.md)); the kernel owns task status and log entries, derived from verified evidence | P2 |
 | V2-FR22 | The development backlog and runtime directives share one schema and tooling (`tools/taskmaster/tasks.py`) | P2 |
@@ -95,3 +104,4 @@ Excluded until separately authorized: unrestricted shell or generated-code execu
 - Shopify/Printify/email API write semantics and idempotency vary per action; each action needs its own reconciliation rule.
 - License still undecided (v1 open item).
 - Alert channel beyond CLI/daily report is deferred.
+- Savings estimates (recipes, cache, watchers) are estimates until measured against a baseline; the cost report labels them so.
