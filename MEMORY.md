@@ -42,6 +42,7 @@ Reconcile rules per Shopify/Printify/email action; test strategy for LLM-driven 
 config.py strict models; execution/storage.py (SQLite, idempotency); execution/verification.py (hashing); remote/ledger.py (hash-chained ledger); loopback endpoint check; secret scanner (PR #13); agents/provider.py (Ollama); memory/ registry (Phase 7).
 
 ## Log
+- 2026-11-02: Task 3 built on branch phase-1/config-and-errors (errors.py, config.py, tests). Config format is TOML (stdlib), not YAML. Marked done only after CI green. Next: task 4.
 - 2026-11-02: Owner switched the GitHub default branch to main. Task 1 done.
 - 2026-11-02: Owner said go. Task 2 (scaffold) done on branch phase-1/scaffold, PR #1; local checks pass and CI green on ubuntu and windows. Task 1 still open (GitHub default branch; dependency forced on owner authority). Next: task 3 (config and error types).
 - 2026-11-02: Repos renamed by owner: v1 is now `jenozu/jangus-v1`; this repo is `jenozu/jangus`. Python package and source dir are `jangus` / `src/jangus/` (no `2`). All docs and pending tasks updated. Note: v1 also uses the package name `jangus`; keep the two in separate virtualenvs.
