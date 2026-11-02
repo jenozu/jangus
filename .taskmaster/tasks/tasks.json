@@ -87,13 +87,13 @@
       {
         "title": "Directive models and validation",
         "description": "Strict directive/task models, status rules, scope narrowing against a spec, linting with tasks.py.",
-        "status": "pending",
+        "status": "done",
         "priority": "high",
         "dependencies": [
           3,
           6
         ],
-        "details": "src/jangus/directives/models.py per docs/DIRECTIVES.md: schema_version, goal, non_goals, budget, tasks with dependencies/testStrategy/tools. Validate: lower-id dependencies, tools subset of spec, tier ceiling <= spec max_tier, immutable hash recorded at issue. Status changes only via kernel API.\n\n[adapt 2026-11-01 cost discipline] Add task field `runner` (kernel|model, default model) with `steps` for kernel-run tasks, and directive flag `escalate` (default false). Validate steps use only tools in the task's `tools`.\n\n[adapt 2026-11-01 attempt limits] Add per-task limits fields (max_model_calls, max_proposals, max_wall_seconds) that may only tighten spec defaults; consumed attempts carry over to a superseding directive.\n\n[adapt 2026-11-01 token economy] Add task fields `recipe`, `task_type`, `max_input_tokens`; directive-level `watcher`. Limits may only tighten spec defaults.",
+        "details": "src/jangus/directives/models.py per docs/DIRECTIVES.md: schema_version, goal, non_goals, budget, tasks with dependencies/testStrategy/tools. Validate: lower-id dependencies, tools subset of spec, tier ceiling <= spec max_tier, immutable hash recorded at issue. Status changes only via kernel API.\n\n[adapt 2026-11-01 cost discipline] Add task field `runner` (kernel|model, default model) with `steps` for kernel-run tasks, and directive flag `escalate` (default false). Validate steps use only tools in the task's `tools`.\n\n[adapt 2026-11-01 attempt limits] Add per-task limits fields (max_model_calls, max_proposals, max_wall_seconds) that may only tighten spec defaults; consumed attempts carry over to a superseding directive.\n\n[adapt 2026-11-01 token economy] Add task fields `recipe`, `task_type`, `max_input_tokens`; directive-level `watcher`. Limits may only tighten spec defaults.\n\n[2026-11-02T15:15:23-05:00] Plan: src/jangus/directives/models.py. Strict frozen models (Directive, Task, Step, Budget) per docs/DIRECTIVES.md, with runner/steps, escalate, per-task limits, recipe/task_type/max_input_tokens, watcher, supersedes. SpecConstraints dataclass stands in for the approved spec until task 12 builds the real loader. parse_directive(raw, spec, registry): model-supplied status is dropped and forced to pending; validate_directive fails closed (DIRECTIVE_INVALID) on: wrong assignee/spec hash, duplicate or non-positive ids, forward/self/missing dependencies, tools outside the spec, kernel steps outside the task tools (B29), kernel task without steps or model task with steps, tier ceiling above spec max_tier or tool tier above ceiling, budget or limits looser than the spec (B33). issue() appends the directive hash to the ledger. kernel_set_status() is the only status transition path: requires kernel-made Evidence, dependencies done, no leaving done. Carry-over of consumed attempts for a superseding directive is runtime state, deferred to Phase 2; the model only carries supersedes.\n\n[2026-11-02T15:15:39-05:00] Built and tested locally: Adds directives/models.py: strict directive/task models per docs/DIRECTIVES.md; parse_directive ignores model-supplied status; validate rejects tools outside spec, forward/missing dependencies, kernel steps outside task tools (B29), tier ceiling above spec, limits or budget looser than spec (B33); issue() logs the directive hash to the ledger; kernel_set_status is the only status path and needs verified evidence. Local: ruff clean, mypy strict clean, pytest 102 passed (22 new). Awaiting CI before done.\n\n[2026-11-02T15:17:51-05:00] CI green on ubuntu-latest and windows-latest (PR #8). Test strategy met. Drift check: no model code, no scope beyond task 7.",
         "testStrategy": "pytest: directive asking for a tool outside the spec rejected; cyclic/forward dependency rejected; model-supplied status ignored; directive hash logged to ledger; kernel-run task with a tool outside its tools list is rejected (B29); limit loosened above the spec default is rejected (B33)",
         "complexity": 6,
         "id": 7,
@@ -535,7 +535,7 @@
     ],
     "metadata": {
       "created": "2026-11-01T18:19:53-05:00",
-      "updated": "2026-11-02T15:14:17-05:00"
+      "updated": "2026-11-02T15:17:51-05:00"
     }
   }
 }
