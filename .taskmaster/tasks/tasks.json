@@ -30,12 +30,12 @@
       {
         "title": "Strict config and error types",
         "description": "Pydantic strict config models and stable fault codes.",
-        "status": "in-progress",
+        "status": "done",
         "priority": "high",
         "dependencies": [
           2
         ],
-        "details": "src/jangus/config.py: StrictModel base (extra=forbid), paths outside checkout, loopback-only model endpoint check (127.0.0.1, ::1), RuntimeFault(code). Port ideas from v1 config.py.\n\n[2026-11-02T11:37:40-05:00] Plan: add src/jangus/errors.py (RuntimeFault with stable FaultCode enum) and src/jangus/config.py (StrictModel extra=forbid/strict/frozen; ModelEndpoint loopback-only 127.0.0.1/::1, localhost rejected; JangusConfig with data/workspace/config dirs required absolute and outside the checkout and each other; load_config from YAML-free JSON/dict to keep deps light). Tests in tests/test_config.py and tests/test_errors.py. Run ruff, mypy, pytest, validate, then CI.\n\n[2026-11-02T11:38:27-05:00] Design note: config is TOML (stdlib tomllib) to keep the kernel dependency-light; no YAML dependency. Local checks pass: ruff, mypy strict, pytest 27 passed, tasks validate. Awaiting CI before marking done.",
+        "details": "src/jangus/config.py: StrictModel base (extra=forbid), paths outside checkout, loopback-only model endpoint check (127.0.0.1, ::1), RuntimeFault(code). Port ideas from v1 config.py.\n\n[2026-11-02T11:37:40-05:00] Plan: add src/jangus/errors.py (RuntimeFault with stable FaultCode enum) and src/jangus/config.py (StrictModel extra=forbid/strict/frozen; ModelEndpoint loopback-only 127.0.0.1/::1, localhost rejected; JangusConfig with data/workspace/config dirs required absolute and outside the checkout and each other; load_config from YAML-free JSON/dict to keep deps light). Tests in tests/test_config.py and tests/test_errors.py. Run ruff, mypy, pytest, validate, then CI.\n\n[2026-11-02T11:38:27-05:00] Design note: config is TOML (stdlib tomllib) to keep the kernel dependency-light; no YAML dependency. Local checks pass: ruff, mypy strict, pytest 27 passed, tasks validate. Awaiting CI before marking done.\n\n[2026-11-02T11:39:41-05:00] CI green on ubuntu-latest and windows-latest for PR #3 (local: ruff, mypy strict, pytest 27 passed). Test strategy satisfied: extra/invalid fields rejected, non-loopback endpoint rejected, valid config loads. Drift check: no model code, no scope beyond task 3.",
         "testStrategy": "pytest: invalid/extra fields rejected; non-loopback endpoint rejected; valid config loads.",
         "complexity": 3,
         "id": 3,
@@ -503,7 +503,7 @@
     ],
     "metadata": {
       "created": "2026-11-01T18:19:53-05:00",
-      "updated": "2026-11-02T11:38:27-05:00"
+      "updated": "2026-11-02T11:39:41-05:00"
     }
   }
 }
