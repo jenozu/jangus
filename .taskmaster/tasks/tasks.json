@@ -16,7 +16,7 @@
       {
         "title": "Scaffold repo, tooling and CI",
         "description": "Python 3.12 project with uv, ruff, mypy, pytest and a CI workflow.",
-        "status": "in-progress",
+        "status": "done",
         "priority": "high",
         "dependencies": [
           1
@@ -503,7 +503,7 @@
     ],
     "metadata": {
       "created": "2026-11-01T18:19:53-05:00",
-      "updated": "2026-11-02T10:18:54-05:00"
+      "updated": "2026-11-02T10:19:02-05:00"
     }
   }
 }
