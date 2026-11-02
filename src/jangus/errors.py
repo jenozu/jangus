@@ -12,6 +12,10 @@ class FaultCode(StrEnum):
     CONFIG_INVALID = "config_invalid"
     ENDPOINT_NOT_LOOPBACK = "endpoint_not_loopback"
     PATH_INVALID = "path_invalid"
+    STATE_UNAVAILABLE = "state_unavailable"
+    STATE_SCHEMA_MISMATCH = "state_schema_mismatch"
+    IDEMPOTENCY_CONFLICT = "idempotency_conflict"
+    BUDGET_EXCEEDED = "budget_exceeded"
 
 
 class RuntimeFault(Exception):  # noqa: N818 - name fixed by the task spec
