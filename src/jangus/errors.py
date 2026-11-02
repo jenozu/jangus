@@ -19,6 +19,7 @@ class FaultCode(StrEnum):
     LEDGER_UNAVAILABLE = "ledger_unavailable"
     LEDGER_CORRUPT = "ledger_corrupt"
     LEDGER_EVENT_INVALID = "ledger_event_invalid"
+    TOOL_REGISTRATION_INVALID = "tool_registration_invalid"
 
 
 class RuntimeFault(Exception):  # noqa: N818 - name fixed by the task spec
