@@ -16,12 +16,12 @@
       {
         "title": "Scaffold repo, tooling and CI",
         "description": "Python 3.12 project with uv, ruff, mypy, pytest and a CI workflow.",
-        "status": "pending",
+        "status": "in-progress",
         "priority": "high",
         "dependencies": [
           1
         ],
-        "details": "Create pyproject.toml (src layout, package jangus), uv.lock, src/jangus/__init__.py, tests/test_smoke.py, .github/workflows/ci.yml (ubuntu + windows matrix: ruff, mypy --strict on kernel, pytest). Pin versions; .gitignore for runtime data.",
+        "details": "Create pyproject.toml (src layout, package jangus), uv.lock, src/jangus/__init__.py, tests/test_smoke.py, .github/workflows/ci.yml (ubuntu + windows matrix: ruff, mypy --strict on kernel, pytest). Pin versions; .gitignore for runtime data.\n\n[2026-11-02T10:16:40-05:00] plan: pyproject.toml (src layout, package jangus, py>=3.12), src/jangus/{__init__,py.typed,kernel/__init__}, tests/test_smoke.py, .gitignore, .github/workflows/ci.yml (ubuntu+windows: ruff, mypy --strict kernel, pytest), uv.lock. Owner said go (2026-11-02) while task 1 still needs the GitHub default branch switch; dependency forced on owner authority.\n\n[2026-11-02T10:17:27-05:00] built: pyproject (hatchling, pydantic; dev: pytest, ruff, mypy), src/jangus + kernel package, cli placeholder, 3 smoke tests, .gitignore, .python-version 3.12, ci.yml (ubuntu+windows), uv.lock. Local Linux/3.12: pytest 3 passed, ruff clean (tools/ excluded: vendored helper), mypy clean, mypy --strict kernel clean. Pending: CI on both OSes.",
         "testStrategy": "Run `uv run pytest`, `uv run ruff check`, `uv run mypy --strict src/jangus/kernel`: all pass; CI green on both OSes.",
         "complexity": 3,
         "id": 2,
@@ -503,7 +503,7 @@
     ],
     "metadata": {
       "created": "2026-11-01T18:19:53-05:00",
-      "updated": "2026-11-02T08:25:07-05:00"
+      "updated": "2026-11-02T10:17:27-05:00"
     }
   }
 }

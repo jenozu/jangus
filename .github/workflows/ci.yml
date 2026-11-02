@@ -1,0 +1,30 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Install
+        run: uv sync --locked
+      - name: Lint
+        run: uv run --locked ruff check
+      - name: Types (strict on kernel)
+        run: uv run --locked mypy
+      - name: Tests
+        run: uv run --locked pytest
+      - name: Task list is valid
+        run: python tools/taskmaster/tasks.py validate
