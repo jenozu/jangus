@@ -44,12 +44,12 @@
       {
         "title": "SQLite state store with idempotency",
         "description": "Durable runs, actions, budgets tables with WAL and synchronous=FULL.",
-        "status": "pending",
+        "status": "done",
         "priority": "high",
         "dependencies": [
           3
         ],
-        "details": "src/jangus/kernel/state.py: schema v1, transactional intent+attempt charge, idempotency keys, schema version check. Port from v1 execution/storage.py.",
+        "details": "src/jangus/kernel/state.py: schema v1, transactional intent+attempt charge, idempotency keys, schema version check. Port from v1 execution/storage.py.\n\n[2026-11-02T11:43:34-05:00] Plan: stacked on phase-1/config-and-errors (PR #3 unmerged). Add 4 FaultCodes (state_unavailable, state_schema_mismatch, idempotency_conflict, budget_exceeded). kernel/state.py: StateStore over sqlite3 (WAL, synchronous=FULL, foreign_keys, autocommit with explicit BEGIN IMMEDIATE), schema v1 (meta, runs, actions, budgets), create_run idempotent by key, record_intent = one transaction inserting the action and charging the budget (same key+payload returns existing without charge; different payload = conflict; over budget = fault with no insert), record_result, budgets persist across reopen, any sqlite write error blocks all further writes (fail closed). Tests in tests/test_state.py.\n\n[2026-11-02T11:43:55-05:00] Built kernel/state.py + 12 tests. Local: ruff clean, mypy strict clean, pytest 39 passed. Awaiting CI before done.\n\n[2026-11-02T11:45:21-05:00] CI green on ubuntu-latest and windows-latest for PR #4 (local: ruff, mypy strict, pytest 39 passed). Test strategy met: duplicate key returns same record, reopened DB keeps budgets, failed/unreadable DB blocks writes. Drift check: no model code, no scope beyond task 4.",
         "testStrategy": "pytest: duplicate idempotency key returns same record; reopened DB keeps budgets; unreadable DB blocks writes.",
         "complexity": 5,
         "id": 4,
@@ -503,7 +503,7 @@
     ],
     "metadata": {
       "created": "2026-11-01T18:19:53-05:00",
-      "updated": "2026-11-02T11:39:41-05:00"
+      "updated": "2026-11-02T11:45:21-05:00"
     }
   }
 }
