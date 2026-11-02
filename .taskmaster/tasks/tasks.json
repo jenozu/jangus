@@ -72,13 +72,13 @@
       {
         "title": "Tool registry and tier policy",
         "description": "Registry of tools with schema, tier, reversibility, verify, reconcile; policy engine.",
-        "status": "in-progress",
+        "status": "done",
         "priority": "high",
         "dependencies": [
           4,
           5
         ],
-        "details": "src/jangus/kernel/registry.py + policy.py. Tool without verify+reconcile cannot be T2/T3. decide(tool, agent_max_tier) returns RUN, RUN_LOG, QUEUE or REJECT. Elevation rules (target outside workspace).\n\n[2026-11-02T15:08:50-05:00] Plan: kernel/registry.py (Tier, ToolSpec dataclass with strict args model, execute/verify/reconcile callables, optional elevation rule; Registry.register refuses T2/T3 without verify+reconcile, duplicates, non-StrictModel args) and kernel/policy.py (decide(): unknown tool -> REJECT, tool not in agent allow-list -> REJECT, schema violation -> REJECT, effective tier = max(tool tier, elevation) above agent max_tier -> REJECT not queue, T1 RUN, T2 RUN_LOG, T3 QUEUE; payload_hash over tool+version+normalized args). Pure functions, no I/O; the executor (task 8) logs rejections to the ledger. Tests cover B01-B04.\n\n[2026-11-02T15:09:15-05:00] Built and tested locally: Adds kernel/registry.py and kernel/policy.py: strict tool schemas, T2/T3 require verify+reconcile, decide() returns run/run_log/queue/reject (unknown tool, not-allowed, bad args, above max tier all reject; elevation raises tier), payload hash. Local: ruff clean, mypy strict clean, pytest 61 passed (14 new, B01-B04). No models. Awaiting CI before done.",
+        "details": "src/jangus/kernel/registry.py + policy.py. Tool without verify+reconcile cannot be T2/T3. decide(tool, agent_max_tier) returns RUN, RUN_LOG, QUEUE or REJECT. Elevation rules (target outside workspace).\n\n[2026-11-02T15:08:50-05:00] Plan: kernel/registry.py (Tier, ToolSpec dataclass with strict args model, execute/verify/reconcile callables, optional elevation rule; Registry.register refuses T2/T3 without verify+reconcile, duplicates, non-StrictModel args) and kernel/policy.py (decide(): unknown tool -> REJECT, tool not in agent allow-list -> REJECT, schema violation -> REJECT, effective tier = max(tool tier, elevation) above agent max_tier -> REJECT not queue, T1 RUN, T2 RUN_LOG, T3 QUEUE; payload_hash over tool+version+normalized args). Pure functions, no I/O; the executor (task 8) logs rejections to the ledger. Tests cover B01-B04.\n\n[2026-11-02T15:09:15-05:00] Built and tested locally: Adds kernel/registry.py and kernel/policy.py: strict tool schemas, T2/T3 require verify+reconcile, decide() returns run/run_log/queue/reject (unknown tool, not-allowed, bad args, above max tier all reject; elevation raises tier), payload hash. Local: ruff clean, mypy strict clean, pytest 61 passed (14 new, B01-B04). No models. Awaiting CI before done.\n\n[2026-11-02T15:10:06-05:00] CI green on ubuntu-latest and windows-latest (PR #6). Test strategy met. Drift check: no model code, no scope beyond task 6.",
         "testStrategy": "pytest B01-B04: unknown tool rejected; T1 runs, T2 runs+logs, T3 queues; call above max_tier rejected not queued; malformed args rejected.",
         "complexity": 6,
         "id": 6,
@@ -503,7 +503,7 @@
     ],
     "metadata": {
       "created": "2026-11-01T18:19:53-05:00",
-      "updated": "2026-11-02T15:09:15-05:00"
+      "updated": "2026-11-02T15:10:07-05:00"
     }
   }
 }
