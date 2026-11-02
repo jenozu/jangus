@@ -7,7 +7,7 @@
         "status": "in-progress",
         "priority": "high",
         "dependencies": [],
-        "details": "Set ADR-001 status to accepted; choose license; confirm package name (default jangus2); make the docs branch the default branch of jangus-2.0.\n\n[2026-11-01T18:20:18-05:00] Docs and task list prepared on branch phase-0/taskmaster; waiting on owner to review ADR-001 and decide license/package name.\n\n[2026-11-01T18:48:54-05:00] Owner accepted ADR-001 on 2026-11-01 and the phase-0 branches were merged into main. Still open before this task is done: choose a license (or log the decision) and confirm package name.\n\n[2026-11-01T18:51:44-05:00] License decided: none for now (owner, 2026-11-01), logged in PRD decision log. Remaining: confirm package name (default jangus2) and switch GitHub default branch to main.",
+        "details": "Set ADR-001 status to accepted; choose license; confirm package name (default jangus); make the docs branch the default branch of jangus.\n\n[2026-11-01T18:20:18-05:00] Docs and task list prepared on branch phase-0/taskmaster; waiting on owner to review ADR-001 and decide license/package name.\n\n[2026-11-01T18:48:54-05:00] Owner accepted ADR-001 on 2026-11-01 and the phase-0 branches were merged into main. Still open before this task is done: choose a license (or log the decision) and confirm package name.\n\n[2026-11-01T18:51:44-05:00] License decided: none for now (owner, 2026-11-01), logged in PRD decision log. Remaining: confirm package name (default jangus) and switch GitHub default branch to main.\n\n[2026-11-02T08:25:07-05:00] Package name decided: jangus (src/jangus/), no 2. Repos renamed 2026-11-02: v1 = jenozu/jangus-v1, this repo = jenozu/jangus. Remaining: switch GitHub default branch to main.",
         "testStrategy": "ADR-001 status reads 'accepted' on the default branch; LICENSE file present or decision logged in the PRD decision log.",
         "complexity": 1,
         "id": 1,
@@ -21,8 +21,8 @@
         "dependencies": [
           1
         ],
-        "details": "Create pyproject.toml (src layout, package jangus2), uv.lock, src/jangus2/__init__.py, tests/test_smoke.py, .github/workflows/ci.yml (ubuntu + windows matrix: ruff, mypy --strict on kernel, pytest). Pin versions; .gitignore for runtime data.",
-        "testStrategy": "Run `uv run pytest`, `uv run ruff check`, `uv run mypy --strict src/jangus2/kernel`: all pass; CI green on both OSes.",
+        "details": "Create pyproject.toml (src layout, package jangus), uv.lock, src/jangus/__init__.py, tests/test_smoke.py, .github/workflows/ci.yml (ubuntu + windows matrix: ruff, mypy --strict on kernel, pytest). Pin versions; .gitignore for runtime data.",
+        "testStrategy": "Run `uv run pytest`, `uv run ruff check`, `uv run mypy --strict src/jangus/kernel`: all pass; CI green on both OSes.",
         "complexity": 3,
         "id": 2,
         "subtasks": []
@@ -35,7 +35,7 @@
         "dependencies": [
           2
         ],
-        "details": "src/jangus2/config.py: StrictModel base (extra=forbid), paths outside checkout, loopback-only model endpoint check (127.0.0.1, ::1), RuntimeFault(code). Port ideas from v1 config.py.",
+        "details": "src/jangus/config.py: StrictModel base (extra=forbid), paths outside checkout, loopback-only model endpoint check (127.0.0.1, ::1), RuntimeFault(code). Port ideas from v1 config.py.",
         "testStrategy": "pytest: invalid/extra fields rejected; non-loopback endpoint rejected; valid config loads.",
         "complexity": 3,
         "id": 3,
@@ -49,7 +49,7 @@
         "dependencies": [
           3
         ],
-        "details": "src/jangus2/kernel/state.py: schema v1, transactional intent+attempt charge, idempotency keys, schema version check. Port from v1 execution/storage.py.",
+        "details": "src/jangus/kernel/state.py: schema v1, transactional intent+attempt charge, idempotency keys, schema version check. Port from v1 execution/storage.py.",
         "testStrategy": "pytest: duplicate idempotency key returns same record; reopened DB keeps budgets; unreadable DB blocks writes.",
         "complexity": 5,
         "id": 4,
@@ -63,7 +63,7 @@
         "dependencies": [
           3
         ],
-        "details": "src/jangus2/kernel/ledger.py: append(event), verify_chain(), fail-closed on write error. Port from v1 remote/ledger.py.",
+        "details": "src/jangus/kernel/ledger.py: append(event), verify_chain(), fail-closed on write error. Port from v1 remote/ledger.py.",
         "testStrategy": "pytest: tamper with an entry and verify_chain fails; write failure raises and blocks new effects (B06).",
         "complexity": 5,
         "id": 5,
@@ -78,7 +78,7 @@
           4,
           5
         ],
-        "details": "src/jangus2/kernel/registry.py + policy.py. Tool without verify+reconcile cannot be T2/T3. decide(tool, agent_max_tier) returns RUN, RUN_LOG, QUEUE or REJECT. Elevation rules (target outside workspace).",
+        "details": "src/jangus/kernel/registry.py + policy.py. Tool without verify+reconcile cannot be T2/T3. decide(tool, agent_max_tier) returns RUN, RUN_LOG, QUEUE or REJECT. Elevation rules (target outside workspace).",
         "testStrategy": "pytest B01-B04: unknown tool rejected; T1 runs, T2 runs+logs, T3 queues; call above max_tier rejected not queued; malformed args rejected.",
         "complexity": 6,
         "id": 6,
@@ -93,7 +93,7 @@
           3,
           6
         ],
-        "details": "src/jangus2/directives/models.py per docs/DIRECTIVES.md: schema_version, goal, non_goals, budget, tasks with dependencies/testStrategy/tools. Validate: lower-id dependencies, tools subset of spec, tier ceiling <= spec max_tier, immutable hash recorded at issue. Status changes only via kernel API.\n\n[adapt 2026-11-01 cost discipline] Add task field `runner` (kernel|model, default model) with `steps` for kernel-run tasks, and directive flag `escalate` (default false). Validate steps use only tools in the task's `tools`.\n\n[adapt 2026-11-01 attempt limits] Add per-task limits fields (max_model_calls, max_proposals, max_wall_seconds) that may only tighten spec defaults; consumed attempts carry over to a superseding directive.\n\n[adapt 2026-11-01 token economy] Add task fields `recipe`, `task_type`, `max_input_tokens`; directive-level `watcher`. Limits may only tighten spec defaults.",
+        "details": "src/jangus/directives/models.py per docs/DIRECTIVES.md: schema_version, goal, non_goals, budget, tasks with dependencies/testStrategy/tools. Validate: lower-id dependencies, tools subset of spec, tier ceiling <= spec max_tier, immutable hash recorded at issue. Status changes only via kernel API.\n\n[adapt 2026-11-01 cost discipline] Add task field `runner` (kernel|model, default model) with `steps` for kernel-run tasks, and directive flag `escalate` (default false). Validate steps use only tools in the task's `tools`.\n\n[adapt 2026-11-01 attempt limits] Add per-task limits fields (max_model_calls, max_proposals, max_wall_seconds) that may only tighten spec defaults; consumed attempts carry over to a superseding directive.\n\n[adapt 2026-11-01 token economy] Add task fields `recipe`, `task_type`, `max_input_tokens`; directive-level `watcher`. Limits may only tighten spec defaults.",
         "testStrategy": "pytest: directive asking for a tool outside the spec rejected; cyclic/forward dependency rejected; model-supplied status ignored; directive hash logged to ledger; kernel-run task with a tool outside its tools list is rejected (B29); limit loosened above the spec default is rejected (B33)",
         "complexity": 6,
         "id": 7,
@@ -109,7 +109,7 @@
           5,
           6
         ],
-        "details": "src/jangus2/kernel/executor.py plus fake tools. Intent+attempt in one transaction before effect; independent verify; reconcile adopts matching result, retries only proven absence, otherwise marks unresolved.",
+        "details": "src/jangus/kernel/executor.py plus fake tools. Intent+attempt in one transaction before effect; independent verify; reconcile adopts matching result, retries only proven absence, otherwise marks unresolved.",
         "testStrategy": "pytest B05: kill the process before effect, after effect before result, after verification; restart yields no duplicate or overwrite.",
         "complexity": 8,
         "id": 8,
@@ -124,7 +124,7 @@
           6,
           8
         ],
-        "details": "src/jangus2/kernel/secrets.py: Protocol, EnvBackend, fake backend for tests, WindowsCredentialBackend (keyring/pywin32, import-guarded) per agent allow-list. Never returns secrets to prompts or logs.",
+        "details": "src/jangus/kernel/secrets.py: Protocol, EnvBackend, fake backend for tests, WindowsCredentialBackend (keyring/pywin32, import-guarded) per agent allow-list. Never returns secrets to prompts or logs.",
         "testStrategy": "pytest B07: agent without the secret named in spec gets denied; canary secret absent from ledger, logs, exports, error text.",
         "complexity": 4,
         "id": 9,
@@ -140,7 +140,7 @@
           5,
           6
         ],
-        "details": "src/jangus2/kernel/approvals.py: enqueue, list, approve, reject, expire; approval valid only for the exact normalized payload hash.",
+        "details": "src/jangus/kernel/approvals.py: enqueue, list, approve, reject, expire; approval valid only for the exact normalized payload hash.",
         "testStrategy": "pytest: changed payload invalidates approval; expired approval refused; approve records owner id in ledger.",
         "complexity": 4,
         "id": 10,
@@ -171,7 +171,7 @@
         "dependencies": [
           11
         ],
-        "details": "src/jangus2/agents/spec.py and registry file outside the checkout; `jangus spec approve <file>` records the hash.\n\n[adapt 2026-11-01 attempt limits] Spec schema adds `escalation_model`, `attempts` block (default_model 2, step_up 1, max_model_calls 6, max_proposals 12) and `host` (pc|vps|actions); kernel checks required paths/secrets exist on the host.\n\n[adapt 2026-11-01 token economy] Spec adds `max_input_tokens`, `recipes` (approved names), `watchers`. Recipes and watchers are inert until their hashes are owner-approved.",
+        "details": "src/jangus/agents/spec.py and registry file outside the checkout; `jangus spec approve <file>` records the hash.\n\n[adapt 2026-11-01 attempt limits] Spec schema adds `escalation_model`, `attempts` block (default_model 2, step_up 1, max_model_calls 6, max_proposals 12) and `host` (pc|vps|actions); kernel checks required paths/secrets exist on the host.\n\n[adapt 2026-11-01 token economy] Spec adds `max_input_tokens`, `recipes` (approved names), `watchers`. Recipes and watchers are inert until their hashes are owner-approved.",
         "testStrategy": "pytest B09: edited spec inactive until re-approved; unapproved spec cannot run; spec with unavailable host requirements refused (B35)",
         "complexity": 4,
         "id": 12,
@@ -185,7 +185,7 @@
         "dependencies": [
           3
         ],
-        "details": "src/jangus2/agents/providers/*. Token/cost accounting; recorded-transcript tests; no network in unit tests.\n\n[adapt 2026-11-01 token economy] Provider interface returns measured usage (input, output, cached tokens) and supports prompt-cache-friendly prefix ordering and batch mode; missing usage is recorded as `usage_unknown` and charged at the estimate.",
+        "details": "src/jangus/agents/providers/*. Token/cost accounting; recorded-transcript tests; no network in unit tests.\n\n[adapt 2026-11-01 token economy] Provider interface returns measured usage (input, output, cached tokens) and supports prompt-cache-friendly prefix ordering and batch mode; missing usage is recorded as `usage_unknown` and charged at the estimate.",
         "testStrategy": "pytest B11: failing or disabled provider stops the run and alerts; never switches provider; B37 usage fields recorded; usage_unknown handled",
         "complexity": 5,
         "id": 13,
@@ -217,7 +217,7 @@
           13,
           14
         ],
-        "details": "src/jangus2/agents/runner.py with scripted fake model; external content wrapped as quoted data; loop ends on done/budget/error.\n\n[adapt 2026-11-01 cost discipline] Run loop must meter calls/tokens/spend per role in the ledger and use the spec's cheap model; no orchestrator call anywhere in the loop.\n\n[adapt 2026-11-01 attempt limits] Count failed attempts in the kernel (rejected/failed call, failed verification, unparseable reply, repeated proposal, no-progress cycle) and expose the count; model output cannot change counts, limits or model choice.\n\n[2026-11-01T18:28:43-05:00] Do task 26 right after 15; 16 uses it.",
+        "details": "src/jangus/agents/runner.py with scripted fake model; external content wrapped as quoted data; loop ends on done/budget/error.\n\n[adapt 2026-11-01 cost discipline] Run loop must meter calls/tokens/spend per role in the ledger and use the spec's cheap model; no orchestrator call anywhere in the loop.\n\n[adapt 2026-11-01 attempt limits] Count failed attempts in the kernel (rejected/failed call, failed verification, unparseable reply, repeated proposal, no-progress cycle) and expose the count; model output cannot change counts, limits or model choice.\n\n[2026-11-01T18:28:43-05:00] Do task 26 right after 15; 16 uses it.",
         "testStrategy": "pytest B10, B12: second run receives nothing from the first; scripted proposals executed via the kernel only; ledger shows per-role usage (B30); agent text requesting a stronger model or higher limit has no effect (B34)",
         "complexity": 6,
         "id": 15,
@@ -232,7 +232,7 @@
           7,
           15
         ],
-        "details": "src/jangus2/directives/runner.py: show only current task + verified dependency results; run testStrategy check via kernel verification; log from ledger IDs; stop rules (budget, unresolved effect, rejected T3, two failed attempts).\n\n[adapt 2026-11-01 cost discipline] Kernel marks tasks done/blocked, finishes the directive and writes the run report from a fixed template with NO model call and no orchestrator confirmation. `runner: kernel` tasks execute scripted steps with zero model calls.\n\n[adapt 2026-11-01 attempt limits] Implement the ladder via task 26's policy: halt on exhaustion, set task deferred with a reason, queue an alert, call the orchestrator only if escalate=true and under the daily cap.\n\n[2026-11-01T18:28:43-05:00] Depends in practice on task 26 (attempt policy); ids are append-only so 26 is numbered later. Do 26 before finishing 16.",
+        "details": "src/jangus/directives/runner.py: show only current task + verified dependency results; run testStrategy check via kernel verification; log from ledger IDs; stop rules (budget, unresolved effect, rejected T3, two failed attempts).\n\n[adapt 2026-11-01 cost discipline] Kernel marks tasks done/blocked, finishes the directive and writes the run report from a fixed template with NO model call and no orchestrator confirmation. `runner: kernel` tasks execute scripted steps with zero model calls.\n\n[adapt 2026-11-01 attempt limits] Implement the ladder via task 26's policy: halt on exhaustion, set task deferred with a reason, queue an alert, call the orchestrator only if escalate=true and under the daily cap.\n\n[2026-11-01T18:28:43-05:00] Depends in practice on task 26 (attempt policy); ids are append-only so 26 is numbered later. Do 26 before finishing 16.",
         "testStrategy": "pytest: model claiming done does not set done; out-of-task tool call rejected; blocked directive halts and alerts; tasks.py validate lints a directive file; a full standing directive completes with zero orchestrator calls (B27) and kernel-run tasks use zero tokens (B29); B26 and B32 pass",
         "complexity": 7,
         "id": 16,
@@ -261,7 +261,7 @@
           8,
           9
         ],
-        "details": "src/jangus2/tools/files.py with workspace canonicalization, symlink/junction rejection, no silent overwrite, verify by SHA-256, reconcile by inspecting output.",
+        "details": "src/jangus/tools/files.py with workspace canonicalization, symlink/junction rejection, no silent overwrite, verify by SHA-256, reconcile by inspecting output.",
         "testStrategy": "pytest B14: corrupted destination detected; traversal and symlink escapes rejected; overwrite/delete queue as T3.",
         "complexity": 6,
         "id": 18,
@@ -275,7 +275,7 @@
         "dependencies": [
           15
         ],
-        "details": "src/jangus2/cli.py + scheduler.py; cron-like triggers from specs; one run lock.\n\n[adapt 2026-11-01 cost discipline] Scheduler launches standing directive templates directly for the assignee (orchestrator not involved). Daily report is built deterministically from the ledger, including per-role cost.\n\n[adapt 2026-11-01 attempt limits] Daily report adds per-task attempt counts, step-ups and halted directives.\n\n[adapt 2026-11-01 token economy] Daily report built from the ledger: per role/agent/task type, orchestrator calls with reasons, step-ups, cache hits, recipe runs, estimated tokens saved (labelled), top 5 costliest tasks.",
+        "details": "src/jangus/cli.py + scheduler.py; cron-like triggers from specs; one run lock.\n\n[adapt 2026-11-01 cost discipline] Scheduler launches standing directive templates directly for the assignee (orchestrator not involved). Daily report is built deterministically from the ledger, including per-role cost.\n\n[adapt 2026-11-01 attempt limits] Daily report adds per-task attempt counts, step-ups and halted directives.\n\n[adapt 2026-11-01 token economy] Daily report built from the ledger: per role/agent/task type, orchestrator calls with reasons, step-ups, cache hits, recipe runs, estimated tokens saved (labelled), top 5 costliest tasks.",
         "testStrategy": "pytest B13: missed ticks coalesce; overlapping tick does not double-run; daily report totals match the ledger (B30); B30 and B37 totals match",
         "complexity": 5,
         "id": 19,
@@ -363,7 +363,7 @@
           16,
           19
         ],
-        "details": "src/jangus2/kernel/metering.py: per-role usage records in the ledger (kernel-run, specialist, orchestrator); daily escalation counter in the state store; report section. Added by adapt 2026-11-01 (cost discipline). Needed before task 22 uses it, so task 22 should be re-checked when this is done.\n\n[adapt 2026-11-01 token economy] Scope extended: per-call ledger records (role, reason, measured tokens, cost), price table loader (`prices.yaml`, stale/missing handling), daily/monthly counters. Alerts, pre-call check and reconciliation are tasks 28 and 33.",
+        "details": "src/jangus/kernel/metering.py: per-role usage records in the ledger (kernel-run, specialist, orchestrator); daily escalation counter in the state store; report section. Added by adapt 2026-11-01 (cost discipline). Needed before task 22 uses it, so task 22 should be re-checked when this is done.\n\n[adapt 2026-11-01 token economy] Scope extended: per-call ledger records (role, reason, measured tokens, cost), price table loader (`prices.yaml`, stale/missing handling), daily/monthly counters. Alerts, pre-call check and reconciliation are tasks 28 and 33.",
         "testStrategy": "pytest: totals match ledger (B30); counter survives restart; call beyond cap refused (B28); B37, B38",
         "complexity": 4,
         "subtasks": []
@@ -377,7 +377,7 @@
         "dependencies": [
           15
         ],
-        "details": "src/jangus2/kernel/attempts.py: AttemptPolicy (from spec `attempts`, tightened by directive), failure reasons enum, proposal hash = sha256(tool + canonical args), no-progress = 3 consecutive proposals with identical result hash, ladder decision (DEFAULT_MODEL, STEP_UP, STOP). Counts persist in the state store and carry over to superseding directives. Only the kernel calls the ladder; no model-visible control.",
+        "details": "src/jangus/kernel/attempts.py: AttemptPolicy (from spec `attempts`, tightened by directive), failure reasons enum, proposal hash = sha256(tool + canonical args), no-progress = 3 consecutive proposals with identical result hash, ladder decision (DEFAULT_MODEL, STEP_UP, STOP). Counts persist in the state store and carry over to superseding directives. Only the kernel calls the ladder; no model-visible control.",
         "testStrategy": "pytest B31 repeat refused, B32 ladder 2+1 then stop, B33 limits not reset by restart/re-issue, B34 no self-escalation, B36 no-progress counted.",
         "complexity": 6,
         "subtasks": []
@@ -407,7 +407,7 @@
           25,
           26
         ],
-        "details": "src/jangus2/kernel/budget_gate.py + alerts.py: worst-case cost = estimated input + max_tokens priced; check task, directive, daily, orchestrator-cap, monthly limits; refusal = failed attempt; block provider at 100%. Alerts surface in `jangus status` and the daily report.",
+        "details": "src/jangus/kernel/budget_gate.py + alerts.py: worst-case cost = estimated input + max_tokens priced; check task, directive, daily, orchestrator-cap, monthly limits; refusal = failed attempt; block provider at 100%. Alerts surface in `jangus status` and the daily report.",
         "testStrategy": "pytest B39 over-budget call refused before sending; B40 thresholds fire at 50/80/100% and big-call flag; provider blocked at 100%.",
         "complexity": 5,
         "subtasks": []
@@ -421,7 +421,7 @@
         "dependencies": [
           15
         ],
-        "details": "src/jangus2/kernel/cache.py: key = sha256(task_type, input hash, spec hash, prompt version); TTL; invalidate on spec/prompt change; cache hits recorded in the ledger. Never cache results that touched secrets or T3 effects.",
+        "details": "src/jangus/kernel/cache.py: key = sha256(task_type, input hash, spec hash, prompt version); TTL; invalidate on spec/prompt change; cache hits recorded in the ledger. Never cache results that touched secrets or T3 effects.",
         "testStrategy": "pytest B41 repeat makes zero calls; spec/prompt change invalidates; TTL expiry.",
         "complexity": 4,
         "subtasks": []
@@ -450,7 +450,7 @@
         "dependencies": [
           19
         ],
-        "details": "src/jangus2/kernel/watchers.py: cursor-based checks (new items since cursor, file hash changed, rule matched) using registered T1 tools; stored cursors in state; directive start gated by watcher result.",
+        "details": "src/jangus/kernel/watchers.py: cursor-based checks (new items since cursor, file hash changed, rule matched) using registered T1 tools; stored cursors in state; directive start gated by watcher result.",
         "testStrategy": "pytest B46: no change means zero model calls and no directive start; change starts exactly one run.",
         "complexity": 4,
         "subtasks": []
@@ -465,7 +465,7 @@
           13,
           15
         ],
-        "details": "src/jangus2/agents/context.py: per-task input trimming, deterministic summaries (counts, diffs, top-N), stable prefix ordering for prompt caching; batch path for non-urgent tasks. Each feature enabled only after a measured saving in the benchmark/soak.",
+        "details": "src/jangus/agents/context.py: per-task input trimming, deterministic summaries (counts, diffs, top-N), stable prefix ordering for prompt caching; batch path for non-urgent tasks. Each feature enabled only after a measured saving in the benchmark/soak.",
         "testStrategy": "pytest: oversized input trimmed or call refused; summaries deterministic; cached-token counts recorded.",
         "complexity": 5,
         "subtasks": []
@@ -480,7 +480,7 @@
           25,
           28
         ],
-        "details": "src/jangus2/cli_cost.py: report from ledger; reconcile against owner-supplied provider usage export (CSV/JSON), alert above 5% gap; docs for creating a dedicated API key with a provider-side spend limit.",
+        "details": "src/jangus/cli_cost.py: report from ledger; reconcile against owner-supplied provider usage export (CSV/JSON), alert above 5% gap; docs for creating a dedicated API key with a provider-side spend limit.",
         "testStrategy": "pytest B47 with fixture export: gap above 5% raises alert; totals match ledger.",
         "complexity": 3,
         "subtasks": []
@@ -503,7 +503,7 @@
     ],
     "metadata": {
       "created": "2026-11-01T18:19:53-05:00",
-      "updated": "2026-11-01T18:51:44-05:00"
+      "updated": "2026-11-02T08:25:07-05:00"
     }
   }
 }

@@ -4,7 +4,7 @@ You are working on Jangus 2.0 for its owner (GitHub: jenozu). Read this file and
 
 ## What this project is
 
-A local-first system where an **orchestrator** starts **specialist agents** (each a "professional" in one area) to perform day-to-day work without intervention, inside hard limits. Specs: [PRD](docs/PRD.md), [MVP](docs/MVP.md), [architecture](docs/ARCHITECTURE.md), [phases](docs/PHASES.md), [ADR-001](docs/decisions/001-v2-orchestrator-and-agents.md). The v1 code lives in github.com/jenozu/jangus (branch `release/acceptance-readiness`); port modules from it, do not depend on it.
+A local-first system where an **orchestrator** starts **specialist agents** (each a "professional" in one area) to perform day-to-day work without intervention, inside hard limits. Specs: [PRD](docs/PRD.md), [MVP](docs/MVP.md), [architecture](docs/ARCHITECTURE.md), [phases](docs/PHASES.md), [ADR-001](docs/decisions/001-v2-orchestrator-and-agents.md). The v1 code lives in github.com/jenozu/jangus-v1 (branch `release/acceptance-readiness`); port modules from it, do not depend on it.
 
 ## The one rule that matters
 
@@ -47,4 +47,4 @@ The orchestrator is an ordinary agent spec ([agents/drafts/orchestrator.yaml](ag
 
 ## Conventions
 
-Python 3.12, `uv` for environments, `pydantic` strict models, `ruff`, `mypy --strict` on the kernel, `pytest`. SQLite WAL with `synchronous=FULL`. Source in `src/jangus2/` (decided in MEMORY.md; change only with an ADR). Keep the kernel dependency-light and free of any model-calling code.
+Python 3.12, `uv` for environments, `pydantic` strict models, `ruff`, `mypy --strict` on the kernel, `pytest`. SQLite WAL with `synchronous=FULL`. Source in `src/jangus/` (decided in MEMORY.md; change only with an ADR). Keep the kernel dependency-light and free of any model-calling code.

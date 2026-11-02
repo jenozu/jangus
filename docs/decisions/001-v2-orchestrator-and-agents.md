@@ -20,7 +20,7 @@ v1 executes a fixed copy manifest and uses models only for one-word vetoes. The 
 10. Attempt policy: the kernel counts failed attempts and enforces repeat detection, hard per-task limits, and a one-step escalation ladder (2 attempts on the default model, 1 on the spec's `escalation_model`, then stop and alert). Only the kernel climbs it; limits cannot be reset by retry, restart or re-issue.
 11. Placement: run work as low-cost as possible (kernel-run, local model on PC, local model on VPS, Haiku, Sonnet low, orchestrator). Agent specs declare `host`. GitHub Actions is an option to evaluate later (ephemeral state, ledger durability, secrets) via a task and a new ADR, not a default.
 12. Token economy: every call is metered per role and reason from provider-reported usage, priced from an owner-maintained table, checked before sending, and alerted at 50/80/100%. Repeated solved tasks are compiled into owner-approved recipes (zero-token scripts, fallback to the model once on failure). Kernel-evaluated watchers and a content-hash cache avoid calls entirely. Detail in docs/TOKEN_ECONOMY.md and docs/RECIPES.md.
-13. Build as a new repository, `jangus-v2`, porting selected v1 modules, because the core execution model changes. This repo's v1 line stays maintainable.
+13. Build as a new repository (now `jenozu/jangus`; the v1 repo was renamed `jenozu/jangus-v1`), porting selected v1 modules, because the core execution model changes. This repo's v1 line stays maintainable.
 
 ## Rule amendments (proposed)
 

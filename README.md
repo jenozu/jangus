@@ -159,7 +159,7 @@ agents/drafts/            inert draft agent specs (orchestrator.yaml)
 docs/                     PRD, MVP scenarios, architecture, phases, directives, recipes, token economy, build plan, ADRs
 .taskmaster/              development PRD summary, 34-task master list, parking lot
 tools/taskmaster/         tasks.py, the stdlib-only task helper
-src/jangus2/              (planned) kernel, directives, agents, orchestrator, tools
+src/jangus/              (planned) kernel, directives, agents, orchestrator, tools
 tests/                    (planned)
 ```
 Planned source layout: `kernel/` (registry, policy, executor, ledger, state, approvals, secrets, metering), `directives/`, `agents/`, `orchestrator/`, `tools/` (tool packs), `cli.py`.
@@ -220,7 +220,7 @@ Acceptance is defined by 47 scenarios (B01-B47) in [docs/MVP.md](docs/MVP.md). R
 **Will it work offline?** Local-model and kernel-run work does. Cloud models are optional and capped.
 
 ## Relationship to Jangus v1
-v1 lives at [github.com/jenozu/jangus](https://github.com/jenozu/jangus) (branch `release/acceptance-readiness`), a deterministic file-copy controller with advisory local models. v2 ports selected modules (strict config, SQLite state, hash verification, hash-chained ledger, loopback endpoint check, secret scanner, Ollama provider, memory registry) and replaces the fixed-manifest plan, the one-word model roles and the fixed five-tool set. v1 acceptance work is paused.
+v1 lives at [github.com/jenozu/jangus-v1](https://github.com/jenozu/jangus-v1) (branch `release/acceptance-readiness`), a deterministic file-copy controller with advisory local models. v2 ports selected modules (strict config, SQLite state, hash verification, hash-chained ledger, loopback endpoint check, secret scanner, Ollama provider, memory registry) and replaces the fixed-manifest plan, the one-word model roles and the fixed five-tool set. v1 acceptance work is paused.
 
 ## License
 None, by owner decision (2026-11-01). All rights reserved by default; no license grant is implied. To be revisited before the repo is shared or accepts contributions.

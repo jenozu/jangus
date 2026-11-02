@@ -44,12 +44,12 @@ Every call metered and pre-checked; price table; alerts at 50/80/100%; result ca
 
 ## Structure
 ```
-src/jangus2/kernel/       <- registry, policy, executor, ledger, state, approvals, secrets
-src/jangus2/directives/   <- directive/task models, status rules, validation
-src/jangus2/agents/       <- spec loader, approval registry, providers, run loop
-src/jangus2/orchestrator/ <- orchestrator tools (agent.start, approval.request, spec.draft, report.write)
-src/jangus2/tools/        <- tool packs (files, later shop, mail)
-src/jangus2/cli.py        <- jangus status/tick/approve/...
+src/jangus/kernel/       <- registry, policy, executor, ledger, state, approvals, secrets
+src/jangus/directives/   <- directive/task models, status rules, validation
+src/jangus/agents/       <- spec loader, approval registry, providers, run loop
+src/jangus/orchestrator/ <- orchestrator tools (agent.start, approval.request, spec.draft, report.write)
+src/jangus/tools/        <- tool packs (files, later shop, mail)
+src/jangus/cli.py        <- jangus status/tick/approve/...
 tools/taskmaster/tasks.py <- development task helper (stdlib only)
 ```
 
@@ -65,13 +65,13 @@ kernel (config, state, ledger, registry, executor) -> directives -> agents runti
 - Phases 5-7: shop, inbox, memory/VPS (broken down when Phase 3 is done).
 
 ## Test strategy
-`uv run pytest` (unit, crash-boundary, adversarial tool-call, canary-secret tests), `uv run ruff check`, `uv run mypy --strict src/jangus2/kernel`. Fake-model transcripts for agent loops; real-model checks are run by the owner and recorded as separate evidence.
+`uv run pytest` (unit, crash-boundary, adversarial tool-call, canary-secret tests), `uv run ruff check`, `uv run mypy --strict src/jangus/kernel`. Fake-model transcripts for agent loops; real-model checks are run by the owner and recorded as separate evidence.
 
 ## Architecture and stack
 Python 3.12, uv, pydantic strict, SQLite WAL (synchronous=FULL), ruff, mypy, pytest. Ollama and Claude API behind one provider interface. Windows Credential Manager for secrets. Rejected: letting agents call tools directly; persistent agents; extending v1 in place. Details in [docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md) and ADR-001.
 
 ## Risks and open questions
-Prompt injection via email/orders (structural defense: tiers, spec-scoped tools); local model tool-use quality unproven; per-action reconcile rules for Shopify/Printify/email; alert channel beyond CLI; license undecided; package name default `jangus2`.
+Prompt injection via email/orders (structural defense: tiers, spec-scoped tools); local model tool-use quality unproven; per-action reconcile rules for Shopify/Printify/email; alert channel beyond CLI; license undecided; package name default `jangus`.
 
 ## Decision log
 - 2026-11-01: Kernel is sole actor; tiers T1/T2/T3; hybrid models; PC first; fresh runs; spec approval by hash; 7-day gate before business agents (owner, design interview). Affects tasks 3-27.
