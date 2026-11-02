@@ -42,6 +42,7 @@ Reconcile rules per Shopify/Printify/email action; test strategy for LLM-driven 
 config.py strict models; execution/storage.py (SQLite, idempotency); execution/verification.py (hashing); remote/ledger.py (hash-chained ledger); loopback endpoint check; secret scanner (PR #13); agents/provider.py (Ollama); memory/ registry (Phase 7).
 
 ## Log
+- 2026-11-02: Task 8 done (subtasks 8.1-8.3): kernel/executor.py; state gained args_json, unresolved status, list_open_actions, writable; B05 crash tests at 5 checkpoints and B06 fail-closed tests pass; merged.
 - 2026-11-02: Task 6 done: kernel/registry.py and policy.py (B01-B04 tests, fake tools in tests/fakes.py); merged.
 - 2026-11-02: Owner asked to merge each task's PR after it is complete (no endless stacking). Merged #3 and #4 (merge commits). Task 5 (ledger) on phase-1/audit-ledger, based on main; merge after CI green.
 - 2026-11-02: Task 4 built on phase-1/state-store (stacked on phase-1/config-and-errors, PR #3 unmerged): kernel/state.py with runs/actions/budgets, WAL+FULL, atomic intent+charge, fail-closed after a failed write. Done only after CI green. Next: task 5.

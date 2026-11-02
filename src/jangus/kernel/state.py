@@ -29,6 +29,7 @@ CREATE TABLE actions (
     idempotency_key TEXT NOT NULL UNIQUE,
     tool TEXT NOT NULL,
     payload_hash TEXT NOT NULL,
+    args_json TEXT NOT NULL DEFAULT '{}',
     attempts INTEGER NOT NULL DEFAULT 1,
     status TEXT NOT NULL DEFAULT 'intent',
     result_hash TEXT
@@ -40,7 +41,7 @@ CREATE TABLE budgets (
 ) STRICT;
 """
 
-ActionStatus = Literal["intent", "done", "failed"]
+ActionStatus = Literal["intent", "done", "failed", "unresolved"]
 T = TypeVar("T")
 
 
@@ -59,6 +60,7 @@ class ActionRecord:
     idempotency_key: str
     tool: str
     payload_hash: str
+    args_json: str
     attempts: int
     status: str
     result_hash: str | None
@@ -117,6 +119,11 @@ class StateStore:
             conn.execute("ROLLBACK")
             raise
         return int(row[0])
+
+    @property
+    def writable(self) -> bool:
+        """False once any write has failed; the kernel must start no new effects."""
+        return not self._blocked
 
     def close(self) -> None:
         self._conn.close()
@@ -213,6 +220,7 @@ class StateStore:
         payload_hash: str,
         budget: str,
         cost: int,
+        args_json: str = "{}",
     ) -> tuple[ActionRecord, bool]:
         """Persist intent and charge the budget in one transaction.
 
@@ -239,9 +247,9 @@ class StateStore:
                 )
             conn.execute("UPDATE budgets SET spent = spent + ? WHERE name=?", (cost, budget))
             conn.execute(
-                "INSERT INTO actions(run_id, idempotency_key, tool, payload_hash) "
-                "VALUES (?, ?, ?, ?)",
-                (run_id, idempotency_key, tool, payload_hash),
+                "INSERT INTO actions(run_id, idempotency_key, tool, payload_hash, args_json) "
+                "VALUES (?, ?, ?, ?, ?)",
+                (run_id, idempotency_key, tool, payload_hash, args_json),
             )
             created = self._action_by_key(conn, idempotency_key)
             assert created is not None  # noqa: S101 - just inserted in this transaction
@@ -252,8 +260,8 @@ class StateStore:
     @staticmethod
     def _action_by_key(conn: sqlite3.Connection, key: str) -> ActionRecord | None:
         row = conn.execute(
-            "SELECT id, run_id, idempotency_key, tool, payload_hash, attempts, status, "
-            "result_hash FROM actions WHERE idempotency_key=?",
+            "SELECT id, run_id, idempotency_key, tool, payload_hash, args_json, attempts, "
+            "status, result_hash FROM actions WHERE idempotency_key=?",
             (key,),
         ).fetchone()
         return None if row is None else ActionRecord(*row)
@@ -263,6 +271,17 @@ class StateStore:
             return self._action_by_key(self._conn, idempotency_key)
         except sqlite3.Error as exc:
             raise RuntimeFault(FaultCode.STATE_UNAVAILABLE, f"cannot read state: {exc}") from exc
+
+    def list_open_actions(self) -> list[ActionRecord]:
+        """Actions whose intent was recorded but whose result was not (after a crash)."""
+        try:
+            rows = self._conn.execute(
+                "SELECT id, run_id, idempotency_key, tool, payload_hash, args_json, attempts, "
+                "status, result_hash FROM actions WHERE status='intent' ORDER BY id"
+            ).fetchall()
+        except sqlite3.Error as exc:
+            raise RuntimeFault(FaultCode.STATE_UNAVAILABLE, f"cannot read state: {exc}") from exc
+        return [ActionRecord(*row) for row in rows]
 
     def record_result(
         self, idempotency_key: str, status: ActionStatus, result_hash: str | None
