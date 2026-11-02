@@ -3,10 +3,10 @@
 Read at session start. Update at session end: add dated entries under Log, revise Current phase and Open items. Keep it short and factual. This is development memory for coding agents; it is not the runtime Obsidian memory (Phase 7) and grants no permissions.
 
 ## Task tracking
-Development plan: `.taskmaster/tasks/tasks.json` (24 tasks, phases 0-7; only Phase 1 and early Phase 2 are detailed). Helper: `python3 tools/taskmaster/tasks.py status|next|show|set-status|log|add|validate`. PRD summary and decision log: `.taskmaster/docs/prd.md`. Runtime directives use the same schema (docs/DIRECTIVES.md).
+Development plan: `.taskmaster/tasks/tasks.json` (34 tasks, phases 0-7; only Phase 1 and early Phase 2 are detailed). Helper: `python3 tools/taskmaster/tasks.py status|next|show|set-status|log|add|validate`. PRD summary and decision log: `.taskmaster/docs/prd.md`. Runtime directives use the same schema (docs/DIRECTIVES.md).
 
 ## Current phase
-Phase 0: specs written; ADR-001 ACCEPTED by the owner 2026-11-01; the five stacked phase-0 branches are merged into `main`. No code yet. Phase 1 authorized by the owner 2026-11-02 (task 2 done).
+Phase 1 in progress. Phase 0 (specs) finished; ADR-001 ACCEPTED by the owner 2026-11-01; the five stacked phase-0 branches are merged into `main`. Phase 0 is complete (tasks 1 and 2 done). Phase 1 (kernel) is authorized and in progress: scaffold only so far (package, tooling, CI, smoke tests); next is task 3 (strict config and error types).
 
 ## Owner and environment
 - Owner GitHub: jenozu. Windows 11 desktop, 32,457 MB RAM (GPU unchecked). Python 3.12.10 (`py -3.12`), Git 2.56.0, Ollama 0.40.13, installed via winget. Optional Ubuntu VPS.

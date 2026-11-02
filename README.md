@@ -2,7 +2,7 @@
 
 **An orchestrator that starts specialist agents to do your day-to-day work, without you driving every step, and without burning tokens.**
 
-> **Status: design phase (Phase 0).** The specifications, task list and build plan are written. **No application code exists yet.** Everything below describes the intended system unless marked "planned". See [Status and roadmap](#status-and-roadmap).
+> **Status: Phase 1 (kernel) just started.** The specifications, task list and build plan are written and accepted. The repo has only the package scaffold, tooling and CI; **none of the system's features exist yet.** Everything below describes the intended system unless marked "planned". See [Status and roadmap](#status-and-roadmap).
 
 ---
 
@@ -179,8 +179,8 @@ Rules: one task at a time; new ideas go to `.taskmaster/docs/parking-lot.md`, no
 
 | Phase | Goal | Status |
 |---|---|---|
-| 0 | Specs, ADR-001, task list | ADR-001 accepted; awaiting go-ahead for Phase 1 |
-| 1 | Kernel with fake tools | Not started |
+| 0 | Specs, ADR-001, task list | Done (ADR-001 accepted) |
+| 1 | Kernel with fake tools | In progress (scaffold done, task 3 next) |
 | 2a | Providers and local model benchmark | Not started |
 | 2b | Agent runtime, attempt policy, metering, budget gate, cache | Not started |
 | 3 | File/backup agent, scheduler, 7-day soak | Not started |
