@@ -58,12 +58,12 @@
       {
         "title": "Hash-chained audit ledger",
         "description": "Append-only ledger; each entry hashes the previous.",
-        "status": "pending",
+        "status": "done",
         "priority": "high",
         "dependencies": [
           3
         ],
-        "details": "src/jangus/kernel/ledger.py: append(event), verify_chain(), fail-closed on write error. Port from v1 remote/ledger.py.",
+        "details": "src/jangus/kernel/ledger.py: append(event), verify_chain(), fail-closed on write error. Port from v1 remote/ledger.py.\n\n[2026-11-02T11:47:33-05:00] Plan: kernel/ledger.py, JSONL file, one entry per line {seq, ts, event, prev, hash}; hash = sha256 of canonical JSON of (seq, ts, event, prev); genesis prev = 64 zeros. Ledger.open verifies the whole chain (corrupt or torn file = ledger_corrupt fault, fail closed). append writes bytes + flush + fsync; any OSError, or a file size that is not what we last wrote (second writer / fork), sets a blocked flag and raises ledger_unavailable; blocked ledger refuses all later appends and effects_allowed is False (B06). Unserializable event raises ledger_event_invalid without blocking. verify_chain raises on tamper. Known limit: deleting trailing entries is not detectable by the chain alone (needs an external anchor); parking-lot item, not built here. Add 3 FaultCodes. Tests in tests/test_ledger.py.\n\n[2026-11-02T11:47:49-05:00] Built kernel/ledger.py + 8 tests. Local: ruff clean, mypy strict clean, pytest 47 passed. Truncation limit noted in parking lot. Awaiting CI before done.\n\n[2026-11-02T11:48:34-05:00] CI green on ubuntu and windows for PR #5 (pytest 47 passed). Test strategy met: tampering fails verify_chain; write failure raises and blocks effects. Drift check: no model code, no scope beyond task 5.",
         "testStrategy": "pytest: tamper with an entry and verify_chain fails; write failure raises and blocks new effects (B06).",
         "complexity": 5,
         "id": 5,
@@ -503,7 +503,7 @@
     ],
     "metadata": {
       "created": "2026-11-01T18:19:53-05:00",
-      "updated": "2026-11-02T11:45:21-05:00"
+      "updated": "2026-11-02T11:48:34-05:00"
     }
   }
 }

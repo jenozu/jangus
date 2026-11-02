@@ -16,6 +16,9 @@ class FaultCode(StrEnum):
     STATE_SCHEMA_MISMATCH = "state_schema_mismatch"
     IDEMPOTENCY_CONFLICT = "idempotency_conflict"
     BUDGET_EXCEEDED = "budget_exceeded"
+    LEDGER_UNAVAILABLE = "ledger_unavailable"
+    LEDGER_CORRUPT = "ledger_corrupt"
+    LEDGER_EVENT_INVALID = "ledger_event_invalid"
 
 
 class RuntimeFault(Exception):  # noqa: N818 - name fixed by the task spec
