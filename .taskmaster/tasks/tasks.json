@@ -165,14 +165,14 @@
       {
         "title": "Approval queue storage",
         "description": "Queue for T3 actions bound to payload hash, run id and expiry.",
-        "status": "pending",
+        "status": "in-progress",
         "priority": "medium",
         "dependencies": [
           4,
           5,
           6
         ],
-        "details": "src/jangus/kernel/approvals.py: enqueue, list, approve, reject, expire; approval valid only for the exact normalized payload hash.",
+        "details": "src/jangus/kernel/approvals.py: enqueue, list, approve, reject, expire; approval valid only for the exact normalized payload hash.\n\n[2026-11-02T15:21:09-05:00] Plan: kernel/approvals.py ApprovalQueue over the state DB (new approvals table in the same schema v1; no deployed data). enqueue (idempotent per run+payload), list, approve/reject (owner id required; ledger entry written BEFORE the state change so authority is never unlogged), expire_due, consume (valid only if approved, same run, same tool, exact payload hash, not expired, single use). StateStore gains public transaction() and query() helpers. Executor takes an optional ApprovalQueue: a T3 proposal with a valid approval runs through the normal intent/verify path; otherwise it is enqueued and returned as queued (still no effect). Clock injected for tests.\n\n[2026-11-02T15:21:43-05:00] Built and tested locally: Adds kernel/approvals.py: enqueue, list, approve, reject, expire_due, consume. Approval is valid only for the same run, tool and exact normalized payload hash, before expiry, once. Owner id is recorded in the ledger before the state change. Executor takes an optional queue so an approved T3 call runs through the normal intent/verify path. Local: ruff clean, mypy strict clean, pytest 120 passed (9 new). Awaiting CI before done.",
         "testStrategy": "pytest: changed payload invalidates approval; expired approval refused; approve records owner id in ledger.",
         "complexity": 4,
         "id": 10,
@@ -535,7 +535,7 @@
     ],
     "metadata": {
       "created": "2026-11-01T18:19:53-05:00",
-      "updated": "2026-11-02T15:20:25-05:00"
+      "updated": "2026-11-02T15:21:43-05:00"
     }
   }
 }

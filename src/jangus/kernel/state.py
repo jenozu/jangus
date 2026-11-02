@@ -9,7 +9,7 @@ import sqlite3
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal, TypeVar
+from typing import Any, Literal, TypeVar
 
 from jangus.errors import FaultCode, RuntimeFault
 
@@ -33,6 +33,17 @@ CREATE TABLE actions (
     attempts INTEGER NOT NULL DEFAULT 1,
     status TEXT NOT NULL DEFAULT 'intent',
     result_hash TEXT
+) STRICT;
+CREATE TABLE approvals (
+    id INTEGER PRIMARY KEY,
+    run_id INTEGER NOT NULL REFERENCES runs(id),
+    tool TEXT NOT NULL,
+    payload_hash TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending',
+    created_at INTEGER NOT NULL,
+    expires_at INTEGER NOT NULL,
+    decided_by TEXT,
+    decided_at INTEGER
 ) STRICT;
 CREATE TABLE budgets (
     name TEXT PRIMARY KEY,
@@ -127,6 +138,18 @@ class StateStore:
 
     def close(self) -> None:
         self._conn.close()
+
+    # -- generic helpers for kernel modules built on the same database ----
+
+    def transaction(self, work: Callable[[sqlite3.Connection], T]) -> T:
+        """Run `work` in one write transaction; any failure blocks later writes."""
+        return self._write(work)
+
+    def query(self, sql: str, params: tuple[object, ...] = ()) -> list[tuple[Any, ...]]:
+        try:
+            return [tuple(row) for row in self._conn.execute(sql, params).fetchall()]
+        except sqlite3.Error as exc:
+            raise RuntimeFault(FaultCode.STATE_UNAVAILABLE, f"cannot read state: {exc}") from exc
 
     # -- internals ---------------------------------------------------------
 

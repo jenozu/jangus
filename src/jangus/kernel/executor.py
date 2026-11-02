@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from typing import Any, Literal
 
 from jangus.errors import FaultCode, RuntimeFault
+from jangus.kernel.approvals import ApprovalQueue
 from jangus.kernel.ledger import Ledger
 from jangus.kernel.policy import Decision, Outcome, decide
 from jangus.kernel.registry import Registry, Tier, ToolSpec
@@ -55,12 +56,14 @@ class Executor:
         ledger: Ledger,
         secrets: SecretBackend | None = None,
         checkpoint: Callable[[str], None] | None = None,
+        approvals: ApprovalQueue | None = None,
     ) -> None:
         self._registry = registry
         self._state = state
         self._ledger = ledger
         self._secrets = secrets
         self._checkpoint = checkpoint
+        self._approvals = approvals
 
     def _hook(self, name: str) -> None:
         if self._checkpoint is not None:
@@ -101,6 +104,12 @@ class Executor:
             return ExecResult("rejected", decision)
         assert decision.args is not None and decision.payload_hash is not None  # noqa: S101
         if decision.outcome is Outcome.QUEUE:
+            if self._approvals is not None:
+                approved = self._approvals.consume(run_id, tool_name, decision.payload_hash)
+                if approved is not None:
+                    return self._run(run_id, agent, decision, key)
+                self._approvals.enqueue(run_id, tool_name, decision.payload_hash)
+                return ExecResult("queued", decision)
             self._ledger.append(
                 {
                     "kind": "queued",
