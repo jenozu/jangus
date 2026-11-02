@@ -102,14 +102,14 @@
       {
         "title": "Kernel executor with intent, verify and reconcile",
         "description": "Core loop: persist intent, execute, verify, persist result; reconcile after crash.",
-        "status": "in-progress",
+        "status": "done",
         "priority": "high",
         "dependencies": [
           4,
           5,
           6
         ],
-        "details": "src/jangus/kernel/executor.py plus fake tools. Intent+attempt in one transaction before effect; independent verify; reconcile adopts matching result, retries only proven absence, otherwise marks unresolved.\n\n[2026-11-02T15:11:36-05:00] Plan: kernel/executor.py. Order per effect: policy.decide -> (reject|queue: ledger entry only) -> state.record_intent (action row + budget charge, one txn, stores normalized args JSON) -> ledger intent entry -> execute -> verify -> ledger result entry -> state.record_result. Ledger events carry hashes only, never args or results. Tool exception or failed verify = status unresolved (blocks retry). recover(): for each action left at intent, reconcile: applied -> verify then adopt; absent -> re-run once with the same key (no second charge); unknown -> unresolved. Preconditions: ledger.effects_allowed and state writable, else raise before any effect (B06). Crash tests inject a BaseException at named checkpoints. State change: add args_json column and 'unresolved' status, plus list_open_actions and writable (schema still v1, no deployed data).\n\n[2026-11-02T15:12:24-05:00] Built and tested locally: Adds kernel/executor.py (decide, intent+charge, ledger intent, execute, verify, ledger result, record result; recover() reconciles actions left by a crash: applied adopts, absent re-runs once, unknown stays unresolved). Ledger carries hashes only. State store gains args_json, an unresolved status, list_open_actions and writable. Local: ruff clean, mypy strict clean, pytest 80 passed (19 new; B01-B06 coverage incl. crash before effect, after effect, after verify, after ledger result). Awaiting CI before done.",
+        "details": "src/jangus/kernel/executor.py plus fake tools. Intent+attempt in one transaction before effect; independent verify; reconcile adopts matching result, retries only proven absence, otherwise marks unresolved.\n\n[2026-11-02T15:11:36-05:00] Plan: kernel/executor.py. Order per effect: policy.decide -> (reject|queue: ledger entry only) -> state.record_intent (action row + budget charge, one txn, stores normalized args JSON) -> ledger intent entry -> execute -> verify -> ledger result entry -> state.record_result. Ledger events carry hashes only, never args or results. Tool exception or failed verify = status unresolved (blocks retry). recover(): for each action left at intent, reconcile: applied -> verify then adopt; absent -> re-run once with the same key (no second charge); unknown -> unresolved. Preconditions: ledger.effects_allowed and state writable, else raise before any effect (B06). Crash tests inject a BaseException at named checkpoints. State change: add args_json column and 'unresolved' status, plus list_open_actions and writable (schema still v1, no deployed data).\n\n[2026-11-02T15:12:24-05:00] Built and tested locally: Adds kernel/executor.py (decide, intent+charge, ledger intent, execute, verify, ledger result, record result; recover() reconciles actions left by a crash: applied adopts, absent re-runs once, unknown stays unresolved). Ledger carries hashes only. State store gains args_json, an unresolved status, list_open_actions and writable. Local: ruff clean, mypy strict clean, pytest 80 passed (19 new; B01-B06 coverage incl. crash before effect, after effect, after verify, after ledger result). Awaiting CI before done.\n\n[2026-11-02T15:14:17-05:00] CI green on ubuntu-latest and windows-latest (PR #7). Test strategy met. Drift check: no model code, no scope beyond task 8.",
         "testStrategy": "pytest B05: kill the process before effect, after effect before result, after verification; restart yields no duplicate or overwrite.",
         "complexity": 8,
         "id": 8,
@@ -117,7 +117,7 @@
           {
             "title": "Executor happy path, rejections and queueing",
             "description": "",
-            "status": "in-progress",
+            "status": "done",
             "dependencies": [],
             "details": "submit(): decide, ledger rejection/queue, intent+charge in state then ledger, execute, verify, record result.",
             "testStrategy": "pytest: T1/T2 run once with ledger entries; rejected and queued calls have no effect; duplicate key does not re-execute",
@@ -126,7 +126,7 @@
           {
             "title": "Crash recovery via reconcile",
             "description": "",
-            "status": "pending",
+            "status": "done",
             "dependencies": [
               1
             ],
@@ -137,7 +137,7 @@
           {
             "title": "Crash-boundary and fail-closed tests (B05, B06)",
             "description": "",
-            "status": "pending",
+            "status": "done",
             "dependencies": [
               2
             ],
@@ -535,7 +535,7 @@
     ],
     "metadata": {
       "created": "2026-11-01T18:19:53-05:00",
-      "updated": "2026-11-02T15:12:24-05:00"
+      "updated": "2026-11-02T15:14:17-05:00"
     }
   }
 }
