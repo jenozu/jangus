@@ -4,10 +4,10 @@
       {
         "title": "Owner accepts ADR-001 and v2 docs",
         "description": "Owner reviews docs/PRD.md, MVP, ARCHITECTURE, DIRECTIVES and ADR-001, then accepts or amends them. OWNER TASK.",
-        "status": "in-progress",
+        "status": "done",
         "priority": "high",
         "dependencies": [],
-        "details": "Set ADR-001 status to accepted; choose license; confirm package name (default jangus); make the docs branch the default branch of jangus.\n\n[2026-11-01T18:20:18-05:00] Docs and task list prepared on branch phase-0/taskmaster; waiting on owner to review ADR-001 and decide license/package name.\n\n[2026-11-01T18:48:54-05:00] Owner accepted ADR-001 on 2026-11-01 and the phase-0 branches were merged into main. Still open before this task is done: choose a license (or log the decision) and confirm package name.\n\n[2026-11-01T18:51:44-05:00] License decided: none for now (owner, 2026-11-01), logged in PRD decision log. Remaining: confirm package name (default jangus) and switch GitHub default branch to main.\n\n[2026-11-02T08:25:07-05:00] Package name decided: jangus (src/jangus/), no 2. Repos renamed 2026-11-02: v1 = jenozu/jangus-v1, this repo = jenozu/jangus. Remaining: switch GitHub default branch to main.",
+        "details": "Set ADR-001 status to accepted; choose license; confirm package name (default jangus); make the docs branch the default branch of jangus.\n\n[2026-11-01T18:20:18-05:00] Docs and task list prepared on branch phase-0/taskmaster; waiting on owner to review ADR-001 and decide license/package name.\n\n[2026-11-01T18:48:54-05:00] Owner accepted ADR-001 on 2026-11-01 and the phase-0 branches were merged into main. Still open before this task is done: choose a license (or log the decision) and confirm package name.\n\n[2026-11-01T18:51:44-05:00] License decided: none for now (owner, 2026-11-01), logged in PRD decision log. Remaining: confirm package name (default jangus) and switch GitHub default branch to main.\n\n[2026-11-02T08:25:07-05:00] Package name decided: jangus (src/jangus/), no 2. Repos renamed 2026-11-02: v1 = jenozu/jangus-v1, this repo = jenozu/jangus. Remaining: switch GitHub default branch to main.\n\n[2026-11-02T10:35:30-05:00] GitHub default branch switched to main by owner (2026-11-02). ADR-001 accepted, license decided (none), package name decided (jangus). Done.",
         "testStrategy": "ADR-001 status reads 'accepted' on the default branch; LICENSE file present or decision logged in the PRD decision log.",
         "complexity": 1,
         "id": 1,
@@ -503,7 +503,7 @@
     ],
     "metadata": {
       "created": "2026-11-01T18:19:53-05:00",
-      "updated": "2026-11-02T10:19:02-05:00"
+      "updated": "2026-11-02T10:35:30-05:00"
     }
   }
 }

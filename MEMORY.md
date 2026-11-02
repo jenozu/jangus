@@ -6,7 +6,7 @@ Read at session start. Update at session end: add dated entries under Log, revis
 Development plan: `.taskmaster/tasks/tasks.json` (24 tasks, phases 0-7; only Phase 1 and early Phase 2 are detailed). Helper: `python3 tools/taskmaster/tasks.py status|next|show|set-status|log|add|validate`. PRD summary and decision log: `.taskmaster/docs/prd.md`. Runtime directives use the same schema (docs/DIRECTIVES.md).
 
 ## Current phase
-Phase 0: specs written; ADR-001 ACCEPTED by the owner 2026-11-01; the five stacked phase-0 branches are merged into `main`. No code yet. Still open for task 1: switch the GitHub default branch to `main`. Phase 1 authorized by the owner 2026-11-02 (task 2 done).
+Phase 0: specs written; ADR-001 ACCEPTED by the owner 2026-11-01; the five stacked phase-0 branches are merged into `main`. No code yet. Phase 1 authorized by the owner 2026-11-02 (task 2 done).
 
 ## Owner and environment
 - Owner GitHub: jenozu. Windows 11 desktop, 32,457 MB RAM (GPU unchecked). Python 3.12.10 (`py -3.12`), Git 2.56.0, Ollama 0.40.13, installed via winget. Optional Ubuntu VPS.
@@ -42,6 +42,7 @@ Reconcile rules per Shopify/Printify/email action; test strategy for LLM-driven 
 config.py strict models; execution/storage.py (SQLite, idempotency); execution/verification.py (hashing); remote/ledger.py (hash-chained ledger); loopback endpoint check; secret scanner (PR #13); agents/provider.py (Ollama); memory/ registry (Phase 7).
 
 ## Log
+- 2026-11-02: Owner switched the GitHub default branch to main. Task 1 done.
 - 2026-11-02: Owner said go. Task 2 (scaffold) done on branch phase-1/scaffold, PR #1; local checks pass and CI green on ubuntu and windows. Task 1 still open (GitHub default branch; dependency forced on owner authority). Next: task 3 (config and error types).
 - 2026-11-02: Repos renamed by owner: v1 is now `jenozu/jangus-v1`; this repo is `jenozu/jangus`. Python package and source dir are `jangus` / `src/jangus/` (no `2`). All docs and pending tasks updated. Note: v1 also uses the package name `jangus`; keep the two in separate virtualenvs.
 - 2026-11-01: License decision: none for now (all rights reserved by default). Owner not concerned about outside use; revisit before sharing the repo or accepting contributions.
