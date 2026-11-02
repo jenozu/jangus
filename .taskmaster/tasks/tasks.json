@@ -181,7 +181,7 @@
       {
         "title": "Phase 1 evidence, MEMORY update and PR",
         "description": "Collect B01-B07 evidence and open the Phase 1 PR.",
-        "status": "pending",
+        "status": "done",
         "priority": "medium",
         "dependencies": [
           7,
@@ -189,7 +189,7 @@
           9,
           10
         ],
-        "details": "Write docs/reviews/PHASE_1.md with commands run and actual outputs; update MEMORY.md current phase; open PR from phase-1/kernel.",
+        "details": "Write docs/reviews/PHASE_1.md with commands run and actual outputs; update MEMORY.md current phase; open PR from phase-1/kernel.\n\n[2026-11-02T15:23:12-05:00] Plan: run lint, mypy, full pytest -v on merged main; map B01-B07 to named tests; write docs/reviews/PHASE_1.md with actual command output; review for secrets; update MEMORY current phase; check main CI; open PR.\n\n[2026-11-02T15:23:57-05:00] Built and tested locally: Adds docs/reviews/PHASE_1.md with commands, actual results (ruff, mypy strict, 120 tests, 95% coverage), B01-B07 mapped to named tests, and an explicit list of what the evidence does not show. Updates MEMORY current phase. No code changes. Local: ruff clean, tasks validate OK. Awaiting CI before done.\n\n[2026-11-02T15:24:46-05:00] CI green on ubuntu-latest and windows-latest (PR #11). Test strategy met. Drift check: no model code, no scope beyond task 11.",
         "testStrategy": "PR open with CI green and evidence file listing pass/fail for B01-B07.",
         "complexity": 2,
         "id": 11,
@@ -535,7 +535,7 @@
     ],
     "metadata": {
       "created": "2026-11-01T18:19:53-05:00",
-      "updated": "2026-11-02T15:22:53-05:00"
+      "updated": "2026-11-02T15:24:46-05:00"
     }
   }
 }

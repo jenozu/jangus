@@ -6,7 +6,7 @@ Read at session start. Update at session end: add dated entries under Log, revis
 Development plan: `.taskmaster/tasks/tasks.json` (24 tasks, phases 0-7; only Phase 1 and early Phase 2 are detailed). Helper: `python3 tools/taskmaster/tasks.py status|next|show|set-status|log|add|validate`. PRD summary and decision log: `.taskmaster/docs/prd.md`. Runtime directives use the same schema (docs/DIRECTIVES.md).
 
 ## Current phase
-Phase 0: specs written; ADR-001 ACCEPTED by the owner 2026-11-01; the five stacked phase-0 branches are merged into `main`. No code yet. Phase 1 authorized by the owner 2026-11-02 (task 2 done).
+Phase 1 (kernel) is built and merged: tasks 2-10 done, evidence in docs/reviews/PHASE_1.md (B01-B07 pass with fake tools, 120 tests, CI green on ubuntu and windows). Waiting for the owner to accept the gate and authorize Phase 2a (providers and local-model benchmark). Do not start Phase 2 without that. `tasks.py next` will suggest Phase 2 tasks; ignore them until authorized.
 
 ## Owner and environment
 - Owner GitHub: jenozu. Windows 11 desktop, 32,457 MB RAM (GPU unchecked). Python 3.12.10 (`py -3.12`), Git 2.56.0, Ollama 0.40.13, installed via winget. Optional Ubuntu VPS.
@@ -31,6 +31,8 @@ Phase 0: specs written; ADR-001 ACCEPTED by the owner 2026-11-01; the five stack
 15. Gate: file/backup agent must run 7 days unattended with zero manual fixes before shop or inbox agents.
 
 ## Open items (owner)
+- Accept the Phase 1 gate and authorize Phase 2a.
+- Optional: run the test suite once on the Windows PC.
 - Pick the local model after benchmarking (Phase 2).
 - Set the monthly Claude spend cap and create the API key (Phase 2).
 - Alert channel beyond CLI and daily report.
@@ -42,6 +44,8 @@ Reconcile rules per Shopify/Printify/email action; test strategy for LLM-driven 
 config.py strict models; execution/storage.py (SQLite, idempotency); execution/verification.py (hashing); remote/ledger.py (hash-chained ledger); loopback endpoint check; secret scanner (PR #13); agents/provider.py (Ollama); memory/ registry (Phase 7).
 
 ## Log
+- 2026-11-02: Task 11 done: Phase 1 evidence merged; gate awaiting owner acceptance.
+- 2026-11-02: Phase 1 finished in one run (owner asked for the whole phase, merge after each task). Tasks 6-10 merged as PRs #6-#10; task 11 evidence in docs/reviews/PHASE_1.md. Limits recorded there: simulated crashes only, nothing run on the owner's PC, Windows Credential Manager backend untested.
 - 2026-11-02: Task 10 done: kernel/approvals.py (approvals table in the state DB, schema still v1), bound to run, tool, exact payload hash and expiry, single use; ledger entry written before the state change; executor runs an approved T3 call and queues otherwise; merged.
 - 2026-11-02: Task 9 done: kernel/secrets.py (Env, Memory, Windows keyring backends), per-agent allow-list, denial before any state change, result redaction; B07 canary tests; merged. Windows Credential Manager backend is untested on a real Windows store.
 - 2026-11-02: Task 7 done: directives/models.py (strict models, spec narrowing, B29/B33 checks, kernel-only status API, ledger hash at issue); merged. Attempt carry-over for superseding directives is runtime state, deferred to Phase 2.
