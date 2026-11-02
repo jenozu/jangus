@@ -9,7 +9,7 @@ Ledger entries carry hashes only: never arguments, results or secrets.
 
 import hashlib
 import json
-from collections.abc import Callable, Collection, Mapping
+from collections.abc import Callable, Collection
 from dataclasses import dataclass
 from typing import Any, Literal
 
@@ -17,6 +17,7 @@ from jangus.errors import FaultCode, RuntimeFault
 from jangus.kernel.ledger import Ledger
 from jangus.kernel.policy import Decision, Outcome, decide
 from jangus.kernel.registry import Registry, Tier, ToolSpec
+from jangus.kernel.secrets import SecretBackend, redact, resolve_secrets
 from jangus.kernel.state import ActionRecord, StateStore
 
 Status = Literal["rejected", "queued", "done", "unresolved", "already_done"]
@@ -29,6 +30,7 @@ class AgentContext:
     allowed_tools: Collection[str]
     max_tier: Tier
     budget: str
+    secrets_allowed: frozenset[str] = frozenset()
 
 
 @dataclass(frozen=True)
@@ -51,7 +53,7 @@ class Executor:
         registry: Registry,
         state: StateStore,
         ledger: Ledger,
-        secrets: Callable[[ToolSpec], Mapping[str, str]] | None = None,
+        secrets: SecretBackend | None = None,
         checkpoint: Callable[[str], None] | None = None,
     ) -> None:
         self._registry = registry
@@ -116,6 +118,18 @@ class Executor:
         tool = self._registry.get(decision.tool)
         assert tool is not None and decision.args is not None  # noqa: S101
         assert decision.payload_hash is not None  # noqa: S101
+        try:
+            secrets = resolve_secrets(self._secrets, tool, agent.secrets_allowed)
+        except RuntimeFault as fault:
+            self._ledger.append(
+                {
+                    "kind": "rejected",
+                    "run": run_id,
+                    "tool": tool.name,
+                    "reason": fault.code.value,
+                }
+            )
+            return ExecResult("rejected", decision)
         action_key = key or _hash_json({"run": run_id, "payload": decision.payload_hash})
         args_json = json.dumps(decision.args.model_dump(mode="json"), sort_keys=True)
 
@@ -143,14 +157,19 @@ class Executor:
             }
         )
         self._hook("after_intent_ledger")
-        return self._execute_and_verify(tool, decision, record, decision.args)
+        return self._execute_and_verify(tool, decision, record, decision.args, secrets)
 
     def _execute_and_verify(
-        self, tool: ToolSpec, decision: Decision, record: ActionRecord, args: Any
+        self,
+        tool: ToolSpec,
+        decision: Decision,
+        record: ActionRecord,
+        args: Any,
+        secrets: dict[str, str],
     ) -> ExecResult:
-        secrets = self._secrets(tool) if self._secrets is not None else {}
         try:
             result = tool.execute(args, secrets)
+            result, redacted = redact(result, secrets)
             self._hook("after_effect")
             result_hash = _hash_json(result)
             verified = True if tool.verify is None else bool(tool.verify(args, result))
@@ -161,7 +180,14 @@ class Executor:
             return self._finish(
                 record, decision, "unresolved", result, result_hash, "verify_failed"
             )
-        return self._finish(record, decision, "done", result, result_hash, "verified")
+        return self._finish(
+            record,
+            decision,
+            "done",
+            result,
+            result_hash,
+            "verified_redacted" if redacted else "verified",
+        )
 
     def _finish(
         self,
@@ -190,8 +216,14 @@ class Executor:
 
     # -- recovery ----------------------------------------------------------
 
-    def recover(self) -> list[ExecResult]:
-        """Settle every action left at 'intent' by a crash. Never duplicates an effect."""
+    def recover(
+        self, secrets_allowed: Callable[[ActionRecord], frozenset[str]] | None = None
+    ) -> list[ExecResult]:
+        """Settle every action left at 'intent' by a crash. Never duplicates an effect.
+
+        Tools that need secrets are settled only if the caller says which secrets the
+        action's agent may use; otherwise they fail closed as unresolved.
+        """
         self._require_writable()
         settled: list[ExecResult] = []
         for record in self._state.list_open_actions():
@@ -201,18 +233,24 @@ class Executor:
                 settled.append(self._unresolved(record, decision, "tool_missing"))
                 continue
             args = tool.args_model.model_validate(json.loads(record.args_json))
+            allowed = secrets_allowed(record) if secrets_allowed is not None else frozenset()
+            try:
+                secrets = resolve_secrets(self._secrets, tool, allowed)
+            except RuntimeFault:
+                settled.append(self._unresolved(record, decision, "secret_unavailable"))
+                continue
             if tool.reconcile is None:
                 # Only T1 tools may lack reconcile; they have no side effects to duplicate.
-                settled.append(self._execute_and_verify(tool, decision, record, args))
+                settled.append(self._execute_and_verify(tool, decision, record, args, secrets))
                 continue
             found = tool.reconcile(args)
             if found.state == "applied" and found.result is not None:
-                settled.append(self._adopt(tool, decision, record, args, found.result))
+                settled.append(self._adopt(tool, decision, record, args, found.result, secrets))
             elif found.state == "absent":
                 self._ledger.append(
                     {"kind": "reconciled", "key": record.idempotency_key, "state": "absent"}
                 )
-                settled.append(self._execute_and_verify(tool, decision, record, args))
+                settled.append(self._execute_and_verify(tool, decision, record, args, secrets))
             else:
                 settled.append(self._unresolved(record, decision, "reconcile_unknown"))
         return settled
@@ -224,7 +262,9 @@ class Executor:
         record: ActionRecord,
         args: Any,
         result: dict[str, Any],
+        secrets: dict[str, str],
     ) -> ExecResult:
+        result, _ = redact(result, secrets)
         self._ledger.append(
             {"kind": "reconciled", "key": record.idempotency_key, "state": "applied"}
         )

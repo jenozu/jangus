@@ -21,6 +21,9 @@ class FaultCode(StrEnum):
     LEDGER_EVENT_INVALID = "ledger_event_invalid"
     TOOL_REGISTRATION_INVALID = "tool_registration_invalid"
     DIRECTIVE_INVALID = "directive_invalid"
+    SECRET_DENIED = "secret_denied"  # noqa: S105 - fault code name, not a password
+    SECRET_MISSING = "secret_missing"  # noqa: S105 - fault code name, not a password
+    SECRET_BACKEND_UNAVAILABLE = "secret_backend_unavailable"  # noqa: S105 - fault code name, not a password
 
 
 class RuntimeFault(Exception):  # noqa: N818 - name fixed by the task spec
