@@ -150,13 +150,13 @@
       {
         "title": "Secret resolver interface",
         "description": "Kernel resolves named secrets and injects them into a tool call only.",
-        "status": "in-progress",
+        "status": "done",
         "priority": "high",
         "dependencies": [
           6,
           8
         ],
-        "details": "src/jangus/kernel/secrets.py: Protocol, EnvBackend, fake backend for tests, WindowsCredentialBackend (keyring/pywin32, import-guarded) per agent allow-list. Never returns secrets to prompts or logs.\n\n[2026-11-02T15:18:42-05:00] Plan: kernel/secrets.py with SecretBackend protocol, EnvBackend, MemoryBackend (tests), WindowsCredentialBackend (lazy import of keyring; no new dependency; fails closed if absent), and resolve_secrets(backend, tool, allowed) which denies any secret the agent's spec does not name (SECRET_DENIED) or that is missing, with fault text naming the secret, never its value. Executor change: AgentContext gains secrets_allowed; secrets are resolved BEFORE record_intent so a denial is a logged rejection with no state change; results are scanned and any resolved secret value is redacted before hashing, returning or logging. recover() takes an optional allow-list lookup and otherwise fails closed (unresolved) for tools that need secrets. Canary test scans ledger, state.db and fault text. Known gap logged to parking lot: reconcile callables do not receive secrets yet (needed for real Shopify/email tools in Phase 3).\n\n[2026-11-02T15:19:14-05:00] Built and tested locally: Adds kernel/secrets.py and wires it into the executor: an agent can use only secrets named in its spec (denial is a logged rejection with no state change), values are injected only into the tool call and redacted from results, and a canary secret is absent from ledger, state db, results and error text (B07). WindowsCredentialBackend uses lazy keyring import and is not exercised in CI. Local: ruff clean, mypy strict clean, pytest 111 passed (9 new). Awaiting CI before done.",
+        "details": "src/jangus/kernel/secrets.py: Protocol, EnvBackend, fake backend for tests, WindowsCredentialBackend (keyring/pywin32, import-guarded) per agent allow-list. Never returns secrets to prompts or logs.\n\n[2026-11-02T15:18:42-05:00] Plan: kernel/secrets.py with SecretBackend protocol, EnvBackend, MemoryBackend (tests), WindowsCredentialBackend (lazy import of keyring; no new dependency; fails closed if absent), and resolve_secrets(backend, tool, allowed) which denies any secret the agent's spec does not name (SECRET_DENIED) or that is missing, with fault text naming the secret, never its value. Executor change: AgentContext gains secrets_allowed; secrets are resolved BEFORE record_intent so a denial is a logged rejection with no state change; results are scanned and any resolved secret value is redacted before hashing, returning or logging. recover() takes an optional allow-list lookup and otherwise fails closed (unresolved) for tools that need secrets. Canary test scans ledger, state.db and fault text. Known gap logged to parking lot: reconcile callables do not receive secrets yet (needed for real Shopify/email tools in Phase 3).\n\n[2026-11-02T15:19:14-05:00] Built and tested locally: Adds kernel/secrets.py and wires it into the executor: an agent can use only secrets named in its spec (denial is a logged rejection with no state change), values are injected only into the tool call and redacted from results, and a canary secret is absent from ledger, state db, results and error text (B07). WindowsCredentialBackend uses lazy keyring import and is not exercised in CI. Local: ruff clean, mypy strict clean, pytest 111 passed (9 new). Awaiting CI before done.\n\n[2026-11-02T15:20:25-05:00] CI green on ubuntu-latest and windows-latest (PR #9). Test strategy met. Drift check: no model code, no scope beyond task 9.",
         "testStrategy": "pytest B07: agent without the secret named in spec gets denied; canary secret absent from ledger, logs, exports, error text.",
         "complexity": 4,
         "id": 9,
@@ -535,7 +535,7 @@
     ],
     "metadata": {
       "created": "2026-11-01T18:19:53-05:00",
-      "updated": "2026-11-02T15:19:14-05:00"
+      "updated": "2026-11-02T15:20:25-05:00"
     }
   }
 }
