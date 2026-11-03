@@ -246,6 +246,7 @@ class DirectiveRunner:
                 task_label=f"{directive.id}/{task.id}",
                 task_type=task.task_type,
                 wall_seconds=task.max_wall_seconds,
+                max_input_tokens=task.max_input_tokens,
                 extra_scopes=(scope,),
             )
             report = self._runner.run(job, attempts=tracker)
