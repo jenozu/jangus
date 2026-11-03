@@ -252,13 +252,13 @@
       {
         "title": "Durable budgets and spend cap",
         "description": "Calls, tokens, wall time and monthly USD survive restarts.",
-        "status": "pending",
+        "status": "done",
         "priority": "high",
         "dependencies": [
           4,
           13
         ],
-        "details": "Extend state store; spend ledger entries; stop at cap with alert.",
+        "details": "Extend state store; spend ledger entries; stop at cap with alert.\n\n[2026-11-03T11:05:41-05:00] Plan: state.charge_budgets (atomic multi-budget charge) + mark_once; kernel/alerts.py (ledger-backed alert queue); kernel/budgets.py (Limits for calls/tokens/wall_ms/usd_micros per scope, period-named scopes so daily/monthly roll over by name, spend ledger entries, alert once at cap). No schema change.\n\n[2026-11-03T11:06:54-05:00] Built on phase-2b/durable-budgets; local ruff, mypy, pytest pass. Marked done after the task's test strategy ran.",
         "testStrategy": "pytest B08: exhausted budget persists after restart and new session.",
         "complexity": 4,
         "id": 14,
@@ -699,7 +699,7 @@
     ],
     "metadata": {
       "created": "2026-11-01T18:19:53-05:00",
-      "updated": "2026-11-03T11:02:39-05:00"
+      "updated": "2026-11-03T11:06:54-05:00"
     }
   }
 }
