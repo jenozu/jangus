@@ -503,12 +503,12 @@
         "id": 29,
         "title": "Result cache by content hash",
         "description": "Cache model-run task results; repeat inputs cost zero calls.",
-        "status": "pending",
+        "status": "done",
         "priority": "medium",
         "dependencies": [
           15
         ],
-        "details": "src/jangus/kernel/cache.py: key = sha256(task_type, input hash, spec hash, prompt version); TTL; invalidate on spec/prompt change; cache hits recorded in the ledger. Never cache results that touched secrets or T3 effects.",
+        "details": "src/jangus/kernel/cache.py: key = sha256(task_type, input hash, spec hash, prompt version); TTL; invalidate on spec/prompt change; cache hits recorded in the ledger. Never cache results that touched secrets or T3 effects.\n\n[2026-11-03T11:22:49-05:00] Plan: state schema v3 (result_cache); kernel/cache.py ResultCache (key = task type + sha256 of prompt + model + spec hash + prompt version; TTL; bounded entries/size); cache only cleanly-executed replies; runner looks up before counting a call or gating, a hit makes no model call and costs nothing; PROMPT_VERSION constant.\n\n[2026-11-03T11:24:30-05:00] Built on phase-2b/result-cache; local ruff, mypy, pytest pass. Marked done after the task's test strategy ran.",
         "testStrategy": "pytest B41 repeat makes zero calls; spec/prompt change invalidates; TTL expiry.",
         "complexity": 4,
         "subtasks": [],
@@ -698,7 +698,7 @@
     ],
     "metadata": {
       "created": "2026-11-01T18:19:53-05:00",
-      "updated": "2026-11-03T11:22:04-05:00"
+      "updated": "2026-11-03T11:24:30-05:00"
     }
   }
 }

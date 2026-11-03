@@ -21,13 +21,20 @@ from typing import Any, Protocol
 from jangus.agents.gate import CallGate
 from jangus.agents.metering import CallCharge, charge_for, estimate_tokens, record_model_call
 from jangus.agents.pricing import PriceTable, cost_micros
-from jangus.agents.prompt import result_block, system_prompt, tool_catalog, user_prompt
+from jangus.agents.prompt import (
+    PROMPT_VERSION,
+    result_block,
+    system_prompt,
+    tool_catalog,
+    user_prompt,
+)
 from jangus.agents.proposals import REPLY_SCHEMA, Reply, ReplyError, parse_reply, proposal_hash
 from jangus.agents.providers.base import ModelRequest, ProviderHub
 from jangus.agents.spec import LoadedSpec
 from jangus.errors import FaultCode, RuntimeFault
 from jangus.kernel.alerts import AlertLevel, AlertQueue
 from jangus.kernel.budgets import BudgetBook, Dimension, Limits
+from jangus.kernel.cache import CacheKey, ResultCache, prompt_hash
 from jangus.kernel.executor import AgentContext, Executor
 from jangus.kernel.ledger import Ledger
 from jangus.kernel.registry import Registry
@@ -156,6 +163,12 @@ class RunReport:
     extra: dict[str, Any] = field(default_factory=dict)
 
 
+class _Stop(Exception):  # noqa: N818 - internal control flow
+    def __init__(self, outcome: RunOutcome) -> None:
+        super().__init__(outcome.value)
+        self.outcome = outcome
+
+
 def agent_scope(name: str) -> str:
     return f"agent:{name}"
 
@@ -174,6 +187,7 @@ class Runner:
         alerts: AlertQueue,
         prices: PriceTable | None = None,
         gate: CallGate | None = None,
+        cache: ResultCache | None = None,
         clock: Callable[[], float] = time.monotonic,
         today: Callable[[], date] = lambda: datetime.now(UTC).date(),
     ) -> None:
@@ -188,6 +202,7 @@ class Runner:
         self._clock = clock
         self._today = today
         self._gate = gate
+        self._cache = cache
         self._prices = prices if prices is not None else PriceTable.local_only()
 
     @property
@@ -269,28 +284,6 @@ class Runner:
             if choice is None:
                 outcome = RunOutcome.STOPPED
                 break
-            hit = tracker.note_model_call()
-            if hit is not None:
-                tracker.end_round([hit])
-                failures.append(hit)
-                outcome = RunOutcome.LIMIT
-                break
-
-            price = self._prices.price_for(choice.provider, choice.model)
-            if price is None:
-                self._alerts.raise_alert(
-                    "price_missing",
-                    f"no price for paid model {choice.provider}/{choice.model}: call refused",
-                    level=AlertLevel.CRITICAL,
-                    detail={"provider": choice.provider, "model": choice.model},
-                    once=f"price_missing:{choice.provider}/{choice.model}",
-                )
-                failures.extend(
-                    tracker.end_round([f"price_missing:{choice.provider}/{choice.model}"])
-                )
-                outcome = RunOutcome.REFUSED
-                break
-
             request = ModelRequest(
                 model=choice.model,
                 system=system,
@@ -299,64 +292,34 @@ class Runner:
                 json_schema=REPLY_SCHEMA,
                 cache_prefix=True,
             )
-            if self._gate is not None:
-                verdict = self._gate.check(
-                    scopes=scopes, provider=choice.provider, price=price, request=request
-                )
-                if not verdict.allowed:
-                    failures.extend(tracker.end_round([verdict.reason]))
-                    outcome = RunOutcome.REFUSED
-                    break
-            calls += 1
-            try:
-                response = self._hub.complete(choice.provider, request)
-            except RuntimeFault as fault:
-                if fault.code not in _PROVIDER_FAULTS:
-                    raise
-                self._meter(run.id, job, choice, calls, request, None, None, "provider_error")
-                failures.append(f"provider:{fault.code.value}")
-                outcome = RunOutcome.PROVIDER_ERROR
-                break
-
-            charge = charge_for(request, response)
-            cost = cost_micros(
-                price,
-                input_tokens=charge.input_tokens,
-                output_tokens=charge.output_tokens,
-                cached_tokens=charge.cached_tokens,
-            )
-            self._meter(run.id, job, choice, calls, request, response, charge, "ok", cost)
-            try:
-                self._budgets.charge_all(
-                    scopes,
+            cache_key = self._cache_key(job, choice, request)
+            cached = None
+            if self._cache is not None and cache_key is not None:
+                cached = self._cache.get(cache_key)
+            from_cache = cached is not None
+            if cached is not None:
+                text = cached
+                self._ledger.append(
                     {
-                        Dimension.CALLS: 1,
-                        Dimension.TOKENS: charge.total_tokens,
-                        Dimension.WALL_MS: response.latency_ms,
-                        Dimension.USD_MICROS: cost,
-                    },
-                    reason="model_call",
+                        "kind": "cache_hit",
+                        "run": run.id,
+                        "task": job.task_label,
+                        "model": choice.model,
+                    }
                 )
-            except RuntimeFault as fault:
-                if fault.code is not FaultCode.BUDGET_EXCEEDED:
-                    raise
-                outcome = RunOutcome.BUDGET
-                break
+            else:
+                try:
+                    text, calls = self._fresh_reply(
+                        run.id, job, choice, request, scopes, tracker, failures, calls
+                    )
+                except _Stop as stop:
+                    outcome = stop.outcome
+                    break
 
-            if self._gate is not None:
-                self._gate.after_call(
-                    provider=choice.provider,
-                    model=choice.model,
-                    charge=charge,
-                    cost_usd_micros=cost,
-                    task_label=job.task_label,
-                    task_type=job.task_type,
-                    paid=price.input_per_mtok > 0 or price.output_per_mtok > 0,
-                )
             round_failures: list[str] = []
             reply: Reply | None = None
             try:
-                reply = parse_reply(response.text)
+                reply = parse_reply(text)
             except ReplyError as err:
                 round_failures.append(f"unparseable_reply:{err.reason}")
 
@@ -379,6 +342,11 @@ class Runner:
                     done_claimed = True
                     outcome = RunOutcome.MODEL_DONE
 
+            if self._cache is not None and cache_key is not None:
+                if from_cache and round_failures:
+                    self._cache.invalidate(cache_key)  # a stale reply must not be replayed again
+                elif not from_cache and reply is not None and not round_failures:
+                    self._cache.put(cache_key, text)
             wall_hit = tracker.note_elapsed_ms(int((self._clock() - round_started) * 1000))
             if wall_hit is not None:
                 round_failures.append(wall_hit)
@@ -399,6 +367,96 @@ class Runner:
         return RunReport(
             run.id, outcome, calls, tuple(executed), tuple(failures), done_claimed, note
         )
+
+    def _cache_key(self, job: Job, choice: ModelChoice, request: ModelRequest) -> CacheKey | None:
+        if self._cache is None:
+            return None
+        return CacheKey(
+            task_type=job.task_type or "untyped",
+            prompt_sha256=prompt_hash(request.system, request.user),
+            model=f"{choice.provider}/{choice.model}",
+            spec_sha256=self._loaded.sha256,
+            prompt_version=PROMPT_VERSION,
+        )
+
+    def _fresh_reply(
+        self,
+        run_id: int,
+        job: Job,
+        choice: ModelChoice,
+        request: ModelRequest,
+        scopes: list[str],
+        tracker: AttemptTracker,
+        failures: list[str],
+        calls: int,
+    ) -> tuple[str, int]:
+        """Send one real model call (price check, pre-call gate, metering, charging).
+        Raises _Stop with the run outcome when the call must not or cannot happen."""
+        limit_hit = tracker.note_model_call()
+        if limit_hit is not None:
+            failures.extend(tracker.end_round([limit_hit]))
+            raise _Stop(RunOutcome.LIMIT)
+        price = self._prices.price_for(choice.provider, choice.model)
+        if price is None:
+            self._alerts.raise_alert(
+                "price_missing",
+                f"no price for paid model {choice.provider}/{choice.model}: call refused",
+                level=AlertLevel.CRITICAL,
+                detail={"provider": choice.provider, "model": choice.model},
+                once=f"price_missing:{choice.provider}/{choice.model}",
+            )
+            failures.extend(tracker.end_round([f"price_missing:{choice.provider}/{choice.model}"]))
+            raise _Stop(RunOutcome.REFUSED)
+        if self._gate is not None:
+            verdict = self._gate.check(
+                scopes=scopes, provider=choice.provider, price=price, request=request
+            )
+            if not verdict.allowed:
+                failures.extend(tracker.end_round([verdict.reason]))
+                raise _Stop(RunOutcome.REFUSED)
+        calls += 1
+        try:
+            response = self._hub.complete(choice.provider, request)
+        except RuntimeFault as fault:
+            if fault.code not in _PROVIDER_FAULTS:
+                raise
+            self._meter(run_id, job, choice, calls, request, None, None, "provider_error")
+            failures.append(f"provider:{fault.code.value}")
+            raise _Stop(RunOutcome.PROVIDER_ERROR) from None
+        charge = charge_for(request, response)
+        cost = cost_micros(
+            price,
+            input_tokens=charge.input_tokens,
+            output_tokens=charge.output_tokens,
+            cached_tokens=charge.cached_tokens,
+        )
+        self._meter(run_id, job, choice, calls, request, response, charge, "ok", cost)
+        try:
+            self._budgets.charge_all(
+                scopes,
+                {
+                    Dimension.CALLS: 1,
+                    Dimension.TOKENS: charge.total_tokens,
+                    Dimension.WALL_MS: response.latency_ms,
+                    Dimension.USD_MICROS: cost,
+                },
+                reason="model_call",
+            )
+        except RuntimeFault as fault:
+            if fault.code is not FaultCode.BUDGET_EXCEEDED:
+                raise
+            raise _Stop(RunOutcome.BUDGET) from None
+        if self._gate is not None:
+            self._gate.after_call(
+                provider=choice.provider,
+                model=choice.model,
+                charge=charge,
+                cost_usd_micros=cost,
+                task_label=job.task_label,
+                task_type=job.task_type,
+                paid=price.input_per_mtok > 0 or price.output_per_mtok > 0,
+            )
+        return response.text, calls
 
     def _execute(
         self,
