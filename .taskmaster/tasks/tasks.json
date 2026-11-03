@@ -531,11 +531,25 @@
         "testStrategy": "Seven days, zero manual fixes, token totals within the budget set in the spec; report in docs/reviews/PHASE_3B.md.",
         "complexity": 4,
         "subtasks": []
+      },
+      {
+        "title": "README status fix (Phase 1 built, Phase 2 not started)",
+        "description": "Docs-only corrective: replace stale design-phase banner and roadmap table.",
+        "status": "done",
+        "priority": "low",
+        "dependencies": [
+          11
+        ],
+        "details": "[2026-11-02T22:16:08-05:00] Docs-only README banner and roadmap fix; owner closed PR #2 (stale). Marked done in the same commit; merge gated on green CI.",
+        "testStrategy": "README banner and roadmap match MEMORY.md; links resolve",
+        "complexity": 1,
+        "id": 35,
+        "subtasks": []
       }
     ],
     "metadata": {
       "created": "2026-11-01T18:19:53-05:00",
-      "updated": "2026-11-02T15:24:46-05:00"
+      "updated": "2026-11-02T22:16:08-05:00"
     }
   }
 }
