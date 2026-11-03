@@ -14,16 +14,18 @@ it is "done" is a claim for the directive runner to verify.
 import time
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
+from datetime import UTC, date, datetime
 from enum import StrEnum
 from typing import Any, Protocol
 
 from jangus.agents.metering import CallCharge, charge_for, estimate_tokens, record_model_call
+from jangus.agents.pricing import PriceTable, cost_micros
 from jangus.agents.prompt import result_block, system_prompt, tool_catalog, user_prompt
 from jangus.agents.proposals import REPLY_SCHEMA, Reply, ReplyError, parse_reply, proposal_hash
 from jangus.agents.providers.base import ModelRequest, ProviderHub
 from jangus.agents.spec import LoadedSpec
 from jangus.errors import FaultCode, RuntimeFault
-from jangus.kernel.alerts import AlertQueue
+from jangus.kernel.alerts import AlertLevel, AlertQueue
 from jangus.kernel.budgets import BudgetBook, Dimension, Limits
 from jangus.kernel.executor import AgentContext, Executor
 from jangus.kernel.ledger import Ledger
@@ -40,6 +42,7 @@ class RunOutcome(StrEnum):
     BUDGET = "budget"
     LIMIT = "limit"
     PROVIDER_ERROR = "provider_error"
+    REFUSED = "refused"  # the kernel refused to send the call (for example: no price)
     STOPPED = "stopped"  # the attempt tracker has no model left to try
 
 
@@ -162,7 +165,9 @@ class Runner:
         hub: ProviderHub,
         budgets: BudgetBook,
         alerts: AlertQueue,
+        prices: PriceTable | None = None,
         clock: Callable[[], float] = time.monotonic,
+        today: Callable[[], date] = lambda: datetime.now(UTC).date(),
     ) -> None:
         self._loaded = spec
         self._executor = executor
@@ -173,6 +178,8 @@ class Runner:
         self._budgets = budgets
         self._alerts = alerts
         self._clock = clock
+        self._today = today
+        self._prices = prices if prices is not None else PriceTable.local_only()
 
     @property
     def executor(self) -> Executor:
@@ -220,6 +227,13 @@ class Runner:
             }
         )
 
+        if self._prices.is_stale(self._today()):
+            self._alerts.raise_alert(
+                "price_table_stale",
+                f"price table is older than 60 days (as of {self._prices.as_of.isoformat()})",
+                detail={"as_of": self._prices.as_of.isoformat()},
+                once=f"price_stale:{self._prices.as_of.isoformat()}",
+            )
         started = self._clock()
         wall_limit = job.wall_seconds if job.wall_seconds is not None else spec.budget.wall_seconds
         results: list[str] = []
@@ -251,6 +265,20 @@ class Runner:
                 outcome = RunOutcome.LIMIT
                 break
 
+            price = self._prices.price_for(choice.provider, choice.model)
+            if price is None:
+                refusal = f"price_missing:{choice.provider}/{choice.model}"
+                self._alerts.raise_alert(
+                    "price_missing",
+                    f"no price for paid model {choice.provider}/{choice.model}: call refused",
+                    level=AlertLevel.CRITICAL,
+                    detail={"provider": choice.provider, "model": choice.model},
+                    once=f"price_missing:{choice.provider}/{choice.model}",
+                )
+                failures.extend(tracker.end_round([refusal]))
+                outcome = RunOutcome.REFUSED
+                break
+
             request = ModelRequest(
                 model=choice.model,
                 system=system,
@@ -271,7 +299,13 @@ class Runner:
                 break
 
             charge = charge_for(request, response)
-            self._meter(run.id, job, choice, calls, request, response, charge, "ok")
+            cost = cost_micros(
+                price,
+                input_tokens=charge.input_tokens,
+                output_tokens=charge.output_tokens,
+                cached_tokens=charge.cached_tokens,
+            )
+            self._meter(run.id, job, choice, calls, request, response, charge, "ok", cost)
             try:
                 self._budgets.charge_all(
                     scopes,
@@ -279,6 +313,7 @@ class Runner:
                         Dimension.CALLS: 1,
                         Dimension.TOKENS: charge.total_tokens,
                         Dimension.WALL_MS: response.latency_ms,
+                        Dimension.USD_MICROS: cost,
                     },
                     reason="model_call",
                 )
@@ -402,6 +437,7 @@ class Runner:
         response: Any,
         charge: CallCharge | None,
         outcome: str,
+        cost: int = 0,
     ) -> None:
         record_model_call(
             self._ledger,
@@ -415,6 +451,7 @@ class Runner:
             response=response,
             charge=charge,
             outcome=outcome,
+            cost_micros=cost,
         )
         if charge is not None and not charge.usage_known:
             self._alerts.raise_alert(

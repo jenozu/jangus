@@ -32,6 +32,8 @@ class FaultCode(StrEnum):
     PROVIDER_DISABLED = "provider_disabled"
     PROVIDER_FAILED = "provider_failed"
     PROVIDER_BAD_RESPONSE = "provider_bad_response"
+    PRICES_INVALID = "prices_invalid"
+    PRICE_MISSING = "price_missing"
 
 
 class RuntimeFault(Exception):  # noqa: N818 - name fixed by the task spec

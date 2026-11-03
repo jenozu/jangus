@@ -85,7 +85,12 @@ def test_would_exceed_charges_nothing(book: BudgetBook) -> None:
 def test_zero_limit_is_exhausted_at_once(tmp_path: Path) -> None:
     _, _, book = open_all(tmp_path)
     book.define("directive:x", Limits(0, 0, 0, 0))
-    assert set(book.exhausted("directive:x")) == set(Dimension)
+    assert set(book.exhausted("directive:x")) == {
+        Dimension.CALLS,
+        Dimension.TOKENS,
+        Dimension.WALL_MS,
+        Dimension.USD_MICROS,
+    }
     with pytest.raises(RuntimeFault):
         book.charge("directive:x", {Dimension.CALLS: 1}, reason="t")
 
