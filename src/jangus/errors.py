@@ -25,6 +25,10 @@ class FaultCode(StrEnum):
     SECRET_DENIED = "secret_denied"  # noqa: S105 - fault code name, not a password
     SECRET_MISSING = "secret_missing"  # noqa: S105 - fault code name, not a password
     SECRET_BACKEND_UNAVAILABLE = "secret_backend_unavailable"  # noqa: S105 - fault code name, not a password
+    SPEC_INVALID = "spec_invalid"
+    SPEC_NOT_APPROVED = "spec_not_approved"
+    SPEC_REGISTRY_INVALID = "spec_registry_invalid"
+    HOST_REQUIREMENTS_UNMET = "host_requirements_unmet"
 
 
 class RuntimeFault(Exception):  # noqa: N818 - name fixed by the task spec

@@ -1,4 +1,4 @@
-# DRAFT: inert until the owner approves this file's SHA-256. Not loadable yet (spec loader is Phase 2).
+# DRAFT: inert until the owner approves this file's SHA-256 (`jangus spec approve`). Parses with the Phase 2 loader; model name is still TBD.
 schema_version: 1
 name: orchestrator
 role: |

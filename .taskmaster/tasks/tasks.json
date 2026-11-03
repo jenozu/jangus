@@ -198,12 +198,12 @@
       {
         "title": "Agent spec schema, loader and approval registry",
         "description": "Load YAML specs; active only if SHA-256 is owner-approved.",
-        "status": "pending",
+        "status": "done",
         "priority": "high",
         "dependencies": [
           11
         ],
-        "details": "src/jangus/agents/spec.py and registry file outside the checkout; `jangus spec approve <file>` records the hash.\n\n[adapt 2026-11-01 attempt limits] Spec schema adds `escalation_model`, `attempts` block (default_model 2, step_up 1, max_model_calls 6, max_proposals 12) and `host` (pc|vps|actions); kernel checks required paths/secrets exist on the host.\n\n[adapt 2026-11-01 token economy] Spec adds `max_input_tokens`, `recipes` (approved names), `watchers`. Recipes and watchers are inert until their hashes are owner-approved.",
+        "details": "src/jangus/agents/spec.py and registry file outside the checkout; `jangus spec approve <file>` records the hash.\n\n[adapt 2026-11-01 attempt limits] Spec schema adds `escalation_model`, `attempts` block (default_model 2, step_up 1, max_model_calls 6, max_proposals 12) and `host` (pc|vps|actions); kernel checks required paths/secrets exist on the host.\n\n[adapt 2026-11-01 token economy] Spec adds `max_input_tokens`, `recipes` (approved names), `watchers`. Recipes and watchers are inert until their hashes are owner-approved.\n\n[2026-11-02T22:17:55-05:00] Plan: agents/spec.py (strict pydantic Spec, YAML via pyyaml safe_load with duplicate-key rejection, SHA-256 of the exact bytes parsed), agents/spec_registry.py (JSON approvals file outside checkout, atomic write, one active hash per name, ledger event before write), host check (B35), constraints bridge to directives, CLI jangus spec approve/list/revoke/check. New fault codes appended. Adds dependency pyyaml (+types-PyYAML dev); config host field parked.\n\n[2026-11-02T22:20:48-05:00] Built agents/spec.py, agents/spec_registry.py, jangus spec show/approve/list/revoke. Local (Linux, py3.12): ruff clean, mypy clean, 169 passed (49 new), B09 and B35 covered with fake secrets/paths only; nothing run on the owner's PC. Marked done in this commit; merge gated on green CI on ubuntu and windows.",
         "testStrategy": "pytest B09: edited spec inactive until re-approved; unapproved spec cannot run; spec with unavailable host requirements refused (B35)",
         "complexity": 4,
         "id": 12,
@@ -549,7 +549,7 @@
     ],
     "metadata": {
       "created": "2026-11-01T18:19:53-05:00",
-      "updated": "2026-11-02T22:16:08-05:00"
+      "updated": "2026-11-02T22:20:48-05:00"
     }
   }
 }
