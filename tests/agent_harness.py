@@ -16,31 +16,52 @@ from jangus.agents.providers.base import (
     Usage,
 )
 from jangus.agents.runner import Runner
-from jangus.agents.spec import LoadedSpec, parse_spec
+from jangus.agents.spec import LoadedSpec, parse_spec, to_constraints
+from jangus.directives.models import Directive, issue, parse_directive
+from jangus.directives.runner import DirectiveRunner
 from jangus.kernel.alerts import AlertQueue
+from jangus.kernel.approvals import ApprovalQueue
 from jangus.kernel.budgets import BudgetBook
 from jangus.kernel.executor import Executor
 from jangus.kernel.ledger import Ledger
+from jangus.kernel.registry import Reconciliation, Tier, ToolSpec
 from jangus.kernel.state import StateStore
-from tests.fakes import FakeWorld, build_registry
+from tests.fakes import FakeWorld, PathArgs, build_registry
 
 SPEC_YAML = """\
 schema_version: 1
 name: file-agent
 role: "You keep files tidy."
 model: {{provider: ollama, name: "qwen3:8b", max_tokens: 512}}
-tools: [file.read, file.write, file.delete]
-max_tier: T2
+tools: [{tools}]
+max_tier: {max_tier}
 budget: {{calls: {calls}, tokens: {tokens}, wall_seconds: 600, spend_usd: 1.0}}
-escalation_model: {{provider: claude, name: haiku-tag, effort: low}}
-attempts: {{default_model: 2, step_up: 1, max_model_calls: {max_calls}, max_proposals: {max_props}}}
+{escalation}attempts: {{default_model: 2, step_up: 1, max_model_calls: {max_calls},
+  max_proposals: {max_props}}}
 """
 
 
+ESCALATION = "escalation_model: {provider: claude, name: haiku-tag, effort: low}\n"
+
+
 def make_spec(
-    calls: int = 20, tokens: int = 100_000, max_calls: int = 6, max_props: int = 12
+    calls: int = 20,
+    tokens: int = 100_000,
+    max_calls: int = 6,
+    max_props: int = 12,
+    max_tier: str = "T2",
+    escalation: bool = True,
+    extra_tools: tuple[str, ...] = (),
 ) -> LoadedSpec:
-    text = SPEC_YAML.format(calls=calls, tokens=tokens, max_calls=max_calls, max_props=max_props)
+    text = SPEC_YAML.format(
+        calls=calls,
+        tokens=tokens,
+        max_calls=max_calls,
+        max_props=max_props,
+        max_tier=max_tier,
+        tools=", ".join(("file.read", "file.write", "file.delete", *extra_tools)),
+        escalation=ESCALATION if escalation else "",
+    )
     return parse_spec(text.encode())
 
 
@@ -87,9 +108,11 @@ class Harness:
         spec: LoadedSpec | None = None,
         provider: ScriptedProvider | None = None,
         escalation: ScriptedProvider | None = None,
+        with_approvals: bool = False,
     ) -> None:
         self.world = FakeWorld()
         self.registry = build_registry(self.world)
+        self.registry.register(_flaky_tool())
         self.state = StateStore.open(tmp_path / "state.db")
         self.ledger = Ledger.open(tmp_path / "ledger.jsonl")
         self.alerts = AlertQueue(self.ledger, self.state)
@@ -101,7 +124,8 @@ class Harness:
             {"ollama", "claude"},
             self.alerts.as_fn(),
         )
-        self.executor = Executor(self.registry, self.state, self.ledger)
+        self.approvals = ApprovalQueue(self.state, self.ledger) if with_approvals else None
+        self.executor = Executor(self.registry, self.state, self.ledger, approvals=self.approvals)
         self.spec = spec or make_spec()
         self.runner = Runner(
             spec=self.spec,
@@ -114,6 +138,55 @@ class Harness:
             alerts=self.alerts,
         )
         self.runner.ensure_budgets()
+        self.directives = DirectiveRunner(
+            loaded=self.spec,
+            runner=self.runner,
+            state=self.state,
+            ledger=self.ledger,
+            budgets=self.budgets,
+            alerts=self.alerts,
+            approvals=self.approvals,
+        )
+
+    def issue_directive(
+        self, tasks: list[dict[str, Any]], directive_id: str = "d1", **over: Any
+    ) -> Directive:
+        raw: dict[str, Any] = {
+            "schema_version": 1,
+            "id": directive_id,
+            "issued_by": "owner",
+            "assignee": self.spec.spec.name,
+            "spec_sha256": self.spec.sha256,
+            "goal": "keep the files tidy",
+            "budget": {"calls": 10, "tokens": 50_000, "wall_seconds": 300, "spend_usd": 0.5},
+            "tasks": tasks,
+            **over,
+        }
+        constraints = to_constraints(self.spec)
+        directive = parse_directive(raw, constraints, self.registry)
+        issue(directive, constraints, self.ledger, self.registry)
+        return directive
 
     def events(self, kind: str) -> list[dict[str, Any]]:
         return [e.event for e in self.ledger.entries() if e.event.get("kind") == kind]
+
+
+def _flaky_tool() -> ToolSpec:
+    """A T2 tool whose effect is never confirmed: it always ends 'unresolved'."""
+
+    def execute(args: PathArgs, secrets: object) -> dict[str, object]:
+        raise OSError("disk went away")
+
+    def reconcile(args: PathArgs) -> Reconciliation:
+        return Reconciliation("unknown")
+
+    return ToolSpec(
+        "file.flaky",
+        1,
+        PathArgs,
+        Tier.T2,
+        True,
+        execute,  # type: ignore[arg-type]
+        verify=lambda a, r: True,
+        reconcile=reconcile,
+    )

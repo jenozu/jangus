@@ -174,6 +174,22 @@ class Runner:
         self._alerts = alerts
         self._clock = clock
 
+    @property
+    def executor(self) -> Executor:
+        return self._executor
+
+    def agent_context(self, tools: Sequence[str] | None = None) -> AgentContext:
+        """What the kernel lets this agent do: its spec's tools (optionally narrowed), tier and
+        action budget. A narrowing list can only remove tools, never add any."""
+        spec = self._loaded.spec
+        allowed = tuple(t for t in spec.tools if tools is None or t in tools)
+        return AgentContext(
+            allowed_tools=allowed,
+            max_tier=spec.max_tier,
+            budget=f"{agent_scope(spec.name)}/actions",
+            secrets_allowed=frozenset(spec.secrets),
+        )
+
     def ensure_budgets(self) -> None:
         """Define the agent's scope from its approved spec (spent amounts are kept)."""
         spec = self._loaded.spec
@@ -192,12 +208,7 @@ class Runner:
         scopes = [scope, *job.extra_scopes]
         run = self._state.create_run(f"run:{spec.name}:{job.job_id}", spec.name)
         allowed = tuple(t for t in spec.tools if job.tools is None or t in job.tools)
-        ctx = AgentContext(
-            allowed_tools=allowed,
-            max_tier=spec.max_tier,
-            budget=f"{scope}/actions",
-            secrets_allowed=frozenset(spec.secrets),
-        )
+        ctx = self.agent_context(job.tools)
         system = system_prompt(spec.role, spec.name, tool_catalog(self._registry, allowed))
         self._ledger.append(
             {
