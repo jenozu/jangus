@@ -29,6 +29,9 @@ class FaultCode(StrEnum):
     SPEC_NOT_APPROVED = "spec_not_approved"
     SPEC_REGISTRY_INVALID = "spec_registry_invalid"
     HOST_REQUIREMENTS_UNMET = "host_requirements_unmet"
+    PROVIDER_DISABLED = "provider_disabled"
+    PROVIDER_FAILED = "provider_failed"
+    PROVIDER_BAD_RESPONSE = "provider_bad_response"
 
 
 class RuntimeFault(Exception):  # noqa: N818 - name fixed by the task spec

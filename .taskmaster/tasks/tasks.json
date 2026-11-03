@@ -212,12 +212,12 @@
       {
         "title": "Model providers: Ollama, Claude, no silent fallback",
         "description": "One provider interface; loopback Ollama; Claude API; failure means stop and alert.",
-        "status": "pending",
+        "status": "done",
         "priority": "high",
         "dependencies": [
           3
         ],
-        "details": "src/jangus/agents/providers/*. Token/cost accounting; recorded-transcript tests; no network in unit tests.\n\n[adapt 2026-11-01 token economy] Provider interface returns measured usage (input, output, cached tokens) and supports prompt-cache-friendly prefix ordering and batch mode; missing usage is recorded as `usage_unknown` and charged at the estimate.",
+        "details": "src/jangus/agents/providers/*. Token/cost accounting; recorded-transcript tests; no network in unit tests.\n\n[adapt 2026-11-01 token economy] Provider interface returns measured usage (input, output, cached tokens) and supports prompt-cache-friendly prefix ordering and batch mode; missing usage is recorded as `usage_unknown` and charged at the estimate.\n\n[2026-11-02T22:24:19-05:00] Plan: agents/providers/{base,http,ollama,claude}.py. Interface: ModelRequest -> ModelResponse with measured Usage (input/output/cached/cache_write; None => usage_unknown). Stdlib urllib transport (injected in tests; no network in unit tests; no proxies and no redirects for loopback Ollama). ProviderHub.complete(provider, request) calls exactly the named provider; disabled/failing => alert + RuntimeFault, never another provider (B11). Claude key comes from an injected getter (kernel secret backend), never logged. Out of scope here (later tasks): price table, pre-call budget check, ledger metering record (14/15 and Phase 2b). Batch mode deferred to parking lot: nothing to measure yet and it cannot be tested without a real key. Effort is recorded but not sent to the Claude API yet. WebFetch of the API docs was not approved, so field names come from knowledge and are verified only against fakes until a real call is made.\n\n[2026-11-02T23:28:59-05:00] Built agents/providers/{base,http,ollama,claude,factory}.py; ModelRequest now carries the model (from approved spec/kernel); config gained claude_enabled (default false) and check_loopback_url. Local (Linux, py3.12): ruff clean, mypy clean, 215 passed (46 new), coverage 96%. B11 (no fallback either direction, disabled provider never called, alert raised) and B37 usage fields / usage_unknown covered with FAKE transports; real urllib transport tested against a throwaway loopback server (ignores proxy env, refuses redirects; test verified with a mutant). NOT run against real Ollama or the real Claude API. Marked done in this commit; merge gated on green CI.",
         "testStrategy": "pytest B11: failing or disabled provider stops the run and alerts; never switches provider; B37 usage fields recorded; usage_unknown handled",
         "complexity": 5,
         "id": 13,
@@ -549,7 +549,7 @@
     ],
     "metadata": {
       "created": "2026-11-01T18:19:53-05:00",
-      "updated": "2026-11-02T22:20:48-05:00"
+      "updated": "2026-11-02T23:28:59-05:00"
     }
   }
 }

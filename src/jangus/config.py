@@ -33,6 +33,30 @@ def _is_within(child: Path, parent: Path) -> bool:
     return child == parent or parent in child.parents
 
 
+def check_loopback_url(value: str) -> str:
+    """Return value if it is a loopback http url with a port, else raise ValueError."""
+    parts = urlsplit(value)
+    try:
+        port = parts.port
+    except ValueError as exc:
+        raise ValueError(f"{FaultCode.ENDPOINT_NOT_LOOPBACK.value}: bad port") from exc
+    if (
+        parts.scheme != "http"
+        or parts.hostname not in LOOPBACK_HOSTS
+        or port is None
+        or parts.username is not None
+        or parts.password is not None
+        or parts.path not in ("", "/")
+        or parts.query
+        or parts.fragment
+    ):
+        raise ValueError(
+            f"{FaultCode.ENDPOINT_NOT_LOOPBACK.value}: endpoint must be "
+            "http://127.0.0.1:<port> or http://[::1]:<port> (localhost is not accepted)"
+        )
+    return value
+
+
 class ModelEndpoint(StrictModel):
     url: str
     name: str = Field(min_length=1)
@@ -40,32 +64,15 @@ class ModelEndpoint(StrictModel):
     @field_validator("url")
     @classmethod
     def _loopback_only(cls, value: str) -> str:
-        parts = urlsplit(value)
-        try:
-            port = parts.port
-        except ValueError as exc:
-            raise ValueError(f"{FaultCode.ENDPOINT_NOT_LOOPBACK.value}: bad port") from exc
-        if (
-            parts.scheme != "http"
-            or parts.hostname not in LOOPBACK_HOSTS
-            or port is None
-            or parts.username is not None
-            or parts.password is not None
-            or parts.path not in ("", "/")
-            or parts.query
-            or parts.fragment
-        ):
-            raise ValueError(
-                f"{FaultCode.ENDPOINT_NOT_LOOPBACK.value}: endpoint must be "
-                "http://127.0.0.1:<port> or http://[::1]:<port> (localhost is not accepted)"
-            )
-        return value
+        return check_loopback_url(value)
 
 
 class JangusConfig(StrictModel):
     data_dir: Path = Field(strict=False)
     workspace_dir: Path = Field(strict=False)
     model: ModelEndpoint
+    # The paid provider is off unless the owner turns it on here (no silent use of Claude).
+    claude_enabled: bool = False
 
     @field_validator("data_dir", "workspace_dir")
     @classmethod
