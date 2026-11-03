@@ -2,7 +2,7 @@
 
 **An orchestrator that starts specialist agents to do your day-to-day work, without you driving every step, and without burning tokens.**
 
-> **Status: design phase (Phase 0).** The specifications, task list and build plan are written. **No application code exists yet.** Everything below describes the intended system unless marked "planned". See [Status and roadmap](#status-and-roadmap).
+> **Status: Phase 1 (kernel) built; Phase 2 not started.** The deterministic kernel exists and passes scenarios B01-B07 using fake tools and no models. There are no model providers, agents, scheduler or real tools yet, and nothing has been run on a real machine beyond CI. Everything below describes the intended system unless marked "planned". See [Status and roadmap](#status-and-roadmap).
 
 ---
 
@@ -179,8 +179,8 @@ Rules: one task at a time; new ideas go to `.taskmaster/docs/parking-lot.md`, no
 
 | Phase | Goal | Status |
 |---|---|---|
-| 0 | Specs, ADR-001, task list | ADR-001 accepted; awaiting go-ahead for Phase 1 |
-| 1 | Kernel with fake tools | Not started |
+| 0 | Specs, ADR-001, task list | Done |
+| 1 | Kernel with fake tools | Built; B01-B07 pass with fake tools ([review](docs/reviews/PHASE_1.md)) |
 | 2a | Providers and local model benchmark | Not started |
 | 2b | Agent runtime, attempt policy, metering, budget gate, cache | Not started |
 | 3 | File/backup agent, scheduler, 7-day soak | Not started |
