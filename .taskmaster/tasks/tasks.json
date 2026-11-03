@@ -454,12 +454,12 @@
         "id": 26,
         "title": "Attempt policy: repeat detection, limits and escalation ladder",
         "description": "Kernel-side attempt counting, repeat and no-progress detection, hard per-task limits and the one-step ladder.",
-        "status": "pending",
+        "status": "done",
         "priority": "high",
         "dependencies": [
           15
         ],
-        "details": "src/jangus/kernel/attempts.py: AttemptPolicy (from spec `attempts`, tightened by directive), failure reasons enum, proposal hash = sha256(tool + canonical args), no-progress = 3 consecutive proposals with identical result hash, ladder decision (DEFAULT_MODEL, STEP_UP, STOP). Counts persist in the state store and carry over to superseding directives. Only the kernel calls the ladder; no model-visible control.",
+        "details": "src/jangus/kernel/attempts.py: AttemptPolicy (from spec `attempts`, tightened by directive), failure reasons enum, proposal hash = sha256(tool + canonical args), no-progress = 3 consecutive proposals with identical result hash, ladder decision (DEFAULT_MODEL, STEP_UP, STOP). Counts persist in the state store and carry over to superseding directives. Only the kernel calls the ladder; no model-visible control.\n\n[2026-11-03T11:11:13-05:00] Plan: state schema v2 (task_counters, task_text, task_proposals, task_results, task_failures) with a stepwise migration; kernel/attempts.py DurableAttempts implements the runner's AttemptTracker: failed-attempt count per task key (lineage root of superseded directives + task id), repeat detection, persisted max_model_calls/max_proposals/wall limits, no-progress (3 same result hash, no new evidence = 1 failure), ladder 2 + 1 step-up then stop + alert. One failed attempt per round.\n\n[2026-11-03T11:13:05-05:00] Built on phase-2b/attempt-policy; local ruff, mypy, pytest pass. Marked done after the task's test strategy ran.",
         "testStrategy": "pytest B31 repeat refused, B32 ladder 2+1 then stop, B33 limits not reset by restart/re-issue, B34 no self-escalation, B36 no-progress counted.",
         "complexity": 6,
         "subtasks": [],
@@ -699,7 +699,7 @@
     ],
     "metadata": {
       "created": "2026-11-01T18:19:53-05:00",
-      "updated": "2026-11-03T11:10:25-05:00"
+      "updated": "2026-11-03T11:13:05-05:00"
     }
   }
 }

@@ -13,9 +13,9 @@ from typing import Any, Literal, TypeVar
 
 from jangus.errors import FaultCode, RuntimeFault
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
-_SCHEMA = """
+_SCHEMA_V1 = """
 CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT NOT NULL) STRICT;
 CREATE TABLE runs (
     id INTEGER PRIMARY KEY,
@@ -51,6 +51,39 @@ CREATE TABLE budgets (
     spent INTEGER NOT NULL DEFAULT 0 CHECK (spent >= 0)
 ) STRICT;
 """
+
+# Stepwise migrations: version -> statements that bring a (version - 1) database up to it.
+_MIGRATIONS: dict[int, str] = {
+    2: """
+CREATE TABLE task_counters (
+    task_key TEXT NOT NULL,
+    name TEXT NOT NULL,
+    value INTEGER NOT NULL DEFAULT 0 CHECK (value >= 0),
+    PRIMARY KEY (task_key, name)
+) STRICT;
+CREATE TABLE task_text (
+    task_key TEXT NOT NULL,
+    name TEXT NOT NULL,
+    value TEXT NOT NULL,
+    PRIMARY KEY (task_key, name)
+) STRICT;
+CREATE TABLE task_proposals (
+    task_key TEXT NOT NULL,
+    proposal_hash TEXT NOT NULL,
+    PRIMARY KEY (task_key, proposal_hash)
+) STRICT;
+CREATE TABLE task_results (
+    task_key TEXT NOT NULL,
+    result_hash TEXT NOT NULL,
+    PRIMARY KEY (task_key, result_hash)
+) STRICT;
+CREATE TABLE task_failures (
+    id INTEGER PRIMARY KEY,
+    task_key TEXT NOT NULL,
+    reason TEXT NOT NULL
+) STRICT;
+""",
+}
 
 ActionStatus = Literal["intent", "done", "failed", "unresolved"]
 T = TypeVar("T")
@@ -117,19 +150,23 @@ class StateStore:
                 "SELECT 1 FROM sqlite_master WHERE type='table' AND name='meta'"
             ).fetchone()
             if has_meta is None:
-                for statement in _SCHEMA.split(";"):
+                for statement in _SCHEMA_V1.split(";"):
                     if statement.strip():
                         conn.execute(statement)
-                conn.execute(
-                    "INSERT INTO meta(key, value) VALUES ('schema_version', ?)",
-                    (str(SCHEMA_VERSION),),
-                )
+                conn.execute("INSERT INTO meta(key, value) VALUES ('schema_version', '1')")
             row = conn.execute("SELECT value FROM meta WHERE key='schema_version'").fetchone()
+            version = int(row[0])
+            while 1 <= version < SCHEMA_VERSION:
+                version += 1
+                for statement in _MIGRATIONS[version].split(";"):
+                    if statement.strip():
+                        conn.execute(statement)
+                conn.execute("UPDATE meta SET value=? WHERE key='schema_version'", (str(version),))
             conn.execute("COMMIT")
         except BaseException:
             conn.execute("ROLLBACK")
             raise
-        return int(row[0])
+        return version
 
     @property
     def writable(self) -> bool:

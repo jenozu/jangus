@@ -20,8 +20,16 @@ MARK = "python3 -c \"open('{}', 'w').close()\""  # creates a marker file in the 
 
 
 def mk(tid, deps=(), status="pending", **extra):
-    base = {"id": tid, "title": f"task {tid}", "status": status, "priority": "medium",
-            "dependencies": list(deps), "details": "", "testStrategy": "x", "subtasks": []}
+    base = {
+        "id": tid,
+        "title": f"task {tid}",
+        "status": status,
+        "priority": "medium",
+        "dependencies": list(deps),
+        "details": "",
+        "testStrategy": "x",
+        "subtasks": [],
+    }
     base.update(extra)
     return base
 
@@ -41,8 +49,9 @@ class Repo:
         self.allowlist.write_text(json.dumps({"allowed": allowed, **extra}), encoding="utf-8")
 
     def write(self, task_list):
-        self.file.write_text(json.dumps({"master": {"tasks": task_list, "metadata": {}}}),
-                             encoding="utf-8")
+        self.file.write_text(
+            json.dumps({"master": {"tasks": task_list, "metadata": {}}}), encoding="utf-8"
+        )
 
     def tasks(self):
         return json.loads(self.file.read_text(encoding="utf-8"))["master"]["tasks"]
@@ -51,8 +60,17 @@ class Repo:
         return next(t for t in self.tasks() if t["id"] == tid)
 
     def main(self, *args):
-        return run.main(["--root", str(self.root), "--file", str(self.file),
-                         "--allowlist", str(self.allowlist), *args])
+        return run.main(
+            [
+                "--root",
+                str(self.root),
+                "--file",
+                str(self.file),
+                "--allowlist",
+                str(self.allowlist),
+                *args,
+            ]
+        )
 
     def runs(self):
         log = self.root / ".taskmaster" / "runs" / "runs.jsonl"
@@ -68,6 +86,7 @@ def repo(tmp_path):
 
 
 # ---------- validator ----------
+
 
 def errors_for(*items):
     errors, _ = tasks.validate(list(items))
@@ -87,8 +106,9 @@ def test_validate_accepts_each_runner(runner):
 
 def test_validate_rejects_kernel_without_verify():
     assert any("needs a non-empty verify" in e for e in errors_for(mk(1, runner="kernel")))
-    assert any("needs a non-empty verify" in e
-               for e in errors_for(mk(1, runner="kernel", verify="  ")))
+    assert any(
+        "needs a non-empty verify" in e for e in errors_for(mk(1, runner="kernel", verify="  "))
+    )
 
 
 def test_validate_rejects_kernel_with_manual_verify():
@@ -96,14 +116,27 @@ def test_validate_rejects_kernel_with_manual_verify():
 
 
 def test_validate_rejects_kernel_subtask():
-    parent = mk(1, subtasks=[{"id": 1, "title": "s", "status": "pending", "dependencies": [],
-                              "testStrategy": "x", "runner": "kernel", "verify": "pytest"}])
+    parent = mk(
+        1,
+        subtasks=[
+            {
+                "id": 1,
+                "title": "s",
+                "status": "pending",
+                "dependencies": [],
+                "testStrategy": "x",
+                "runner": "kernel",
+                "verify": "pytest",
+            }
+        ],
+    )
     assert any("top-level" in e for e in errors_for(parent))
 
 
 def test_validate_checks_optional_step_fields():
-    errs = errors_for(kernel(1, "pytest", verifyTimeoutSeconds=0, verifyExpectedExit="0",
-                             verifyCwd=""))
+    errs = errors_for(
+        kernel(1, "pytest", verifyTimeoutSeconds=0, verifyExpectedExit="0", verifyCwd="")
+    )
     assert len(errs) == 3
 
 
@@ -120,14 +153,17 @@ def test_real_task_list_is_valid():
 
 # ---------- plan ----------
 
+
 def test_plan_lists_only_pending_kernel_tasks_in_dependency_order(repo, capsys):
-    repo.write([
-        kernel(1, MARK.format("a"), status="done"),
-        mk(2),  # model by default
-        mk(3, runner="human", verify="manual"),
-        kernel(4, MARK.format("b"), deps=[1]),
-        kernel(5, MARK.format("c"), deps=[4]),
-    ])
+    repo.write(
+        [
+            kernel(1, MARK.format("a"), status="done"),
+            mk(2),  # model by default
+            mk(3, runner="human", verify="manual"),
+            kernel(4, MARK.format("b"), deps=[1]),
+            kernel(5, MARK.format("c"), deps=[4]),
+        ]
+    )
     assert repo.main("plan") == 0
     lines = [ln.split()[0] for ln in capsys.readouterr().out.splitlines()]
     assert lines == ["4", "5"]
@@ -155,6 +191,7 @@ def test_plan_with_nothing_pending(repo, capsys):
 
 # ---------- run ----------
 
+
 def test_run_marks_done_only_after_verify_passes(repo, capsys):
     repo.write([kernel(1, MARK.format("ran1"))])
     assert repo.main("run") == 0
@@ -179,11 +216,13 @@ def test_run_records_sha256_of_full_stdout_and_tails(repo):
 
 
 def test_run_stops_at_first_failure_and_does_not_mark_done(repo, capsys):
-    repo.write([
-        kernel(1, MARK.format("first")),
-        kernel(2, 'python3 -c "import sys; print(\'boom\'); sys.exit(1)"', deps=[1]),
-        kernel(3, MARK.format("third"), deps=[1]),
-    ])
+    repo.write(
+        [
+            kernel(1, MARK.format("first")),
+            kernel(2, "python3 -c \"import sys; print('boom'); sys.exit(1)\"", deps=[1]),
+            kernel(3, MARK.format("third"), deps=[1]),
+        ]
+    )
     assert repo.main("run") == 1
     assert repo.task(1)["status"] == "done"
     assert repo.task(2)["status"] == "pending"
@@ -215,14 +254,17 @@ def test_timeout_fails_the_step(repo, capsys):
     assert repo.task(1)["status"] == "pending"
 
 
-@pytest.mark.parametrize("verify", [
-    "python3 -c pass && python3 -c pass",
-    "python3 -c pass | python3 -c pass",
-    "python3 -c pass ; python3 -c pass",
-    "python3 -c pass > out.txt",
-    "python3 -c pass $(python3 -c pass)",
-    "python3 -c pass `python3 -c pass`",
-])
+@pytest.mark.parametrize(
+    "verify",
+    [
+        "python3 -c pass && python3 -c pass",
+        "python3 -c pass | python3 -c pass",
+        "python3 -c pass ; python3 -c pass",
+        "python3 -c pass > out.txt",
+        "python3 -c pass $(python3 -c pass)",
+        "python3 -c pass `python3 -c pass`",
+    ],
+)
 def test_command_with_shell_operator_is_refused(repo, verify):
     repo.write([kernel(1, verify)])
     assert repo.main("run") == 1
@@ -280,8 +322,13 @@ def test_cwd_inside_repo_is_used(repo):
 
 
 def test_non_kernel_tasks_are_never_run(repo):
-    repo.write([mk(1, verify=MARK.format("model")), mk(2, runner="human", verify="manual"),
-                mk(3, runner="local", verify=MARK.format("local"))])
+    repo.write(
+        [
+            mk(1, verify=MARK.format("model")),
+            mk(2, runner="human", verify="manual"),
+            mk(3, runner="local", verify=MARK.format("local")),
+        ]
+    )
     assert repo.main("run") == 0
     assert not repo.exists("model") and not repo.exists("local")
     assert [t["status"] for t in repo.tasks()] == ["pending"] * 3
@@ -311,8 +358,13 @@ def test_done_tasks_are_skipped_but_only_reverifies(repo):
 
 
 def test_from_starts_at_the_given_task(repo):
-    repo.write([kernel(1, MARK.format("one")), kernel(2, MARK.format("two")),
-                kernel(3, MARK.format("three"))])
+    repo.write(
+        [
+            kernel(1, MARK.format("one")),
+            kernel(2, MARK.format("two")),
+            kernel(3, MARK.format("three")),
+        ]
+    )
     assert repo.main("run", "--from", "2") == 0
     assert not repo.exists("one") and repo.exists("two") and repo.exists("three")
     assert repo.task(1)["status"] == "pending"
@@ -325,6 +377,7 @@ def test_from_rejects_an_unknown_task(repo):
 
 
 # ---------- checklist ----------
+
 
 def test_checklist_is_generated_and_deterministic(repo):
     repo.write([kernel(1, MARK.format("a"), status="done"), mk(2), kernel(3, MARK.format("b"))])
@@ -345,6 +398,7 @@ def test_checklist_will_not_overwrite_a_hand_written_file(repo):
 
 
 # ---------- no model code on the run path ----------
+
 
 def test_run_path_imports_no_model_or_provider_code():
     tree = ast.parse((TOOLS / "run.py").read_text(encoding="utf-8"))

@@ -68,7 +68,9 @@ class AttemptTracker(Protocol):
 
     def note_result(self, proposal_hash: str, result_hash: str | None) -> None: ...
 
-    def end_round(self, failures: Sequence[str]) -> None: ...
+    def note_elapsed_ms(self, elapsed_ms: int) -> str | None: ...
+
+    def end_round(self, failures: Sequence[str]) -> Sequence[str]: ...
 
     def failure_reasons(self) -> Sequence[str]: ...
 
@@ -101,8 +103,12 @@ class LimitsOnlyAttempts:
     def note_result(self, proposal_hash: str, result_hash: str | None) -> None:
         return None
 
-    def end_round(self, failures: Sequence[str]) -> None:
+    def note_elapsed_ms(self, elapsed_ms: int) -> str | None:
+        return None
+
+    def end_round(self, failures: Sequence[str]) -> Sequence[str]:
         self._reasons.extend(failures)
+        return tuple(failures)
 
     def failure_reasons(self) -> Sequence[str]:
         return tuple(self._reasons)
@@ -214,6 +220,7 @@ class Runner:
         note = ""
 
         while outcome is None:
+            round_started = self._clock()
             if self._clock() - started > wall_limit:
                 tracker.end_round(["limit:wall_seconds"])
                 failures.append("limit:wall_seconds")
@@ -296,8 +303,12 @@ class Runner:
                     done_claimed = True
                     outcome = RunOutcome.MODEL_DONE
 
-            tracker.end_round(round_failures)
-            failures.extend(round_failures)
+            wall_hit = tracker.note_elapsed_ms(int((self._clock() - round_started) * 1000))
+            if wall_hit is not None:
+                round_failures.append(wall_hit)
+                if outcome is None:
+                    outcome = RunOutcome.LIMIT
+            failures.extend(tracker.end_round(round_failures))
 
         self._ledger.append(
             {
