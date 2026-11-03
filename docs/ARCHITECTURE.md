@@ -1,6 +1,6 @@
 # Jangus v2 architecture
 
-Status: DRAFT intended design. Nothing here is implemented. Authority model follows [ADR-001](decisions/001-v2-orchestrator-and-agents.md).
+Status: design. The kernel and the agent-spec loader are implemented; everything else is planned (MEMORY.md has the current phase). Authority model follows [ADR-001](decisions/001-v2-orchestrator-and-agents.md).
 
 ## Principle
 
@@ -140,13 +140,9 @@ Fresh run each time. Nothing but approved memory and ledger-derived facts carrie
 | Secrets | Windows Credential Manager |
 | Knowledge | Obsidian vault outside Git (later phase) |
 
-## Reuse from v1
-
-Port: strict config models, SQLite state and idempotency, hash verification, hash-chained ledger, loopback endpoint check, secret scanner, memory registry, Ollama provider. Replace: fixed manifest plan, one-word model roles, fixed five-tool set.
-
 ## Deployment
 
-PC first, driven by Windows Task Scheduler running `jangus tick`. VPS execution is a later option for agents without local-file needs, using the v1 tunnel and token pattern.
+PC first, driven by Windows Task Scheduler running `jangus tick`. VPS execution is a later option for agents without local-file needs; the transport is decided in Phase 7.
 
 ## Open design points
 

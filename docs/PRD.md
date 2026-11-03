@@ -1,11 +1,11 @@
 # Jangus v2 product requirements
 
-Status: ACCEPTED specification (ADR-001 accepted 2026-11-01); implementation not started. Owner: repository owner. Date: 2026-11-01.
-Replaces the v1 PRD (in the v1 repo, jenozu/jangus-v1) per [ADR-001](decisions/001-v2-orchestrator-and-agents.md). The v1 repo stays authoritative for v1 code.
+Status: ACCEPTED specification (ADR-001 accepted 2026-11-01); implementation in progress (see MEMORY.md for the current phase). Owner: repository owner. Date: 2026-11-01.
+Decision record: [ADR-001](decisions/001-v2-orchestrator-and-agents.md).
 
 ## Problem and outcome
 
-v1 is a safe file-copy controller with advisory one-word models. It cannot run open-ended day-to-day work. The owner wants an **orchestrator** that creates and runs **specialist agents** ("professionals" in one area each) to maintain and perform routine tasks **without intervention**, while keeping a hard, auditable limit on what any agent can do.
+The owner wants an **orchestrator** that creates and runs **specialist agents** ("professionals" in one area each) to maintain and perform routine tasks **without intervention**, while keeping a hard, auditable limit on what any agent can do.
 
 Outcome: routine work (file/backup upkeep, shop and order monitoring, inbox triage) happens on a schedule; the owner reviews a short report and an approval queue instead of driving each step.
 
@@ -37,7 +37,7 @@ Primary: the repository owner on a Windows 11 desktop (32 GB RAM) with an option
 | V2-FR01 | Tool registry: every tool declares name, version, input schema, tier, reversibility, dry-run and undo (if any), required secrets, and idempotency rule. Unknown tools fail closed | P1 |
 | V2-FR02 | Policy engine maps tier to run / run-and-log / queue for approval. Agents cannot change tiers, specs, or policy | P1 |
 | V2-FR03 | Append-only, hash-chained audit ledger: intent persisted before effect; result and verification recorded after; persistence failure stops new effects | P1 |
-| V2-FR04 | Durable state (SQLite) with idempotency keys and crash reconciliation, ported from v1 | P1 |
+| V2-FR04 | Durable state (SQLite) with idempotency keys and crash reconciliation | P1 |
 | V2-FR05 | Per-agent and global budgets: calls, tokens, wall time, and monthly spend cap. Budgets survive restarts | P2 |
 | V2-FR06 | Agent spec loader with strict schema; a spec is active only if its content hash is approved by the owner | P2 |
 | V2-FR07 | Model provider interface with local Ollama and Claude API; model selection is part of the spec; no silent fallback to a different or paid provider | P2 |
@@ -52,7 +52,7 @@ Primary: the repository owner on a Windows 11 desktop (32 GB RAM) with an option
 | V2-FR16 | Inbox agent: read and draft only; sending is T3 | P6 |
 | V2-FR17 | Secrets in Windows Credential Manager (or environment); never in config, specs, prompts, or logs; each agent receives only its named secrets | P1 |
 | V2-FR18 | Tier promotion/demotion is an owner-signed, logged change, per action and per agent | P4 |
-| V2-FR19 | Approved Obsidian memory retrieval ported from v1 (exact-hash approval, lower trust) | P7 |
+| V2-FR19 | Approved Obsidian memory retrieval (exact-hash approval, lower trust) | P7 |
 | V2-FR23 | Escalation-only orchestrator: it is called only for a new owner goal, a spec-drafting request, or a halted directive that needs judgment. Task completion, run completion, scheduled standing jobs, T3 queueing and the daily report never call it | P2-P4 |
 | V2-FR24 | Kernel-run tasks: a directive task may declare `runner: kernel` and execute scripted tool steps with zero model calls; model calls are used only where judgment is needed | P2 |
 | V2-FR25 | Model tiering: specialists default to Haiku-class or local models, Sonnet at low effort for harder work; the orchestrator tier is used only on escalation, with a daily escalation cap; at the cap the escalation is queued for the owner, never silently raised | P2 |
@@ -102,6 +102,6 @@ Excluded until separately authorized: unrestricted shell or generated-code execu
 - Prompt injection through inbox and shop data is the main security risk; tier limits and data/instruction separation are the defense, not model judgment.
 - Claude API spend: set cap before first use; define behavior at cap (stop and alert).
 - Shopify/Printify/email API write semantics and idempotency vary per action; each action needs its own reconciliation rule.
-- License still undecided (v1 open item).
+- No license, by owner decision (2026-11-01); revisit before sharing the repo or accepting contributions.
 - Alert channel beyond CLI/daily report is deferred.
 - Savings estimates (recipes, cache, watchers) are estimates until measured against a baseline; the cost report labels them so.

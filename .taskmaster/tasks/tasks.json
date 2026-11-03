@@ -424,7 +424,7 @@
           19,
           26
         ],
-        "details": "Break down after task 21. Host capability declaration (paths, secrets, models); refuse mismatches; reuse the v1 SSH-tunnel/token worker pattern for VPS; benchmark local model on the VPS before assigning it work. GitHub Actions evaluation lives in task 24.",
+        "details": "Break down after task 21. Host capability declaration (paths, secrets, models); refuse mismatches; decide the VPS transport and authentication (ADR first); benchmark local model on the VPS before assigning it work. GitHub Actions evaluation lives in task 24.",
         "testStrategy": "pytest B35: host mismatch refused; VPS run reconciles by job identity after a dropped connection.",
         "complexity": 6,
         "subtasks": []

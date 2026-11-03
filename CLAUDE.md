@@ -4,7 +4,11 @@ You are working on Jangus 2.0 for its owner (GitHub: jenozu). Read this file and
 
 ## What this project is
 
-A local-first system where an **orchestrator** starts **specialist agents** (each a "professional" in one area) to perform day-to-day work without intervention, inside hard limits. Specs: [PRD](docs/PRD.md), [MVP](docs/MVP.md), [architecture](docs/ARCHITECTURE.md), [phases](docs/PHASES.md), [ADR-001](docs/decisions/001-v2-orchestrator-and-agents.md). The v1 code lives in github.com/jenozu/jangus-v1 (branch `release/acceptance-readiness`); port modules from it, do not depend on it.
+A local-first system where an **orchestrator** starts **specialist agents** (each a "professional" in one area) to perform day-to-day work without intervention, inside hard limits. Specs: [PRD](docs/PRD.md), [MVP](docs/MVP.md), [architecture](docs/ARCHITECTURE.md), [phases](docs/PHASES.md), [ADR-001](docs/decisions/001-v2-orchestrator-and-agents.md).
+
+## Scope: v2 is the only design
+
+Jangus 2.0 (this repo) is the only design. The earlier version lives in github.com/jenozu/jangus-v1 (paused) and is out of scope: do not port from it, depend on it, or take requirements from it. Do not use v1 terms: the controller-plus-advisory-models design, one-word model replies (ready/reject, verified/disagree, hold/stop), `release/acceptance-readiness`, the stacked PRs #1-#16, v1 setup or acceptance steps. If any document seems to describe them, it is stale: tell the owner instead of following it.
 
 ## The one rule that matters
 
