@@ -6,7 +6,7 @@ store blocks every further write (fail closed).
 """
 
 import sqlite3
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal, TypeVar
@@ -225,6 +225,63 @@ class StateStore:
         if row is None:
             raise RuntimeFault(FaultCode.BUDGET_EXCEEDED, f"no budget named {name!r}")
         return BudgetRecord(*row)
+
+    def set_budgets(self, limits: Mapping[str, int]) -> list[BudgetRecord]:
+        """Create or update several budget limits in one transaction. Spent amounts are kept."""
+
+        def work(conn: sqlite3.Connection) -> list[BudgetRecord]:
+            for name, limit in limits.items():
+                if limit < 0:
+                    raise RuntimeFault(FaultCode.BUDGET_EXCEEDED, "negative budget limit")
+                conn.execute(
+                    "INSERT INTO budgets(name, limit_amount) VALUES (?, ?) "
+                    "ON CONFLICT(name) DO UPDATE SET limit_amount=excluded.limit_amount",
+                    (name, limit),
+                )
+            return [self._budget(conn, name) for name in limits]
+
+        return self._write(work)
+
+    def charge_budgets(self, charges: Mapping[str, int]) -> list[BudgetRecord]:
+        """Charge several budgets all-or-nothing. Raises budget_exceeded and charges nothing
+        if any one would go over its limit (or does not exist)."""
+
+        def work(conn: sqlite3.Connection) -> list[BudgetRecord]:
+            for name, amount in charges.items():
+                if amount < 0:
+                    raise RuntimeFault(FaultCode.BUDGET_EXCEEDED, "negative cost")
+                current = self._budget(conn, name)
+                if current.spent + amount > current.limit_amount:
+                    raise RuntimeFault(
+                        FaultCode.BUDGET_EXCEEDED, f"budget {name!r} would be exceeded"
+                    )
+            for name, amount in charges.items():
+                conn.execute("UPDATE budgets SET spent = spent + ? WHERE name=?", (amount, name))
+            return [self._budget(conn, name) for name in charges]
+
+        return self._write(work)
+
+    def list_budgets(self, prefix: str = "") -> list[BudgetRecord]:
+        try:
+            rows = self._conn.execute(
+                "SELECT name, limit_amount, spent FROM budgets WHERE substr(name, 1, ?) = ? "
+                "ORDER BY name",
+                (len(prefix), prefix),
+            ).fetchall()
+        except sqlite3.Error as exc:
+            raise RuntimeFault(FaultCode.STATE_UNAVAILABLE, f"cannot read state: {exc}") from exc
+        return [BudgetRecord(*row) for row in rows]
+
+    def mark_once(self, key: str) -> bool:
+        """Durably remember `key`. True the first time, False on every later call (and restart)."""
+
+        def work(conn: sqlite3.Connection) -> bool:
+            cur = conn.execute(
+                "INSERT OR IGNORE INTO meta(key, value) VALUES (?, '1')", (f"once:{key}",)
+            )
+            return cur.rowcount == 1
+
+        return self._write(work)
 
     def get_budget(self, name: str) -> BudgetRecord:
         try:
