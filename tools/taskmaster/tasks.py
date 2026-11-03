@@ -12,6 +12,8 @@ import json
 import os
 import sys
 
+import extractors  # sibling module: the registry of output extractors (pure, stdlib only)
+
 DEFAULT_FILE = ".taskmaster/tasks/tasks.json"
 STATUSES = ["pending", "in-progress", "review", "done", "deferred", "cancelled"]
 PRIORITY = {"high": 3, "medium": 2, "low": 1}
@@ -211,6 +213,10 @@ def check_runner(item, fid, is_subtask, errors):
             ok = isinstance(v, str) and bool(v.strip())
         if not ok:
             errors.append(f"{fid}: {key} must be a {kind}")
+    if "extract" in item and (not isinstance(item["extract"], str)
+                              or item["extract"] not in extractors.REGISTRY):
+        errors.append(f"{fid}: extract '{item['extract']}' is not a known extractor "
+                      f"({', '.join(extractors.names())})")
     if runner == "kernel":
         if is_subtask:
             errors.append(f"{fid}: runner 'kernel' is supported on top-level tasks only")

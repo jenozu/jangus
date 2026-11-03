@@ -1,0 +1,4 @@
+pkg/m.py:3: error: Incompatible return value type (got "int", expected "str")  [return-value]
+pkg/m.py:8: error: Incompatible return value type (got "str", expected "int")  [return-value]
+pkg/m.py:9: error: Incompatible types in assignment (expression has type "str", variable has type "int")  [assignment]
+Found 3 errors in 1 file (checked 2 source files)
