@@ -2,7 +2,7 @@
 
 **An orchestrator that starts specialist agents to do your day-to-day work, without you driving every step, and without burning tokens.**
 
-> **Status: Phase 1 (kernel) built; Phase 2 not started.** The deterministic kernel exists and passes scenarios B01-B07 using fake tools and no models. There are no model providers, agents, scheduler or real tools yet, and nothing has been run on a real machine beyond CI. Everything below describes the intended system unless marked "planned". See [Status and roadmap](#status-and-roadmap).
+> **Status: Phase 1 (kernel) built; in Phase 2 only task 12 (agent spec schema, loader, approval registry) is done.** The deterministic kernel passes scenarios B01-B07 using fake tools and no models. There are no model providers, agent runtime, scheduler or real tools yet, and nothing has been run on a real machine beyond CI. Everything below describes the intended system unless marked "planned". See [Status and roadmap](#status-and-roadmap).
 
 ---
 
@@ -20,7 +20,6 @@
 - [Status and roadmap](#status-and-roadmap)
 - [Documentation index](#documentation-index)
 - [FAQ](#faq)
-- [Relationship to Jangus v1](#relationship-to-jangus-v1)
 - [License](#license)
 
 ## What it is
@@ -34,7 +33,7 @@ The first jobs planned, in build order:
 The core is general. Shopify, email and files are plug-in "tool packs"; adding a new area means adding a tool pack and an agent spec, not changing the core.
 
 ## Why it exists
-Version 1 of Jangus was a safe file-copy controller with models limited to one-word advisory answers. It could not run open-ended routine work. Version 2 keeps v1's safety ideas (hash verification, crash-safe state, tamper-evident logs, fail-closed behavior) and adds what was missing: agents, a tool registry, scheduling, approvals, and strict cost control.
+Routine work needs more than a fixed file-copy plan. Jangus combines specialist agents, a tool registry, scheduling, approvals and strict cost control with hash verification, crash-safe state, tamper-evident logs and fail-closed behavior. The earlier design lives in [jenozu/jangus-v1](https://github.com/jenozu/jangus-v1) (paused, out of scope here).
 
 Design goals, in priority order:
 1. **Safety**: a confused or manipulated model can never do more than its approved spec allows.
@@ -136,7 +135,7 @@ Work is placed as low-cost as possible, in this order: kernel-run (no model) →
 The system runs on your Windows PC first, started by Windows Task Scheduler (`jangus tick`, planned). Agents that need no local files (for example API-only shop monitoring) can later move to a VPS. GitHub Actions is an option to evaluate later, not a default, because its machines are wiped after each run (state and ledger durability, overlapping runs, secrets handling). That evaluation needs its own decision record first.
 
 ## Planned usage
-> These commands are **planned** and do not exist yet.
+> These commands are **planned**, except `jangus spec show|approve|list|revoke`, which exist.
 
 ```powershell
 jangus status                 # runs, alerts, queued approvals, spend today
@@ -157,10 +156,10 @@ MEMORY.md                 project memory: decisions, open items, log (read first
 README.md                 this file
 agents/drafts/            inert draft agent specs (orchestrator.yaml)
 docs/                     PRD, MVP scenarios, architecture, phases, directives, recipes, token economy, build plan, ADRs
-.taskmaster/              development PRD summary, 34-task master list, parking lot
+.taskmaster/              development PRD summary, task master list, parking lot
 tools/taskmaster/         tasks.py, the stdlib-only task helper
-src/jangus/              (planned) kernel, directives, agents, orchestrator, tools
-tests/                    (planned)
+src/jangus/              kernel, directives, agent specs and approvals (orchestrator, runtime, tool packs planned)
+tests/                    pytest suite
 ```
 Planned source layout: `kernel/` (registry, policy, executor, ledger, state, approvals, secrets, metering), `directives/`, `agents/`, `orchestrator/`, `tools/` (tool packs), `cli.py`.
 
@@ -182,7 +181,7 @@ Rules: one task at a time; new ideas go to `.taskmaster/docs/parking-lot.md`, no
 | 0 | Specs, ADR-001, task list | Done |
 | 1 | Kernel with fake tools | Built; B01-B07 pass with fake tools ([review](docs/reviews/PHASE_1.md)) |
 | 2a | Providers and local model benchmark | Not started |
-| 2b | Agent runtime, attempt policy, metering, budget gate, cache | Not started |
+| 2b | Agent runtime, attempt policy, metering, budget gate, cache | Task 12 (spec loader, approvals) done; rest not started |
 | 3 | File/backup agent, scheduler, 7-day soak | Not started |
 | 3b | Recipes, watchers, model-driven soak | Not started |
 | 4 | Orchestrator, approval CLI, alerting | Not started |
@@ -203,7 +202,7 @@ Acceptance is defined by 47 scenarios (B01-B47) in [docs/MVP.md](docs/MVP.md). R
 | [docs/TOKEN_ECONOMY.md](docs/TOKEN_ECONOMY.md) | Metering, budgets, alerts, cache, reconciliation |
 | [docs/PHASES.md](docs/PHASES.md) | Phases and exit gates |
 | [docs/BUILD_PLAN.md](docs/BUILD_PLAN.md) | What Claude can do vs what the owner must do |
-| [docs/decisions/001-v2-orchestrator-and-agents.md](docs/decisions/001-v2-orchestrator-and-agents.md) | Core design decision (proposed) |
+| [docs/decisions/001-v2-orchestrator-and-agents.md](docs/decisions/001-v2-orchestrator-and-agents.md) | Core design decision (accepted) |
 | [.taskmaster/docs/prd.md](.taskmaster/docs/prd.md) | Short PRD and decision log used for drift checks |
 
 ## FAQ
@@ -218,9 +217,6 @@ Acceptance is defined by 47 scenarios (B01-B47) in [docs/MVP.md](docs/MVP.md). R
 **Can agents create other agents?** The orchestrator can draft a spec. It stays inert until you approve it, and the orchestrator can never approve its own drafts.
 
 **Will it work offline?** Local-model and kernel-run work does. Cloud models are optional and capped.
-
-## Relationship to Jangus v1
-v1 lives at [github.com/jenozu/jangus-v1](https://github.com/jenozu/jangus-v1) (branch `release/acceptance-readiness`), a deterministic file-copy controller with advisory local models. v2 ports selected modules (strict config, SQLite state, hash verification, hash-chained ledger, loopback endpoint check, secret scanner, Ollama provider, memory registry) and replaces the fixed-manifest plan, the one-word model roles and the fixed five-tool set. v1 acceptance work is paused.
 
 ## License
 None, by owner decision (2026-11-01). All rights reserved by default; no license grant is implied. To be revisited before the repo is shared or accepts contributions.

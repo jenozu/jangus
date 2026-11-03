@@ -2,16 +2,18 @@
 
 Read at session start. Update at session end: add dated entries under Log, revise Current phase and Open items. Keep it short and factual. This is development memory for coding agents; it is not the runtime Obsidian memory (Phase 7) and grants no permissions.
 
+## Scope
+Jangus 2.0 (this repo) is the only design. v1 lives in `jenozu/jangus-v1` (paused) and is out of scope: do not port from it, depend on it, or use its terms (controller plus advisory models, one-word model replies such as ready/reject, verified/disagree, hold/stop, `release/acceptance-readiness`, stacked PRs #1-#16). A document that seems to describe them is stale: tell the owner.
+
 ## Task tracking
-Development plan: `.taskmaster/tasks/tasks.json` (24 tasks, phases 0-7; only Phase 1 and early Phase 2 are detailed). Helper: `python3 tools/taskmaster/tasks.py status|next|show|set-status|log|add|validate`. PRD summary and decision log: `.taskmaster/docs/prd.md`. Runtime directives use the same schema (docs/DIRECTIVES.md).
+Development plan: `.taskmaster/tasks/tasks.json` (phases 0-7; run `tasks.py status` for the count; only Phase 1 and early Phase 2 are detailed). Helper: `python3 tools/taskmaster/tasks.py status|next|show|set-status|log|add|validate`. PRD summary and decision log: `.taskmaster/docs/prd.md`. Runtime directives use the same schema (docs/DIRECTIVES.md).
 
 ## Current phase
-Phase 1 (kernel) is built and merged: tasks 2-10 done, evidence in docs/reviews/PHASE_1.md (B01-B07 pass with fake tools, 120 tests, CI green on ubuntu and windows). Waiting for the owner to accept the gate and authorize Phase 2a (providers and local-model benchmark). Do not start Phase 2 without that. `tasks.py next` will suggest Phase 2 tasks; ignore them until authorized.
+Phase 1 (kernel) is built and merged: tasks 2-11 done, evidence in docs/reviews/PHASE_1.md (B01-B07 pass with fake tools, 120 tests then, CI green on ubuntu and windows). From Phase 2, task 12 (agent spec schema, loader, approval registry, `jangus spec show|approve|list|revoke`) is also done and merged (PR #13, 2026-11-02; B09 and B35 covered with fakes only). Tasks 13 onward (providers, benchmark, runtime) have not started. Waiting for the owner to accept the Phase 1 gate and authorize Phase 2a. Do not start tasks 13+ without that; `tasks.py next` will suggest task 13, so ignore it until authorized.
 
 ## Owner and environment
 - Owner GitHub: jenozu. Windows 11 desktop, 32,457 MB RAM (GPU unchecked). Python 3.12.10 (`py -3.12`), Git 2.56.0, Ollama 0.40.13, installed via winget. Optional Ubuntu VPS.
 - Shops/tools in scope later: Shopify, Printify (shop "tsuya"), email.
-- v1 repo: jenozu/jangus-v1. PRs #1-#16 unmerged; v1 acceptance work is paused.
 
 ## Decisions (settled)
 1. First jobs: shop/order monitoring, inbox triage with drafts, file/backup maintenance.
@@ -40,10 +42,8 @@ Phase 1 (kernel) is built and merged: tasks 2-10 done, evidence in docs/reviews/
 ## Open design points
 Reconcile rules per Shopify/Printify/email action; test strategy for LLM-driven agents (scripted fake models plus recorded real transcripts).
 
-## Port list from v1 (jenozu/jangus-v1, release/acceptance-readiness)
-config.py strict models; execution/storage.py (SQLite, idempotency); execution/verification.py (hashing); remote/ledger.py (hash-chained ledger); loopback endpoint check; secret scanner (PR #13); agents/provider.py (Ollama); memory/ registry (Phase 7).
-
 ## Log
+- 2026-11-02: Cleanup: v2 declared the only design; v1 references, the v1 port list and v1 terms removed from README, CLAUDE.md, MEMORY.md, PRD, ARCHITECTURE and RECIPES (ADR-001 and the PRD decision log keep the history). Recorded that task 12 is done. Older log entries below are dated history and may name v1.
 - 2026-11-02: Task 11 done: Phase 1 evidence merged; gate awaiting owner acceptance.
 - 2026-11-02: Phase 1 finished in one run (owner asked for the whole phase, merge after each task). Tasks 6-10 merged as PRs #6-#10; task 11 evidence in docs/reviews/PHASE_1.md. Limits recorded there: simulated crashes only, nothing run on the owner's PC, Windows Credential Manager backend untested.
 - 2026-11-02: Task 10 done: kernel/approvals.py (approvals table in the state DB, schema still v1), bound to run, tool, exact payload hash and expiry, single use; ledger entry written before the state change; executor runs an approved T3 call and queues otherwise; merged.

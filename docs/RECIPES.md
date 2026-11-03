@@ -5,7 +5,7 @@ Status: DRAFT specification (Phase 3+). Nothing here is implemented.
 ## Idea
 The first time a model solves a kind of task, it costs tokens. If the same kind of task keeps coming back, the second, third and hundredth run should cost nothing. A **recipe** is the kernel-executable form of a solved task: an ordered list of registered tool calls with parameters, guards and a verification. It contains no code and no model calls.
 
-Terms: a **skill** (from v1) is a reviewed procedure written for a model to read. A **recipe** is a reviewed procedure written for the kernel to run. A good skill can be compiled into a recipe once its steps are fully mechanical.
+Terms: a **recipe** is a reviewed procedure written for the kernel to run. A solved task can be compiled into a recipe once its steps are fully mechanical.
 
 ## Format (YAML)
 ```yaml
@@ -40,7 +40,7 @@ Rules: tools must be registered and inside the agent spec's tools and `max_tier`
 - Observed sequences from runs that touched untrusted content (email bodies, web pages) are not eligible for candidate detection unless the owner marks the task type safe.
 
 ## What else becomes free
-- **Skills the owner writes** can be written directly as recipes when mechanical.
+- **Procedures the owner writes** can be written directly as recipes when mechanical.
 - **Standing jobs** (nightly backup, daily order digest) are directive templates made of recipes plus a schedule.
 - **Watchers** ([TOKEN_ECONOMY.md](TOKEN_ECONOMY.md)) decide whether a recipe or a model task needs to run at all.
 
