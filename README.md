@@ -157,7 +157,7 @@ README.md                 this file
 agents/drafts/            inert draft agent specs (orchestrator.yaml)
 docs/                     PRD, MVP scenarios, architecture, phases, directives, recipes, token economy, build plan, ADRs
 .taskmaster/              development PRD summary, task master list, parking lot
-tools/taskmaster/         tasks.py, the stdlib-only task helper
+tools/taskmaster/         tasks.py (task helper) and run.py (deterministic runner), both stdlib-only
 src/jangus/              kernel, directives, agent specs and approvals (orchestrator, runtime, tool packs planned)
 tests/                    pytest suite
 ```
@@ -170,7 +170,9 @@ The plan lives in files, not in chat, so any session on any device can pick up w
 python3 tools/taskmaster/tasks.py status     # progress and next task
 python3 tools/taskmaster/tasks.py next       # what to work on
 python3 tools/taskmaster/tasks.py show 8     # task details and dependencies
-python3 tools/taskmaster/tasks.py validate   # check the dependency graph
+python3 tools/taskmaster/tasks.py validate   # check the dependency graph and runner/verify tags
+python3 tools/taskmaster/run.py plan         # kernel-tagged tasks that would run (runs nothing)
+python3 tools/taskmaster/run.py run          # run their verify commands, zero model calls
 ```
 Rules: one task at a time; new ideas go to `.taskmaster/docs/parking-lot.md`, not into code; direction changes update the PRD decision log first, then the tasks; finished tasks are never edited (add corrective ones); each task is done only after its test strategy actually runs. The same schema is used at runtime for directives, so one habit covers both. See [CLAUDE.md](CLAUDE.md) and [docs/BUILD_PLAN.md](docs/BUILD_PLAN.md) for what Claude can do autonomously and what needs you.
 

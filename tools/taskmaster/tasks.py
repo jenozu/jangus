@@ -15,6 +15,7 @@ import sys
 DEFAULT_FILE = ".taskmaster/tasks/tasks.json"
 STATUSES = ["pending", "in-progress", "review", "done", "deferred", "cancelled"]
 PRIORITY = {"high": 3, "medium": 2, "low": 1}
+RUNNERS = ["kernel", "local", "model", "human"]  # who executes a task; missing means "model"
 ICON = {"pending": "[ ]", "in-progress": "[~]", "review": "[?]", "done": "[x]",
         "deferred": "[-]", "cancelled": "[/]"}
 
@@ -172,6 +173,37 @@ def pick_next(tasks):
 
 # ---------- validation ----------
 
+def check_runner(item, fid, is_subtask, errors):
+    """Rules for the optional `runner` / `verify` fields (see DETERMINISTIC.md).
+    Unknown keys stay allowed; only these keys are checked."""
+    runner = item.get("runner")
+    verify = item.get("verify")
+    if "runner" in item and runner not in RUNNERS:
+        errors.append(f"{fid}: runner '{runner}' is not one of {', '.join(RUNNERS)}")
+    if "verify" in item and (not isinstance(verify, str) or not verify.strip()):
+        errors.append(f"{fid}: verify must be a non-empty string (a command, or 'manual')")
+    for key, kind in (("verifyTimeoutSeconds", "positive int"), ("verifyExpectedExit", "int"),
+                      ("verifyCwd", "non-empty string")):
+        if key not in item:
+            continue
+        v = item[key]
+        if kind == "positive int":
+            ok = isinstance(v, int) and not isinstance(v, bool) and v > 0
+        elif kind == "int":
+            ok = isinstance(v, int) and not isinstance(v, bool)
+        else:
+            ok = isinstance(v, str) and bool(v.strip())
+        if not ok:
+            errors.append(f"{fid}: {key} must be a {kind}")
+    if runner == "kernel":
+        if is_subtask:
+            errors.append(f"{fid}: runner 'kernel' is supported on top-level tasks only")
+        if not isinstance(verify, str) or not verify.strip():
+            errors.append(f"{fid}: runner 'kernel' needs a non-empty verify command")
+        elif verify.strip().lower() == "manual":
+            errors.append(f"{fid}: runner 'kernel' cannot use verify 'manual' (it needs a command)")
+
+
 def validate(tasks):
     errors, warns = [], []
     ids = all_ids(tasks)
@@ -194,6 +226,7 @@ def validate(tasks):
             st = status_of(item)
             if st not in STATUSES:
                 errors.append(f"{fid}: unknown status '{st}'")
+            check_runner(item, fid, parent is not None, errors)
             deps = deps_of(item, parent)
             graph[fid] = deps
             for d in deps:

@@ -1,0 +1,14 @@
+{
+  "_comment": "Commands the deterministic runner (run.py) may execute. A task's verify command is split into an argv list and must START WITH one of the prefixes below, or it is refused (fail closed). Extra arguments after a prefix are allowed. Everything here is read-only: no send, publish, delete or spend.",
+  "default_timeout_seconds": 900,
+  "max_transient_retries": 0,
+  "allowed": [
+    ["uv", "run", "--locked", "ruff", "check"],
+    ["uv", "run", "--locked", "mypy"],
+    ["uv", "run", "--locked", "pytest"],
+    ["python3", "tools/taskmaster/tasks.py", "validate"],
+    ["python3", "tools/taskmaster/tasks.py", "status"],
+    ["gh", "pr", "view"],
+    ["gh", "pr", "checks"]
+  ]
+}
