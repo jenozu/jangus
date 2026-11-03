@@ -321,13 +321,13 @@
       {
         "title": "File tool pack",
         "description": "Tools: file.list/read/hash (T1), file.copy_new/report.write (T2), file.delete/overwrite (T3).",
-        "status": "pending",
+        "status": "done",
         "priority": "high",
         "dependencies": [
           8,
           9
         ],
-        "details": "src/jangus/tools/files.py with workspace canonicalization, symlink/junction rejection, no silent overwrite, verify by SHA-256, reconcile by inspecting output.",
+        "details": "src/jangus/tools/files.py with workspace canonicalization, symlink/junction rejection, no silent overwrite, verify by SHA-256, reconcile by inspecting output.\n\n[2026-11-03T11:36:59-05:00] Plan: src/jangus/tools/files.py factory build_file_tools(roots, reports_dir): list/read/hash (T1); copy_new, copy_new_tree, report.write (T2, verify by SHA-256, reconcile by inspecting dst); overwrite, delete (T3). Schema rejects relative/.. paths; elevation sends anything outside the approved roots or through a symlink/junction to T3 (so a T2 agent is rejected); execute re-checks even when approved. Never overwrites or deletes silently.\n\n[2026-11-03T11:38:26-05:00] Built on phase-3/file-tools; local ruff, mypy, pytest pass. Marked done after the task's test strategy ran.",
         "testStrategy": "pytest B14: corrupted destination detected; traversal and symlink escapes rejected; overwrite/delete queue as T3.",
         "complexity": 6,
         "id": 18,
@@ -698,7 +698,7 @@
     ],
     "metadata": {
       "created": "2026-11-01T18:19:53-05:00",
-      "updated": "2026-11-03T11:26:29-05:00"
+      "updated": "2026-11-03T11:38:26-05:00"
     }
   }
 }
