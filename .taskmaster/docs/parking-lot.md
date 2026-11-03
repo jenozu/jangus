@@ -13,3 +13,11 @@ Ideas that are not part of the current plan. Review at the end of each phase: pr
 - Claude and Ollama request/response field names were written from knowledge and tested only against fakes. The owner-run benchmark (task 17) is the first real Ollama check; the first real Claude call needs the API key (Phase 2b). Raised in task 13.
 
 - Benchmark and "thinking" models: some Ollama models spend `num_predict` tokens on hidden reasoning, which would show up as `truncated` and parse failures in the benchmark. If the owner's model does this, check Ollama's current option for turning thinking off before changing the request. Raised in task 17.
+
+## Added 2026-11-03 (Phase 2b)
+- A `jangus run` / `jangus status` / `jangus unblock` command set: nothing yet starts a run, wires `caps` and `prices.yaml` into the gate, or shows queued alerts (Phase 3 task 19 area).
+- Per-task verifiers for model tasks (today a model task without one ends in `review`); first real ones come with the file/backup agent.
+- Calibrate the bytes/3 token estimator against measured provider usage once real calls exist; the drift alert already flags a gap over 30%.
+- Batch endpoints and measured prompt-cache savings (TOKEN_ECONOMY.md section 7.8) only after real usage data.
+- Move alert delivery beyond ledger entries (push/email) with the Phase 4 alert channel.
+- Cache hit rate and tokens saved in the daily report (the data is in `cache_hit` ledger records).
