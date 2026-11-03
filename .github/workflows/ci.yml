@@ -28,3 +28,5 @@ jobs:
         run: uv run --locked pytest
       - name: Task list is valid
         run: python tools/taskmaster/tasks.py validate
+      - name: Kernel task commands are allowlisted (runs nothing)
+        run: python tools/taskmaster/run.py plan

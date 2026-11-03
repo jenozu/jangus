@@ -32,3 +32,6 @@ approvals-registry*
 jangus-local-benchmark.json
 diagnostics/
 node_modules/
+
+# Deterministic runner hand-off notes (generated, local)
+handoff/

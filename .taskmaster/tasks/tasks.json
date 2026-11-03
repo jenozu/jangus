@@ -11,7 +11,9 @@
         "testStrategy": "ADR-001 status reads 'accepted' on the default branch; LICENSE file present or decision logged in the PRD decision log.",
         "complexity": 1,
         "id": 1,
-        "subtasks": []
+        "subtasks": [],
+        "runner": "human",
+        "verify": "manual"
       },
       {
         "title": "Scaffold repo, tooling and CI",
@@ -25,7 +27,9 @@
         "testStrategy": "Run `uv run pytest`, `uv run ruff check`, `uv run mypy --strict src/jangus/kernel`: all pass; CI green on both OSes.",
         "complexity": 3,
         "id": 2,
-        "subtasks": []
+        "subtasks": [],
+        "runner": "model",
+        "verify": "uv run --locked pytest"
       },
       {
         "title": "Strict config and error types",
@@ -39,7 +43,9 @@
         "testStrategy": "pytest: invalid/extra fields rejected; non-loopback endpoint rejected; valid config loads.",
         "complexity": 3,
         "id": 3,
-        "subtasks": []
+        "subtasks": [],
+        "runner": "model",
+        "verify": "uv run --locked pytest"
       },
       {
         "title": "SQLite state store with idempotency",
@@ -53,7 +59,9 @@
         "testStrategy": "pytest: duplicate idempotency key returns same record; reopened DB keeps budgets; unreadable DB blocks writes.",
         "complexity": 5,
         "id": 4,
-        "subtasks": []
+        "subtasks": [],
+        "runner": "model",
+        "verify": "uv run --locked pytest"
       },
       {
         "title": "Hash-chained audit ledger",
@@ -67,7 +75,9 @@
         "testStrategy": "pytest: tamper with an entry and verify_chain fails; write failure raises and blocks new effects (B06).",
         "complexity": 5,
         "id": 5,
-        "subtasks": []
+        "subtasks": [],
+        "runner": "model",
+        "verify": "uv run --locked pytest"
       },
       {
         "title": "Tool registry and tier policy",
@@ -82,7 +92,9 @@
         "testStrategy": "pytest B01-B04: unknown tool rejected; T1 runs, T2 runs+logs, T3 queues; call above max_tier rejected not queued; malformed args rejected.",
         "complexity": 6,
         "id": 6,
-        "subtasks": []
+        "subtasks": [],
+        "runner": "model",
+        "verify": "uv run --locked pytest"
       },
       {
         "title": "Directive models and validation",
@@ -97,7 +109,9 @@
         "testStrategy": "pytest: directive asking for a tool outside the spec rejected; cyclic/forward dependency rejected; model-supplied status ignored; directive hash logged to ledger; kernel-run task with a tool outside its tools list is rejected (B29); limit loosened above the spec default is rejected (B33)",
         "complexity": 6,
         "id": 7,
-        "subtasks": []
+        "subtasks": [],
+        "runner": "model",
+        "verify": "uv run --locked pytest"
       },
       {
         "title": "Kernel executor with intent, verify and reconcile",
@@ -145,7 +159,9 @@
             "testStrategy": "pytest B05: no duplicate or overwrite after restart; B06: unwritable ledger/state blocks effects",
             "id": 3
           }
-        ]
+        ],
+        "runner": "model",
+        "verify": "uv run --locked pytest"
       },
       {
         "title": "Secret resolver interface",
@@ -160,7 +176,9 @@
         "testStrategy": "pytest B07: agent without the secret named in spec gets denied; canary secret absent from ledger, logs, exports, error text.",
         "complexity": 4,
         "id": 9,
-        "subtasks": []
+        "subtasks": [],
+        "runner": "model",
+        "verify": "uv run --locked pytest"
       },
       {
         "title": "Approval queue storage",
@@ -176,7 +194,9 @@
         "testStrategy": "pytest: changed payload invalidates approval; expired approval refused; approve records owner id in ledger.",
         "complexity": 4,
         "id": 10,
-        "subtasks": []
+        "subtasks": [],
+        "runner": "model",
+        "verify": "uv run --locked pytest"
       },
       {
         "title": "Phase 1 evidence, MEMORY update and PR",
@@ -193,7 +213,9 @@
         "testStrategy": "PR open with CI green and evidence file listing pass/fail for B01-B07.",
         "complexity": 2,
         "id": 11,
-        "subtasks": []
+        "subtasks": [],
+        "runner": "model",
+        "verify": "uv run --locked pytest"
       },
       {
         "title": "Agent spec schema, loader and approval registry",
@@ -207,7 +229,9 @@
         "testStrategy": "pytest B09: edited spec inactive until re-approved; unapproved spec cannot run; spec with unavailable host requirements refused (B35)",
         "complexity": 4,
         "id": 12,
-        "subtasks": []
+        "subtasks": [],
+        "runner": "model",
+        "verify": "uv run --locked pytest"
       },
       {
         "title": "Model providers: Ollama, Claude, no silent fallback",
@@ -221,7 +245,9 @@
         "testStrategy": "pytest B11: failing or disabled provider stops the run and alerts; never switches provider; B37 usage fields recorded; usage_unknown handled",
         "complexity": 5,
         "id": 13,
-        "subtasks": []
+        "subtasks": [],
+        "runner": "model",
+        "verify": "uv run --locked pytest"
       },
       {
         "title": "Durable budgets and spend cap",
@@ -236,7 +262,9 @@
         "testStrategy": "pytest B08: exhausted budget persists after restart and new session.",
         "complexity": 4,
         "id": 14,
-        "subtasks": []
+        "subtasks": [],
+        "runner": "model",
+        "verify": "uv run --locked pytest"
       },
       {
         "title": "Propose-then-execute run loop",
@@ -253,7 +281,9 @@
         "testStrategy": "pytest B10, B12: second run receives nothing from the first; scripted proposals executed via the kernel only; ledger shows per-role usage (B30); agent text requesting a stronger model or higher limit has no effect (B34)",
         "complexity": 6,
         "id": 15,
-        "subtasks": []
+        "subtasks": [],
+        "runner": "model",
+        "verify": "uv run --locked pytest"
       },
       {
         "title": "Directive runner (task-by-task execution)",
@@ -268,7 +298,9 @@
         "testStrategy": "pytest: model claiming done does not set done; out-of-task tool call rejected; blocked directive halts and alerts; tasks.py validate lints a directive file; a full standing directive completes with zero orchestrator calls (B27) and kernel-run tasks use zero tokens (B29); B26 and B32 pass",
         "complexity": 7,
         "id": 16,
-        "subtasks": []
+        "subtasks": [],
+        "runner": "model",
+        "verify": "uv run --locked pytest"
       },
       {
         "title": "Local model benchmark script",
@@ -282,7 +314,9 @@
         "testStrategy": "Script runs against a fake server in tests; owner sends results from Windows.",
         "complexity": 3,
         "id": 17,
-        "subtasks": []
+        "subtasks": [],
+        "runner": "model",
+        "verify": "uv run --locked pytest"
       },
       {
         "title": "File tool pack",
@@ -297,7 +331,9 @@
         "testStrategy": "pytest B14: corrupted destination detected; traversal and symlink escapes rejected; overwrite/delete queue as T3.",
         "complexity": 6,
         "id": 18,
-        "subtasks": []
+        "subtasks": [],
+        "runner": "model",
+        "verify": "uv run --locked pytest"
       },
       {
         "title": "Scheduler tick and daily report",
@@ -311,7 +347,9 @@
         "testStrategy": "pytest B13: missed ticks coalesce; overlapping tick does not double-run; daily report totals match the ledger (B30); B30 and B37 totals match",
         "complexity": 5,
         "id": 19,
-        "subtasks": []
+        "subtasks": [],
+        "runner": "model",
+        "verify": "uv run --locked pytest"
       },
       {
         "title": "Backup agent spec and directive template",
@@ -327,7 +365,9 @@
         "testStrategy": "Scripted fake-model run completes the template directive; kernel verifies every copy; nightly backup runs end to end with zero model calls",
         "complexity": 4,
         "id": 20,
-        "subtasks": []
+        "subtasks": [],
+        "runner": "model",
+        "verify": "uv run --locked pytest"
       },
       {
         "title": "Windows Task Scheduler setup and 7-day soak",
@@ -341,7 +381,9 @@
         "testStrategy": "Seven consecutive days, zero manual fixes, zero unresolved effects (B15) recorded in docs/reviews/PHASE_3.md.",
         "complexity": 3,
         "id": 21,
-        "subtasks": []
+        "subtasks": [],
+        "runner": "human",
+        "verify": "manual"
       },
       {
         "title": "Phase 4: orchestrator, approval CLI, alerting",
@@ -355,7 +397,9 @@
         "testStrategy": "B16-B19 and B23 pass; calls beyond the cap are queued and none are made (B28)",
         "complexity": 8,
         "id": 22,
-        "subtasks": []
+        "subtasks": [],
+        "runner": "model",
+        "verify": "manual"
       },
       {
         "title": "Phase 5: shop agent (Shopify/Printify)",
@@ -369,7 +413,9 @@
         "testStrategy": "B20, B21 pass plus a clean unattended week.",
         "complexity": 8,
         "id": 23,
-        "subtasks": []
+        "subtasks": [],
+        "runner": "model",
+        "verify": "manual"
       },
       {
         "title": "Phase 6-7: inbox agent, memory, optional VPS",
@@ -383,7 +429,9 @@
         "testStrategy": "Per-phase gates in docs/PHASES.md.",
         "complexity": 8,
         "id": 24,
-        "subtasks": []
+        "subtasks": [],
+        "runner": "model",
+        "verify": "manual"
       },
       {
         "id": 25,
@@ -398,7 +446,9 @@
         "details": "src/jangus/kernel/metering.py: per-role usage records in the ledger (kernel-run, specialist, orchestrator); daily escalation counter in the state store; report section. Added by adapt 2026-11-01 (cost discipline). Needed before task 22 uses it, so task 22 should be re-checked when this is done.\n\n[adapt 2026-11-01 token economy] Scope extended: per-call ledger records (role, reason, measured tokens, cost), price table loader (`prices.yaml`, stale/missing handling), daily/monthly counters. Alerts, pre-call check and reconciliation are tasks 28 and 33.",
         "testStrategy": "pytest: totals match ledger (B30); counter survives restart; call beyond cap refused (B28); B37, B38",
         "complexity": 4,
-        "subtasks": []
+        "subtasks": [],
+        "runner": "model",
+        "verify": "uv run --locked pytest"
       },
       {
         "id": 26,
@@ -412,7 +462,9 @@
         "details": "src/jangus/kernel/attempts.py: AttemptPolicy (from spec `attempts`, tightened by directive), failure reasons enum, proposal hash = sha256(tool + canonical args), no-progress = 3 consecutive proposals with identical result hash, ladder decision (DEFAULT_MODEL, STEP_UP, STOP). Counts persist in the state store and carry over to superseding directives. Only the kernel calls the ladder; no model-visible control.",
         "testStrategy": "pytest B31 repeat refused, B32 ladder 2+1 then stop, B33 limits not reset by restart/re-issue, B34 no self-escalation, B36 no-progress counted.",
         "complexity": 6,
-        "subtasks": []
+        "subtasks": [],
+        "runner": "model",
+        "verify": "uv run --locked pytest"
       },
       {
         "id": 27,
@@ -427,7 +479,9 @@
         "details": "Break down after task 21. Host capability declaration (paths, secrets, models); refuse mismatches; decide the VPS transport and authentication (ADR first); benchmark local model on the VPS before assigning it work. GitHub Actions evaluation lives in task 24.",
         "testStrategy": "pytest B35: host mismatch refused; VPS run reconciles by job identity after a dropped connection.",
         "complexity": 6,
-        "subtasks": []
+        "subtasks": [],
+        "runner": "model",
+        "verify": "uv run --locked pytest"
       },
       {
         "id": 28,
@@ -442,7 +496,9 @@
         "details": "src/jangus/kernel/budget_gate.py + alerts.py: worst-case cost = estimated input + max_tokens priced; check task, directive, daily, orchestrator-cap, monthly limits; refusal = failed attempt; block provider at 100%. Alerts surface in `jangus status` and the daily report.",
         "testStrategy": "pytest B39 over-budget call refused before sending; B40 thresholds fire at 50/80/100% and big-call flag; provider blocked at 100%.",
         "complexity": 5,
-        "subtasks": []
+        "subtasks": [],
+        "runner": "model",
+        "verify": "uv run --locked pytest"
       },
       {
         "id": 29,
@@ -456,7 +512,9 @@
         "details": "src/jangus/kernel/cache.py: key = sha256(task_type, input hash, spec hash, prompt version); TTL; invalidate on spec/prompt change; cache hits recorded in the ledger. Never cache results that touched secrets or T3 effects.",
         "testStrategy": "pytest B41 repeat makes zero calls; spec/prompt change invalidates; TTL expiry.",
         "complexity": 4,
-        "subtasks": []
+        "subtasks": [],
+        "runner": "model",
+        "verify": "uv run --locked pytest"
       },
       {
         "id": 30,
@@ -471,7 +529,9 @@
         "details": "Per docs/RECIPES.md: observe verified tool-call sequences, abstract parameters, candidate after K identical solves (default 3) with measured savings, draft to recipes/drafts/, owner approves SHA-256, execute as runner: kernel with preconditions/steps/verify from a fixed vocabulary (foreach, where, when, substitution), fallback once via ladder and mark stale, untrusted-content runs ineligible, T3 steps still queue. Expand into subtasks when next.",
         "testStrategy": "pytest B42-B45 (candidate, approval and scope narrowing, fallback and stale, T3 still queues).",
         "complexity": 7,
-        "subtasks": []
+        "subtasks": [],
+        "runner": "model",
+        "verify": "uv run --locked pytest"
       },
       {
         "id": 31,
@@ -485,7 +545,9 @@
         "details": "src/jangus/kernel/watchers.py: cursor-based checks (new items since cursor, file hash changed, rule matched) using registered T1 tools; stored cursors in state; directive start gated by watcher result.",
         "testStrategy": "pytest B46: no change means zero model calls and no directive start; change starts exactly one run.",
         "complexity": 4,
-        "subtasks": []
+        "subtasks": [],
+        "runner": "model",
+        "verify": "uv run --locked pytest"
       },
       {
         "id": 32,
@@ -500,7 +562,9 @@
         "details": "src/jangus/agents/context.py: per-task input trimming, deterministic summaries (counts, diffs, top-N), stable prefix ordering for prompt caching; batch path for non-urgent tasks. Each feature enabled only after a measured saving in the benchmark/soak.",
         "testStrategy": "pytest: oversized input trimmed or call refused; summaries deterministic; cached-token counts recorded.",
         "complexity": 5,
-        "subtasks": []
+        "subtasks": [],
+        "runner": "model",
+        "verify": "uv run --locked pytest"
       },
       {
         "id": 33,
@@ -515,7 +579,9 @@
         "details": "src/jangus/cli_cost.py: report from ledger; reconcile against owner-supplied provider usage export (CSV/JSON), alert above 5% gap; docs for creating a dedicated API key with a provider-side spend limit.",
         "testStrategy": "pytest B47 with fixture export: gap above 5% raises alert; totals match ledger.",
         "complexity": 3,
-        "subtasks": []
+        "subtasks": [],
+        "runner": "model",
+        "verify": "uv run --locked pytest"
       },
       {
         "id": 34,
@@ -530,7 +596,9 @@
         "details": "Depends on a working backup agent. Uses the model chosen in task 17. Records tokens per run, cache hits, step-ups; compares with budget. Becomes a recipe candidate if stable.",
         "testStrategy": "Seven days, zero manual fixes, token totals within the budget set in the spec; report in docs/reviews/PHASE_3B.md.",
         "complexity": 4,
-        "subtasks": []
+        "subtasks": [],
+        "runner": "human",
+        "verify": "manual"
       },
       {
         "title": "README status fix (Phase 1 built, Phase 2 not started)",
@@ -544,7 +612,9 @@
         "testStrategy": "README banner and roadmap match MEMORY.md; links resolve",
         "complexity": 1,
         "id": 35,
-        "subtasks": []
+        "subtasks": [],
+        "runner": "model",
+        "verify": "uv run --locked pytest"
       },
       {
         "title": "Phase 2a wrap-up: MEMORY.md and README roadmap",
@@ -558,12 +628,78 @@
         "testStrategy": "MEMORY.md and README roadmap match docs/reviews/PHASE_2A.md",
         "complexity": 1,
         "id": 36,
-        "subtasks": []
+        "subtasks": [],
+        "runner": "model",
+        "verify": "uv run --locked pytest"
+      },
+      {
+        "title": "Regression gate: ruff check",
+        "description": "Lint gate: ruff check passes. Run by tools/taskmaster/run.py with zero model calls.",
+        "status": "pending",
+        "priority": "low",
+        "dependencies": [
+          2
+        ],
+        "details": "Added with the deterministic runner (DETERMINISTIC.md). Same input gives the same result; the command exit code is the check.",
+        "testStrategy": "`uv run --locked ruff check` exits 0.",
+        "complexity": 1,
+        "id": 37,
+        "subtasks": [],
+        "runner": "kernel",
+        "verify": "uv run --locked ruff check"
+      },
+      {
+        "title": "Regression gate: mypy",
+        "description": "Type gate: mypy passes (strict on the kernel). Run by tools/taskmaster/run.py with zero model calls.",
+        "status": "pending",
+        "priority": "low",
+        "dependencies": [
+          2
+        ],
+        "details": "Added with the deterministic runner (DETERMINISTIC.md). Same input gives the same result; the command exit code is the check.",
+        "testStrategy": "`uv run --locked mypy` exits 0.",
+        "complexity": 1,
+        "id": 38,
+        "subtasks": [],
+        "runner": "kernel",
+        "verify": "uv run --locked mypy"
+      },
+      {
+        "title": "Regression gate: pytest",
+        "description": "Test gate: the full pytest suite passes. Run by tools/taskmaster/run.py with zero model calls.",
+        "status": "pending",
+        "priority": "low",
+        "dependencies": [
+          2
+        ],
+        "details": "Added with the deterministic runner (DETERMINISTIC.md). Same input gives the same result; the command exit code is the check.",
+        "testStrategy": "`uv run --locked pytest` exits 0.",
+        "complexity": 1,
+        "id": 39,
+        "subtasks": [],
+        "runner": "kernel",
+        "verify": "uv run --locked pytest"
+      },
+      {
+        "title": "Regression gate: tasks.py validate",
+        "description": "Task list gate: tasks.py validate reports no errors. Run by tools/taskmaster/run.py with zero model calls.",
+        "status": "pending",
+        "priority": "low",
+        "dependencies": [
+          2
+        ],
+        "details": "Added with the deterministic runner (DETERMINISTIC.md). Same input gives the same result; the command exit code is the check.",
+        "testStrategy": "`python3 tools/taskmaster/tasks.py validate` exits 0.",
+        "complexity": 1,
+        "id": 40,
+        "subtasks": [],
+        "runner": "kernel",
+        "verify": "python3 tools/taskmaster/tasks.py validate"
       }
     ],
     "metadata": {
       "created": "2026-11-01T18:19:53-05:00",
-      "updated": "2026-11-03T08:41:30-05:00"
+      "updated": "2026-11-03T10:47:59-05:00"
     }
   }
 }
