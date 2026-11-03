@@ -56,9 +56,10 @@ max_input_tokens: 6000                 # per-task default; directives may only l
 recipes: [sort-downloads-by-extension]  # approved recipes this agent may run (zero-token)
 watchers: [new-orders-since-cursor]     # kernel-evaluated change checks gating runs
 host: pc          # pc | vps | actions; the kernel refuses to run where required paths/secrets are unavailable
+required_paths: ["C:/Users/owner/Backups"]   # optional, absolute; checked on the host before a run
 ```
 
-A spec is active only if its SHA-256 appears in the owner's approval registry. Editing it deactivates it. The orchestrator can write a draft to a `drafts/` directory; drafts are inert.
+A spec is active only if its SHA-256 appears in the owner's approval registry (`jangus spec approve <file>`; one active hash per name, approvals written to the ledger first). Editing it deactivates it. The loader rejects YAML anchors/aliases, duplicate keys and unknown fields. The orchestrator can write a draft to a `drafts/` directory; drafts are inert.
 
 ## Directives
 
