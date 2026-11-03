@@ -9,7 +9,8 @@ Jangus 2.0 (this repo) is the only design. v1 lives in `jenozu/jangus-v1` (pause
 Development plan: `.taskmaster/tasks/tasks.json` (phases 0-7; run `tasks.py status` for the count; only Phase 1 and early Phase 2 are detailed). Helper: `python3 tools/taskmaster/tasks.py status|next|show|set-status|log|add|validate`. PRD summary and decision log: `.taskmaster/docs/prd.md`. Runtime directives use the same schema (docs/DIRECTIVES.md).
 
 ## Current phase
-Phase 1 (kernel) is built and merged: tasks 2-11 done, evidence in docs/reviews/PHASE_1.md (B01-B07 pass with fake tools, 120 tests then, CI green on ubuntu and windows). From Phase 2, task 12 (agent spec schema, loader, approval registry, `jangus spec show|approve|list|revoke`) is also done and merged (PR #13, 2026-11-02; B09 and B35 covered with fakes only). Tasks 13 onward (providers, benchmark, runtime) have not started. Waiting for the owner to accept the Phase 1 gate and authorize Phase 2a. Do not start tasks 13+ without that; `tasks.py next` will suggest task 13, so ignore it until authorized.
+Phase 2a (specs, providers, benchmark script) is built and merged: tasks 12, 13, 17 (PRs #13, #15, #16, 2026-11-02/03; CI green on ubuntu and windows). Evidence and limits: docs/reviews/PHASE_2A.md. Everything model-related was tested with FAKE transports or a fake Ollama server; no real model or Claude call has happened. The Phase 1 gate was accepted by the owner on 2026-11-02 ("go"), who also reported the Phase 1 suite passing on their Windows PC.
+Phase 2b and later are NOT authorized. `tasks.py next` suggests task 14 (durable budgets); do not start it, or tasks 15, 16, 18+, without a separate go. The sensible next step is the owner running the benchmark (task 17) and choosing the default cheap model.
 
 ## Owner and environment
 - Owner GitHub: jenozu. Windows 11 desktop, 32,457 MB RAM (GPU unchecked). Python 3.12.10 (`py -3.12`), Git 2.56.0, Ollama 0.40.13, installed via winget. Optional Ubuntu VPS.
@@ -33,16 +34,16 @@ Phase 1 (kernel) is built and merged: tasks 2-11 done, evidence in docs/reviews/
 15. Gate: file/backup agent must run 7 days unattended with zero manual fixes before shop or inbox agents.
 
 ## Open items (owner)
-- Accept the Phase 1 gate and authorize Phase 2a.
-- Optional: run the test suite once on the Windows PC.
-- Pick the local model after benchmarking (Phase 2).
-- Set the monthly Claude spend cap and create the API key (Phase 2).
+- Run the benchmark on the PC (`scripts/benchmark_ollama.py`), send back the JSON, choose the default cheap model (or decide to use Haiku).
+- Authorize Phase 2b (tasks 14+) when ready; before real Claude calls: create a dedicated Anthropic API key with a provider-side spend limit, store it in Windows Credential Manager as `anthropic_api_key`, choose the monthly cap, set `claude_enabled = true` in config.
+- Optional: run the Phase 2a suite on the PC (`uv sync --locked`, `uv run --locked pytest`).
 - Alert channel beyond CLI and daily report.
 
 ## Open design points
 Reconcile rules per Shopify/Printify/email action; test strategy for LLM-driven agents (scripted fake models plus recorded real transcripts).
 
 ## Log
+- 2026-11-03: Phase 2a finished in one run. Task 35 (README fix, PR #12; stale PR #2 closed unmerged), task 12 (agents/spec.py, spec_registry.py, `jangus spec`; adds pyyaml; PR #13), task 13 (agents/providers/: Ollama loopback + Claude, hub with no fallback, `claude_enabled` config flag default false; PR #15), task 17 (agents/benchmark.py, scripts/benchmark_ollama.py, docs/reviews/PHASE_2A.md; PR #16, first Windows CI run failed on a mypy platform ignore, fixed before merge). 239 tests, ruff and mypy clean. Not shown: any real model or Claude call, per-call ledger metering (B37 partial), price table and budgets (B38-B40), Phase 2a suite on the owner's PC. API field names for Ollama and Claude come from knowledge, checked only against fakes. Parking lot gained: config `host` field, batch mode and effort, thinking models in the benchmark.
 - 2026-11-02: Cleanup: v2 declared the only design; v1 references, the v1 port list and v1 terms removed from README, CLAUDE.md, MEMORY.md, PRD, ARCHITECTURE and RECIPES (ADR-001 and the PRD decision log keep the history). Recorded that task 12 is done. Older log entries below are dated history and may name v1.
 - 2026-11-02: Task 11 done: Phase 1 evidence merged; gate awaiting owner acceptance.
 - 2026-11-02: Phase 1 finished in one run (owner asked for the whole phase, merge after each task). Tasks 6-10 merged as PRs #6-#10; task 11 evidence in docs/reviews/PHASE_1.md. Limits recorded there: simulated crashes only, nothing run on the owner's PC, Windows Credential Manager backend untested.
