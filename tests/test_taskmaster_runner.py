@@ -168,7 +168,8 @@ def test_run_marks_done_only_after_verify_passes(repo, capsys):
 
 
 def test_run_records_sha256_of_full_stdout_and_tails(repo):
-    code = "import sys; [print(i) for i in range(50)]"
+    # write raw bytes so the expected hash is the same on every OS (print adds CRLF on Windows)
+    code = "import sys; sys.stdout.buffer.write(b''.join(b'%d\\n' % i for i in range(50)))"
     repo.write([kernel(1, f'python3 -c "{code}"')])
     assert repo.main("run") == 0
     expected = "".join(f"{i}\n" for i in range(50)).encode()
