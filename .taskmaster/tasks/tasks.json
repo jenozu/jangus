@@ -273,12 +273,12 @@
       {
         "title": "Local model benchmark script",
         "description": "Measure timing, RAM and tool-call reliability for candidate Ollama models. OWNER RUNS IT.",
-        "status": "pending",
+        "status": "done",
         "priority": "medium",
         "dependencies": [
           13
         ],
-        "details": "scripts/benchmark_ollama.py: fixed proposal-format prompts, JSON schema conformance rate, latency, cold load; output JSON kept out of Git.\n\n[adapt 2026-11-01 token economy] Do this right after task 13 and before 14-16 (Phase 2a spike): measure structured-proposal reliability, latency, RAM and cold-load for candidate local models and Haiku; the owner picks the default cheap model from the results. Also use it to calibrate the token estimator (bytes/3).\n\n[2026-11-01T18:44:31-05:00] Move forward: run right after task 13 (Phase 2a), before tasks 14-16. Ids are append-only.",
+        "details": "scripts/benchmark_ollama.py: fixed proposal-format prompts, JSON schema conformance rate, latency, cold load; output JSON kept out of Git.\n\n[adapt 2026-11-01 token economy] Do this right after task 13 and before 14-16 (Phase 2a spike): measure structured-proposal reliability, latency, RAM and cold-load for candidate local models and Haiku; the owner picks the default cheap model from the results. Also use it to calibrate the token estimator (bytes/3).\n\n[2026-11-01T18:44:31-05:00] Move forward: run right after task 13 (Phase 2a), before tasks 14-16. Ids are append-only.\n\n[2026-11-03T00:39:57-05:00] Plan: core in src/jangus/agents/benchmark.py (11 fixed cases incl. injection, missing tool, Windows path; strict conformance + correctness scoring in schema and plain modes; latency p50/p95; cold load via unload + Ollama load_duration; /api/ps for memory and VRAM split; bytes/3 estimator calibration), thin CLI scripts/benchmark_ollama.py (loopback only, output must be outside the checkout, optional paid --claude-model needs --allow-paid), tested against a fake loopback server.\n\n[2026-11-03T08:36:56-05:00] Built agents/benchmark.py and scripts/benchmark_ollama.py; docs/reviews/PHASE_2A.md added. Local (Linux, py3.12): ruff clean, mypy clean, 239 passed (24 new), benchmark module 92% covered. Tested ONLY against a fake loopback Ollama server and fake Claude transport; no real model measured. Owner runs it on the PC and sends the JSON. Marked done in this commit because its test strategy (script against a fake server) ran; the real measurement is an owner step, not part of this task's test strategy. Merge gated on green CI.\n\n[2026-11-03T08:39:15-05:00] CI windows failed on mypy (unused type: ignore on ctypes.windll; the ignore is needed on Linux only). Fixed with a sys.platform == 'win32' guard; verified locally with mypy on both platforms (--platform win32 too). Not merged until CI is green on both.",
         "testStrategy": "Script runs against a fake server in tests; owner sends results from Windows.",
         "complexity": 3,
         "id": 17,
@@ -549,7 +549,7 @@
     ],
     "metadata": {
       "created": "2026-11-01T18:19:53-05:00",
-      "updated": "2026-11-02T23:28:59-05:00"
+      "updated": "2026-11-03T08:39:15-05:00"
     }
   }
 }

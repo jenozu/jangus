@@ -11,3 +11,5 @@ Ideas that are not part of the current plan. Review at the end of each phase: pr
 
 - Provider batch mode (Anthropic Message Batches) is not implemented: nothing to measure yet and it cannot be tested without a real key. Add after task 17 shows what routine calls cost. Also: `effort` from specs is not sent to the Claude API yet; check the current API parameter before wiring it. Raised in task 13.
 - Claude and Ollama request/response field names were written from knowledge and tested only against fakes. The owner-run benchmark (task 17) is the first real Ollama check; the first real Claude call needs the API key (Phase 2b). Raised in task 13.
+
+- Benchmark and "thinking" models: some Ollama models spend `num_predict` tokens on hidden reasoning, which would show up as `truncated` and parse failures in the benchmark. If the owner's model does this, check Ollama's current option for turning thinking off before changing the request. Raised in task 17.
