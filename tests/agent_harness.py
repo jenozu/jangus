@@ -6,10 +6,11 @@ Everything here is fake: no network, no real model. Results prove the kernel plu
 import json
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Any
 
+from jangus.agents.gate import CallGate
 from jangus.agents.pricing import PriceTable
 from jangus.agents.providers.base import (
     ModelRequest,
@@ -19,6 +20,7 @@ from jangus.agents.providers.base import (
 )
 from jangus.agents.runner import Runner
 from jangus.agents.spec import LoadedSpec, parse_spec, to_constraints
+from jangus.config import Caps
 from jangus.directives.models import Directive, issue, parse_directive
 from jangus.directives.runner import DirectiveRunner
 from jangus.kernel.alerts import AlertQueue
@@ -116,6 +118,7 @@ class Harness:
         escalation: ScriptedProvider | None = None,
         with_approvals: bool = False,
         prices: PriceTable | None = None,
+        caps: Caps | None = None,
     ) -> None:
         self.world = FakeWorld()
         self.registry = build_registry(self.world)
@@ -126,10 +129,24 @@ class Harness:
         self.budgets = BudgetBook(self.state, self.ledger, self.alerts)
         self.provider = provider or ScriptedProvider()
         self.escalation = escalation or ScriptedProvider(name="claude")
+        self.gate = (
+            CallGate(
+                state=self.state,
+                ledger=self.ledger,
+                budgets=self.budgets,
+                alerts=self.alerts,
+                caps=caps,
+                today=lambda: date(2026, 11, 3),
+            )
+            if caps is not None
+            else None
+        )
+        gate = self.gate
         self.hub = ProviderHub(
             {"ollama": self.provider, "claude": self.escalation},
             {"ollama", "claude"},
             self.alerts.as_fn(),
+            blocked=(lambda p: gate.blocked(p)) if gate is not None else None,
         )
         self.approvals = ApprovalQueue(self.state, self.ledger) if with_approvals else None
         self.executor = Executor(self.registry, self.state, self.ledger, approvals=self.approvals)
@@ -144,6 +161,7 @@ class Harness:
             budgets=self.budgets,
             alerts=self.alerts,
             prices=prices if prices is not None else default_prices(),
+            gate=self.gate,
         )
         self.runner.ensure_budgets()
         self.directives = DirectiveRunner(

@@ -244,6 +244,7 @@ class DirectiveRunner:
                 inputs=inputs,
                 tools=task.tools,
                 task_label=f"{directive.id}/{task.id}",
+                task_type=task.task_type,
                 wall_seconds=task.max_wall_seconds,
                 extra_scopes=(scope,),
             )

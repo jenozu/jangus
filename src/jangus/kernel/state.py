@@ -320,6 +320,20 @@ class StateStore:
 
         return self._write(work)
 
+    def set_flag(self, key: str) -> None:
+        """Durably set a named flag (for example a blocked provider)."""
+        self._write(
+            lambda conn: conn.execute(
+                "INSERT OR IGNORE INTO meta(key, value) VALUES (?, '1')", (f"flag:{key}",)
+            )
+        )
+
+    def clear_flag(self, key: str) -> None:
+        self._write(lambda conn: conn.execute("DELETE FROM meta WHERE key=?", (f"flag:{key}",)))
+
+    def has_flag(self, key: str) -> bool:
+        return bool(self.query("SELECT 1 FROM meta WHERE key=?", (f"flag:{key}",)))
+
     def get_budget(self, name: str) -> BudgetRecord:
         try:
             return self._budget(self._conn, name)

@@ -67,12 +67,22 @@ class ModelEndpoint(StrictModel):
         return check_loopback_url(value)
 
 
+class Caps(StrictModel):
+    """Owner-set spend caps. Without them no paid model call is allowed (fail closed)."""
+
+    daily_usd: float = Field(ge=0)
+    monthly_usd: float = Field(ge=0)
+    big_call_tokens: int = Field(default=20_000, gt=0)
+    big_call_usd: float = Field(default=1.0, ge=0)
+
+
 class JangusConfig(StrictModel):
     data_dir: Path = Field(strict=False)
     workspace_dir: Path = Field(strict=False)
     model: ModelEndpoint
     # The paid provider is off unless the owner turns it on here (no silent use of Claude).
     claude_enabled: bool = False
+    caps: Caps | None = None
 
     @field_validator("data_dir", "workspace_dir")
     @classmethod
