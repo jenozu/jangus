@@ -83,6 +83,15 @@ class JangusConfig(StrictModel):
     # The paid provider is off unless the owner turns it on here (no silent use of Claude).
     claude_enabled: bool = False
     caps: Caps | None = None
+    # Where approved agent specs and their standing directives live (default: <data_dir>/specs).
+    specs_dir: Path | None = Field(default=None, strict=False)
+
+    @field_validator("specs_dir")
+    @classmethod
+    def _specs_absolute(cls, value: Path | None) -> Path | None:
+        if value is not None and not value.is_absolute():
+            raise ValueError(f"{FaultCode.PATH_INVALID.value}: path must be absolute")
+        return None if value is None else value.resolve()
 
     @field_validator("data_dir", "workspace_dir")
     @classmethod

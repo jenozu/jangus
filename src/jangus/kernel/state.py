@@ -330,6 +330,20 @@ class StateStore:
 
         return self._write(work)
 
+    def get_value(self, key: str) -> str | None:
+        """A small durable string value (for example a scheduler baseline)."""
+        rows = self.query("SELECT value FROM meta WHERE key=?", (f"val:{key}",))
+        return str(rows[0][0]) if rows else None
+
+    def set_value(self, key: str, value: str) -> None:
+        self._write(
+            lambda conn: conn.execute(
+                "INSERT INTO meta(key, value) VALUES (?, ?) "
+                "ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+                (f"val:{key}", value),
+            )
+        )
+
     def set_flag(self, key: str) -> None:
         """Durably set a named flag (for example a blocked provider)."""
         self._write(
