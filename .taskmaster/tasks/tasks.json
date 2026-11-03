@@ -288,13 +288,13 @@
       {
         "title": "Directive runner (task-by-task execution)",
         "description": "Run a directive one task at a time with kernel-owned status and logs.",
-        "status": "pending",
+        "status": "done",
         "priority": "high",
         "dependencies": [
           7,
           15
         ],
-        "details": "src/jangus/directives/runner.py: show only current task + verified dependency results; run testStrategy check via kernel verification; log from ledger IDs; stop rules (budget, unresolved effect, rejected T3, two failed attempts).\n\n[adapt 2026-11-01 cost discipline] Kernel marks tasks done/blocked, finishes the directive and writes the run report from a fixed template with NO model call and no orchestrator confirmation. `runner: kernel` tasks execute scripted steps with zero model calls.\n\n[adapt 2026-11-01 attempt limits] Implement the ladder via task 26's policy: halt on exhaustion, set task deferred with a reason, queue an alert, call the orchestrator only if escalate=true and under the daily cap.\n\n[2026-11-01T18:28:43-05:00] Depends in practice on task 26 (attempt policy); ids are append-only so 26 is numbered later. Do 26 before finishing 16.",
+        "details": "src/jangus/directives/runner.py: show only current task + verified dependency results; run testStrategy check via kernel verification; log from ledger IDs; stop rules (budget, unresolved effect, rejected T3, two failed attempts).\n\n[adapt 2026-11-01 cost discipline] Kernel marks tasks done/blocked, finishes the directive and writes the run report from a fixed template with NO model call and no orchestrator confirmation. `runner: kernel` tasks execute scripted steps with zero model calls.\n\n[adapt 2026-11-01 attempt limits] Implement the ladder via task 26's policy: halt on exhaustion, set task deferred with a reason, queue an alert, call the orchestrator only if escalate=true and under the daily cap.\n\n[2026-11-01T18:28:43-05:00] Depends in practice on task 26 (attempt policy); ids are append-only so 26 is numbered later. Do 26 before finishing 16.\n\n[2026-11-03T11:14:46-05:00] Plan: runner.agent_context seam; directives/runner.py (restore status from ledger task_status events, per-task execution: kernel steps via executor with zero model calls, model tasks via Runner + tracker with ladder loop; verification via per-task verifiers else review (rule 4); stop rules budget/unresolved/queued T3/rejected approval/ladder exhausted -> task deferred, directive halted, alert, optional escalation hook only if directive.escalate and gate allows; fixed-template report, no model). tasks.py validate learns directive files.\n\n[2026-11-03T11:16:45-05:00] Built on phase-2b/directive-runner; local ruff, mypy, pytest pass. Marked done after the task's test strategy ran.",
         "testStrategy": "pytest: model claiming done does not set done; out-of-task tool call rejected; blocked directive halts and alerts; tasks.py validate lints a directive file; a full standing directive completes with zero orchestrator calls (B27) and kernel-run tasks use zero tokens (B29); B26 and B32 pass",
         "complexity": 7,
         "id": 16,
@@ -699,7 +699,7 @@
     ],
     "metadata": {
       "created": "2026-11-01T18:19:53-05:00",
-      "updated": "2026-11-03T11:13:05-05:00"
+      "updated": "2026-11-03T11:16:45-05:00"
     }
   }
 }

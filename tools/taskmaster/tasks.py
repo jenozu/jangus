@@ -173,6 +173,22 @@ def pick_next(tasks):
 
 # ---------- validation ----------
 
+def check_directive_runner(item, fid, errors):
+    """Runtime directive tasks: runner is kernel or model; kernel tasks carry scripted `steps`."""
+    runner = item.get("runner", "model")
+    steps = item.get("steps")
+    if runner not in ("kernel", "model"):
+        errors.append(f"{fid}: directive runner '{runner}' must be kernel or model")
+    elif runner == "kernel":
+        if not isinstance(steps, list) or not steps:
+            errors.append(f"{fid}: kernel-run directive task needs non-empty steps")
+        elif not all(isinstance(x, dict) and isinstance(x.get("tool"), str)
+                     and isinstance(x.get("args"), dict) for x in steps):
+            errors.append(f"{fid}: every step needs a tool name and an args object")
+    elif steps:
+        errors.append(f"{fid}: model-run directive task must not have steps")
+
+
 def check_runner(item, fid, is_subtask, errors):
     """Rules for the optional `runner` / `verify` fields (see DETERMINISTIC.md).
     Unknown keys stay allowed; only these keys are checked."""
@@ -204,7 +220,7 @@ def check_runner(item, fid, is_subtask, errors):
             errors.append(f"{fid}: runner 'kernel' cannot use verify 'manual' (it needs a command)")
 
 
-def validate(tasks):
+def validate(tasks, directive=False):
     errors, warns = [], []
     ids = all_ids(tasks)
     seen = set()
@@ -226,7 +242,10 @@ def validate(tasks):
             st = status_of(item)
             if st not in STATUSES:
                 errors.append(f"{fid}: unknown status '{st}'")
-            check_runner(item, fid, parent is not None, errors)
+            if directive:
+                check_directive_runner(item, fid, errors)
+            else:
+                check_runner(item, fid, parent is not None, errors)
             deps = deps_of(item, parent)
             graph[fid] = deps
             for d in deps:
@@ -472,9 +491,26 @@ def cmd_add(a):
     print(f"added {fid}: {a.title}")
 
 
+def load_directive(path):
+    """Return the task list if `path` is a runtime directive file, else None."""
+    try:
+        with open(path, encoding="utf-8") as f:
+            raw = json.load(f)
+    except (OSError, ValueError):
+        return None
+    if (isinstance(raw, dict) and isinstance(raw.get("tasks"), list)
+            and "goal" in raw and "assignee" in raw):
+        return raw["tasks"]
+    return None
+
+
 def cmd_validate(a):
-    data = load(a.file, a.tag)
-    errors, warns = validate(data[a.tag]["tasks"])
+    directive_tasks = load_directive(a.file)
+    if directive_tasks is not None:
+        errors, warns = validate(directive_tasks, directive=True)
+    else:
+        data = load(a.file, a.tag)
+        errors, warns = validate(data[a.tag]["tasks"])
     for e in errors:
         print("ERROR: " + e)
     for w in warns:

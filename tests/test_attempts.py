@@ -98,12 +98,7 @@ def test_success_after_one_failure_stays_on_the_default_model(h: Harness) -> Non
 
 
 def test_no_escalation_model_means_stop_after_the_default_attempts(tmp_path: Path) -> None:
-    from jangus.agents.spec import parse_spec
-    from tests.agent_harness import SPEC_YAML
-
-    text = SPEC_YAML.format(calls=20, tokens=100_000, max_calls=6, max_props=12)
-    text = "\n".join(ln for ln in text.splitlines() if not ln.startswith("escalation_model"))
-    h = Harness(tmp_path, spec=parse_spec(text.encode()))
+    h = Harness(tmp_path, spec=make_spec(escalation=False))
     h.provider.script += [reply(bad(1)), reply(bad(2))]
     report = h.runner.run(Job("j1", "x"), attempts=tracker(h))
     assert report.outcome is RunOutcome.STOPPED and h.escalation.requests == []
