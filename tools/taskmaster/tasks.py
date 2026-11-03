@@ -498,9 +498,8 @@ def load_directive(path):
             raw = json.load(f)
     except (OSError, ValueError):
         return None
-    if (isinstance(raw, dict) and isinstance(raw.get("tasks"), list)
-            and "goal" in raw and "assignee" in raw):
-        return raw["tasks"]
+    if isinstance(raw, dict) and isinstance(raw.get("tasks"), list) and "goal" in raw:
+        return raw["tasks"]  # standing-directive templates omit assignee: the kernel sets it
     return None
 
 

@@ -236,7 +236,9 @@ class DirectiveRunner:
         for _ in range(guard):
             if tracker.attempts.step() is Step.STOP:
                 return ("deferred", tracker.attempts.exhausted_reason() or "attempts_exhausted")
-            if self._budgets.exhausted(scope) or self._budgets.exhausted(f"agent:{spec.name}"):
+            if self._budgets.exhausted(scope) or self._budgets.exhausted(
+                self._runner.today_scope()
+            ):
                 return ("deferred", "budget_exhausted")
             job = Job(
                 job_id=f"{directive.id}:{task.id}:{tracker.attempts.failed()}:{len(run_ids)}",

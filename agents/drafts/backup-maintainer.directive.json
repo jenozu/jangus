@@ -1,0 +1,39 @@
+{
+  "goal": "Copy new files from the documents folder to the backup folder and verify every copy byte for byte.",
+  "non_goals": [
+    "Never overwrite or delete any file",
+    "Never touch folders outside the approved paths",
+    "No model calls"
+  ],
+  "escalate": false,
+  "budget": {"calls": 10, "tokens": 0, "wall_seconds": 3600, "spend_usd": 0},
+  "tasks": [
+    {
+      "id": 1,
+      "title": "Copy new files",
+      "testStrategy": "every copied file's SHA-256 matches its source; nothing existing is changed",
+      "runner": "kernel",
+      "tools": ["file.copy_new_tree"],
+      "steps": [
+        {
+          "tool": "file.copy_new_tree",
+          "args": {"src_root": "D:/Documents", "dst_root": "E:/Backup", "max_files": 2000}
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Confirm nothing is missing or different",
+      "dependencies": [1],
+      "testStrategy": "a second pass finds no conflicts and has nothing left to copy",
+      "runner": "kernel",
+      "tools": ["file.copy_new_tree"],
+      "steps": [
+        {
+          "tool": "file.copy_new_tree",
+          "args": {"src_root": "D:/Documents", "dst_root": "E:/Backup", "max_files": 2000}
+        }
+      ]
+    }
+  ]
+}

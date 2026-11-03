@@ -164,8 +164,8 @@ def test_model_call_is_metered_per_role_in_the_ledger(h: Harness) -> None:
     call = h.events("model_call")[0]
     assert (call["role"], call["reason"], call["task"]) == ("specialist", "task", "t1")
     assert (call["input_tokens"], call["output_tokens"], call["usage_known"]) == (100, 20, True)
-    assert h.budgets.remaining("agent:file-agent", Dimension.TOKENS) == 100_000 - 120
-    assert h.budgets.remaining("agent:file-agent", Dimension.CALLS) == 19
+    assert h.budgets.remaining(h.runner.today_scope(), Dimension.TOKENS) == 100_000 - 120
+    assert h.budgets.remaining(h.runner.today_scope(), Dimension.CALLS) == 19
 
 
 def test_unknown_usage_is_charged_at_the_estimate_and_flagged(tmp_path: Path) -> None:
@@ -232,3 +232,18 @@ def test_request_uses_the_spec_model_and_a_reply_schema(h: Harness) -> None:
     assert request.model == "qwen3:8b" and request.max_tokens == 512
     assert request.json_schema is not None and request.cache_prefix
     assert Usage(input_tokens=1, output_tokens=1).known
+
+
+def test_agent_budget_is_per_day_not_for_life(tmp_path: Path) -> None:
+    from datetime import date
+
+    h = Harness(tmp_path, spec=make_spec(calls=1))
+    day = [date(2026, 11, 3)]
+    h.runner._today = lambda: day[0]  # noqa: SLF001 - injected calendar
+    h.provider.script += [reply(("file.read", {"path": "/work/x"})), reply(done=True)]
+    first = h.runner.run(Job("j1", "x"))
+    assert first.outcome is RunOutcome.BUDGET  # today's single call is spent
+    assert h.runner.run(Job("j2", "x")).model_calls == 0  # still spent later the same day
+    day[0] = date(2026, 11, 4)
+    h.provider.script.append(reply(done=True))
+    assert h.runner.run(Job("j3", "x")).outcome is RunOutcome.MODEL_DONE  # a new day, a new budget

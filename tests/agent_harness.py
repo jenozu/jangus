@@ -40,7 +40,7 @@ role: "You keep files tidy."
 model: {{provider: {provider}, name: "{model}", max_tokens: 512}}
 tools: [{tools}]
 max_tier: {max_tier}
-budget: {{calls: {calls}, tokens: {tokens}, wall_seconds: 600, spend_usd: 1.0}}
+budget: {{calls: {calls}, tokens: {tokens}, wall_seconds: 600, spend_usd: {spend}}}
 {escalation}attempts: {{default_model: 2, step_up: 1, max_model_calls: {max_calls},
   max_proposals: {max_props}}}
 {max_input}"""
@@ -60,6 +60,7 @@ def make_spec(
     provider: str = "ollama",
     model: str = "qwen3:8b",
     max_input_tokens: int | None = None,
+    spend_usd: float = 1.0,
 ) -> LoadedSpec:
     text = SPEC_YAML.format(
         calls=calls,
@@ -71,6 +72,7 @@ def make_spec(
         escalation=ESCALATION if escalation else "",
         provider=provider,
         model=model,
+        spend=spend_usd,
         max_input=f"max_input_tokens: {max_input_tokens}\n" if max_input_tokens else "",
     )
     return parse_spec(text.encode())
