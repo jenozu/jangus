@@ -2,7 +2,7 @@
 
 **An orchestrator that starts specialist agents to do your day-to-day work, without you driving every step, and without burning tokens.**
 
-> **Status: Phase 2a built; Phase 2b not started.** The deterministic kernel passes scenarios B01-B07 with fake tools. Agent specs with a hash approval registry, Ollama and Claude providers, and a local-model benchmark script exist, but all model code has only been tested against fakes. There is no agent runtime, scheduler or real tool yet, and nothing has been run on a real machine beyond CI. Everything below describes the intended system unless marked "planned". See [Status and roadmap](#status-and-roadmap).
+> **Status: Phase 2b built (open PRs #19-#27, not yet merged); Phase 3 not started.** The deterministic kernel passes scenarios B01-B07 with fake tools. Phase 2a added agent specs with a hash approval registry, Ollama and Claude providers and a local-model benchmark script; Phase 2b added the agent runtime (propose-then-execute loop, directive runner, attempt policy with the one-step escalation ladder, durable budgets, metering and price table, pre-call budget gate with spend alerts, result cache, context budget). All model code has only been tested against a scripted fake model: no real model call has happened. There is no scheduler or real tool yet, and nothing has been run on a real machine beyond CI. Everything below describes the intended system unless marked "planned". See [Status and roadmap](#status-and-roadmap).
 
 ---
 
@@ -183,7 +183,7 @@ Rules: one task at a time; new ideas go to `.taskmaster/docs/parking-lot.md`, no
 | 0 | Specs, ADR-001, task list | Done |
 | 1 | Kernel with fake tools | Built; B01-B07 pass with fake tools ([review](docs/reviews/PHASE_1.md)) |
 | 2a | Providers and local model benchmark | Built and merged (fake transports only); benchmark awaits the owner's run on the PC ([review](docs/reviews/PHASE_2A.md)) |
-| 2b | Agent runtime, attempt policy, metering, budget gate, cache | Not started (spec loader and approvals, task 12, were built in 2a) |
+| 2b | Agent runtime, attempt policy, metering, budget gate, cache | Built on stacked PRs #19-#27, awaiting merge (fake model only) ([review](docs/reviews/PHASE_2B.md)) |
 | 3 | File/backup agent, scheduler, 7-day soak | Not started |
 | 3b | Recipes, watchers, model-driven soak | Not started |
 | 4 | Orchestrator, approval CLI, alerting | Not started |
