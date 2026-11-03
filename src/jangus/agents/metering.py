@@ -6,7 +6,7 @@ Kernel-run work makes no model call and so writes no model_call record: its toke
 """
 
 import math
-from collections import defaultdict
+from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Any
 
@@ -59,6 +59,7 @@ def record_model_call(
     response: ModelResponse | None,
     charge: CallCharge | None,
     outcome: str,
+    cost_micros: int = 0,
     extra: dict[str, Any] | None = None,
 ) -> None:
     ledger.append(
@@ -80,23 +81,35 @@ def record_model_call(
             if charge
             else estimate_tokens(request.system + request.user),
             "latency_ms": response.latency_ms if response else 0,
+            "cost_usd_micros": cost_micros,
             "outcome": outcome,
             **(extra or {}),
         }
     )
 
 
-def usage_by_role(ledger: Ledger) -> dict[str, dict[str, int]]:
-    """Calls and tokens per role, read from the ledger (B30)."""
-    totals: dict[str, dict[str, int]] = defaultdict(
-        lambda: {"calls": 0, "input_tokens": 0, "output_tokens": 0, "cached_tokens": 0}
-    )
-    for entry in ledger.entries():
-        event = entry.event
+def usage_from_events(events: Iterable[dict[str, Any]]) -> dict[str, dict[str, int]]:
+    """Calls, tokens and spend per role from `model_call` events (B30). Every role is listed;
+    kernel-run is always zero because kernel-run work makes no model call."""
+    totals: dict[str, dict[str, int]] = {
+        role: {
+            "calls": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "cached_tokens": 0,
+            "cost_usd_micros": 0,
+        }
+        for role in ROLES
+    }
+    for event in events:
         if event.get("kind") != "model_call":
             continue
-        row = totals[str(event["role"])]
+        row = totals.setdefault(str(event["role"]), dict.fromkeys(totals["specialist"], 0))
         row["calls"] += 1
-        for key in ("input_tokens", "output_tokens", "cached_tokens"):
-            row[key] += int(event[key])
-    return dict(totals)
+        for key in ("input_tokens", "output_tokens", "cached_tokens", "cost_usd_micros"):
+            row[key] += int(event.get(key, 0))
+    return totals
+
+
+def usage_by_role(ledger: Ledger) -> dict[str, dict[str, int]]:
+    return usage_from_events(entry.event for entry in ledger.entries())

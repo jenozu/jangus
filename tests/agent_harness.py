@@ -6,9 +6,11 @@ Everything here is fake: no network, no real model. Results prove the kernel plu
 import json
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from jangus.agents.pricing import PriceTable
 from jangus.agents.providers.base import (
     ModelRequest,
     ModelResponse,
@@ -32,7 +34,7 @@ SPEC_YAML = """\
 schema_version: 1
 name: file-agent
 role: "You keep files tidy."
-model: {{provider: ollama, name: "qwen3:8b", max_tokens: 512}}
+model: {{provider: {provider}, name: "{model}", max_tokens: 512}}
 tools: [{tools}]
 max_tier: {max_tier}
 budget: {{calls: {calls}, tokens: {tokens}, wall_seconds: 600, spend_usd: 1.0}}
@@ -52,6 +54,8 @@ def make_spec(
     max_tier: str = "T2",
     escalation: bool = True,
     extra_tools: tuple[str, ...] = (),
+    provider: str = "ollama",
+    model: str = "qwen3:8b",
 ) -> LoadedSpec:
     text = SPEC_YAML.format(
         calls=calls,
@@ -61,6 +65,8 @@ def make_spec(
         max_tier=max_tier,
         tools=", ".join(("file.read", "file.write", "file.delete", *extra_tools)),
         escalation=ESCALATION if escalation else "",
+        provider=provider,
+        model=model,
     )
     return parse_spec(text.encode())
 
@@ -109,6 +115,7 @@ class Harness:
         provider: ScriptedProvider | None = None,
         escalation: ScriptedProvider | None = None,
         with_approvals: bool = False,
+        prices: PriceTable | None = None,
     ) -> None:
         self.world = FakeWorld()
         self.registry = build_registry(self.world)
@@ -136,6 +143,7 @@ class Harness:
             hub=self.hub,
             budgets=self.budgets,
             alerts=self.alerts,
+            prices=prices if prices is not None else default_prices(),
         )
         self.runner.ensure_budgets()
         self.directives = DirectiveRunner(
@@ -189,4 +197,17 @@ def _flaky_tool() -> ToolSpec:
         execute,  # type: ignore[arg-type]
         verify=lambda a, r: True,
         reconcile=reconcile,
+    )
+
+
+def default_prices() -> PriceTable:
+    """The harness's price table: the step-up model is priced; local models are free."""
+    return PriceTable.parse(
+        {
+            "as_of": datetime.now(UTC).date(),
+            "models": {
+                "claude/haiku-tag": {"input_per_mtok": 1.0, "output_per_mtok": 5.0},
+                "claude/opus-tag": {"input_per_mtok": 15.0, "output_per_mtok": 75.0},
+            },
+        }
     )

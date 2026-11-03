@@ -437,13 +437,12 @@
         "id": 25,
         "title": "Cost metering and escalation cap",
         "description": "Record calls, tokens and spend per role and enforce the daily orchestrator escalation cap.",
-        "status": "pending",
+        "status": "done",
         "priority": "medium",
         "dependencies": [
-          16,
-          19
+          16
         ],
-        "details": "src/jangus/kernel/metering.py: per-role usage records in the ledger (kernel-run, specialist, orchestrator); daily escalation counter in the state store; report section. Added by adapt 2026-11-01 (cost discipline). Needed before task 22 uses it, so task 22 should be re-checked when this is done.\n\n[adapt 2026-11-01 token economy] Scope extended: per-call ledger records (role, reason, measured tokens, cost), price table loader (`prices.yaml`, stale/missing handling), daily/monthly counters. Alerts, pre-call check and reconciliation are tasks 28 and 33.",
+        "details": "src/jangus/kernel/metering.py: per-role usage records in the ledger (kernel-run, specialist, orchestrator); daily escalation counter in the state store; report section. Added by adapt 2026-11-01 (cost discipline). Needed before task 22 uses it, so task 22 should be re-checked when this is done.\n\n[adapt 2026-11-01 token economy] Scope extended: per-call ledger records (role, reason, measured tokens, cost), price table loader (`prices.yaml`, stale/missing handling), daily/monthly counters. Alerts, pre-call check and reconciliation are tasks 28 and 33.\n\n[2026-11-03T11:17:43-05:00] Plan: agents/pricing.py (prices.yaml, local models free, paid model without entry refused, stale table alert, cost in micro-dollars rounded up); metering records cost; runner charges USD and refuses unpriced paid models before sending; agents/report.py usage report from the ledger (per role/run/agent, totals match ledger and budgets); kernel/escalation.py daily orchestrator cap as an EscalationGate over durable budgets. Dependency on task 19 dropped (PRD log).\n\n[2026-11-03T11:19:28-05:00] Built on phase-2b/metering; local ruff, mypy, pytest pass. Marked done after the task's test strategy ran.",
         "testStrategy": "pytest: totals match ledger (B30); counter survives restart; call beyond cap refused (B28); B37, B38",
         "complexity": 4,
         "subtasks": [],
@@ -699,7 +698,7 @@
     ],
     "metadata": {
       "created": "2026-11-01T18:19:53-05:00",
-      "updated": "2026-11-03T11:16:45-05:00"
+      "updated": "2026-11-03T11:19:29-05:00"
     }
   }
 }

@@ -30,6 +30,7 @@ class Dimension(StrEnum):
     TOKENS = "tokens"
     WALL_MS = "wall_ms"
     USD_MICROS = "usd_micros"
+    ESCALATIONS = "escalations"
 
 
 def limit_micros(usd: float) -> int:
@@ -77,6 +78,10 @@ class BudgetBook:
         self._state.set_budgets(
             {budget_name(scope, dim): value for dim, value in limits.as_dict().items()}
         )
+
+    def define_one(self, scope: str, dimension: Dimension, limit: int) -> None:
+        """Set one dimension's limit (for example the daily escalation cap). Spent is kept."""
+        self._state.set_budgets({budget_name(scope, dimension): limit})
 
     def status(self, scope: str) -> dict[Dimension, BudgetRecord]:
         found = {rec.name: rec for rec in self._state.list_budgets(f"{scope}/")}
