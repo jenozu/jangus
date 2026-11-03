@@ -13,7 +13,7 @@ from typing import Any, Literal, TypeVar
 
 from jangus.errors import FaultCode, RuntimeFault
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 
 _SCHEMA_V1 = """
 CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT NOT NULL) STRICT;
@@ -84,6 +84,16 @@ CREATE TABLE task_failures (
 ) STRICT;
 """,
 }
+
+_MIGRATIONS[3] = """
+CREATE TABLE result_cache (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL,
+    created_at INTEGER NOT NULL,
+    expires_at INTEGER NOT NULL,
+    hits INTEGER NOT NULL DEFAULT 0
+) STRICT;
+"""
 
 ActionStatus = Literal["intent", "done", "failed", "unresolved"]
 T = TypeVar("T")

@@ -15,6 +15,8 @@ from typing import Any
 
 from jangus.kernel.registry import Registry
 
+# Bump when the system or user prompt text changes: cached replies for the old text stop matching.
+PROMPT_VERSION = "1"
 MAX_RESULT_CHARS = 4000
 _LABEL = re.compile(r"[^A-Za-z0-9_.-]")
 

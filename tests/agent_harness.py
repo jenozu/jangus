@@ -26,6 +26,7 @@ from jangus.directives.runner import DirectiveRunner
 from jangus.kernel.alerts import AlertQueue
 from jangus.kernel.approvals import ApprovalQueue
 from jangus.kernel.budgets import BudgetBook
+from jangus.kernel.cache import ResultCache
 from jangus.kernel.executor import Executor
 from jangus.kernel.ledger import Ledger
 from jangus.kernel.registry import Reconciliation, Tier, ToolSpec
@@ -119,6 +120,8 @@ class Harness:
         with_approvals: bool = False,
         prices: PriceTable | None = None,
         caps: Caps | None = None,
+        cache_clock: Callable[[], int] | None = None,
+        use_cache: bool = False,
     ) -> None:
         self.world = FakeWorld()
         self.registry = build_registry(self.world)
@@ -149,6 +152,11 @@ class Harness:
             blocked=(lambda p: gate.blocked(p)) if gate is not None else None,
         )
         self.approvals = ApprovalQueue(self.state, self.ledger) if with_approvals else None
+        self.cache = (
+            (ResultCache(self.state, cache_clock) if cache_clock else ResultCache(self.state))
+            if use_cache
+            else None
+        )
         self.executor = Executor(self.registry, self.state, self.ledger, approvals=self.approvals)
         self.spec = spec or make_spec()
         self.runner = Runner(
@@ -162,6 +170,7 @@ class Harness:
             alerts=self.alerts,
             prices=prices if prices is not None else default_prices(),
             gate=self.gate,
+            cache=self.cache,
         )
         self.runner.ensure_budgets()
         self.directives = DirectiveRunner(
