@@ -15,6 +15,7 @@ import math
 import os
 import platform
 import statistics
+import sys
 import time
 import urllib.error
 import urllib.request
@@ -351,7 +352,7 @@ def get_json(url: str, timeout: float = 10.0) -> Any:
 
 def total_ram_mb() -> int | None:
     try:
-        if os.name == "nt":
+        if sys.platform == "win32":  # mypy checks this branch per platform
             import ctypes
 
             class Status(ctypes.Structure):
@@ -369,7 +370,7 @@ def total_ram_mb() -> int | None:
 
             status = Status()
             status.length = ctypes.sizeof(Status)
-            ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(status))  # type: ignore[attr-defined]
+            ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(status))
             return int(status.total_phys // (1024 * 1024))
         with open("/proc/meminfo", encoding="ascii") as handle:
             for line in handle:
