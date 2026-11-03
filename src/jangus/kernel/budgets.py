@@ -54,6 +54,12 @@ class Limits:
     def from_spec(cls, calls: int, tokens: int, wall_seconds: int, spend_usd: float) -> "Limits":
         return cls(calls, tokens, wall_seconds * 1000, limit_micros(spend_usd))
 
+    @classmethod
+    def usd_only(cls, usd_micros: int) -> "Limits":
+        """A cap on spend alone (daily and monthly caps); other dimensions are not limited."""
+        unlimited = 2**62
+        return cls(unlimited, unlimited, unlimited, usd_micros)
+
     def as_dict(self) -> dict[Dimension, int]:
         return {
             Dimension.CALLS: self.calls,

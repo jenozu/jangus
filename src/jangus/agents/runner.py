@@ -18,6 +18,7 @@ from datetime import UTC, date, datetime
 from enum import StrEnum
 from typing import Any, Protocol
 
+from jangus.agents.gate import CallGate
 from jangus.agents.metering import CallCharge, charge_for, estimate_tokens, record_model_call
 from jangus.agents.pricing import PriceTable, cost_micros
 from jangus.agents.prompt import result_block, system_prompt, tool_catalog, user_prompt
@@ -33,7 +34,12 @@ from jangus.kernel.registry import Registry
 from jangus.kernel.state import StateStore
 
 _PROVIDER_FAULTS = frozenset(
-    {FaultCode.PROVIDER_DISABLED, FaultCode.PROVIDER_FAILED, FaultCode.PROVIDER_BAD_RESPONSE}
+    {
+        FaultCode.PROVIDER_DISABLED,
+        FaultCode.PROVIDER_FAILED,
+        FaultCode.PROVIDER_BAD_RESPONSE,
+        FaultCode.PROVIDER_BLOCKED,
+    }
 )
 
 
@@ -124,6 +130,7 @@ class Job:
     inputs: Mapping[str, str] = field(default_factory=dict)  # external content: quoted as data
     tools: tuple[str, ...] | None = None  # narrows the spec's tools; can never widen them
     task_label: str = "task"
+    task_type: str | None = None
     wall_seconds: int | None = None
     extra_scopes: tuple[str, ...] = ()  # budget scopes charged in addition to the agent's
 
@@ -166,6 +173,7 @@ class Runner:
         budgets: BudgetBook,
         alerts: AlertQueue,
         prices: PriceTable | None = None,
+        gate: CallGate | None = None,
         clock: Callable[[], float] = time.monotonic,
         today: Callable[[], date] = lambda: datetime.now(UTC).date(),
     ) -> None:
@@ -179,6 +187,7 @@ class Runner:
         self._alerts = alerts
         self._clock = clock
         self._today = today
+        self._gate = gate
         self._prices = prices if prices is not None else PriceTable.local_only()
 
     @property
@@ -213,6 +222,8 @@ class Runner:
         tracker = attempts if attempts is not None else LimitsOnlyAttempts(self._loaded)
         scope = agent_scope(spec.name)
         scopes = [scope, *job.extra_scopes]
+        if self._gate is not None:
+            scopes += self._gate.period_scopes()
         run = self._state.create_run(f"run:{spec.name}:{job.job_id}", spec.name)
         allowed = tuple(t for t in spec.tools if job.tools is None or t in job.tools)
         ctx = self.agent_context(job.tools)
@@ -267,7 +278,6 @@ class Runner:
 
             price = self._prices.price_for(choice.provider, choice.model)
             if price is None:
-                refusal = f"price_missing:{choice.provider}/{choice.model}"
                 self._alerts.raise_alert(
                     "price_missing",
                     f"no price for paid model {choice.provider}/{choice.model}: call refused",
@@ -275,7 +285,9 @@ class Runner:
                     detail={"provider": choice.provider, "model": choice.model},
                     once=f"price_missing:{choice.provider}/{choice.model}",
                 )
-                failures.extend(tracker.end_round([refusal]))
+                failures.extend(
+                    tracker.end_round([f"price_missing:{choice.provider}/{choice.model}"])
+                )
                 outcome = RunOutcome.REFUSED
                 break
 
@@ -287,6 +299,14 @@ class Runner:
                 json_schema=REPLY_SCHEMA,
                 cache_prefix=True,
             )
+            if self._gate is not None:
+                verdict = self._gate.check(
+                    scopes=scopes, provider=choice.provider, price=price, request=request
+                )
+                if not verdict.allowed:
+                    failures.extend(tracker.end_round([verdict.reason]))
+                    outcome = RunOutcome.REFUSED
+                    break
             calls += 1
             try:
                 response = self._hub.complete(choice.provider, request)
@@ -323,6 +343,16 @@ class Runner:
                 outcome = RunOutcome.BUDGET
                 break
 
+            if self._gate is not None:
+                self._gate.after_call(
+                    provider=choice.provider,
+                    model=choice.model,
+                    charge=charge,
+                    cost_usd_micros=cost,
+                    task_label=job.task_label,
+                    task_type=job.task_type,
+                    paid=price.input_per_mtok > 0 or price.output_per_mtok > 0,
+                )
             round_failures: list[str] = []
             reply: Reply | None = None
             try:
@@ -452,6 +482,7 @@ class Runner:
             charge=charge,
             outcome=outcome,
             cost_micros=cost,
+            extra={"task_type": job.task_type},
         )
         if charge is not None and not charge.usage_known:
             self._alerts.raise_alert(

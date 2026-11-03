@@ -486,13 +486,13 @@
         "id": 28,
         "title": "Pre-call budget gate and spend alerts",
         "description": "Refuse over-budget calls before sending; alert at 50/80/100% and on big-call, runaway and estimator-drift conditions.",
-        "status": "pending",
+        "status": "done",
         "priority": "high",
         "dependencies": [
           25,
           26
         ],
-        "details": "src/jangus/kernel/budget_gate.py + alerts.py: worst-case cost = estimated input + max_tokens priced; check task, directive, daily, orchestrator-cap, monthly limits; refusal = failed attempt; block provider at 100%. Alerts surface in `jangus status` and the daily report.",
+        "details": "src/jangus/kernel/budget_gate.py + alerts.py: worst-case cost = estimated input + max_tokens priced; check task, directive, daily, orchestrator-cap, monthly limits; refusal = failed attempt; block provider at 100%. Alerts surface in `jangus status` and the daily report.\n\n[2026-11-03T11:20:38-05:00] Plan: config Caps (daily/monthly USD, big-call thresholds; paid calls refused without caps); state flags; agents/gate.py CallGate (worst-case pre-check against agent/directive/day/month scopes, refusal = counted failed attempt, 50/80/100 alerts, block provider at 100 until owner unblocks, big-call, runaway, estimator drift); ProviderHub block_check so the block cannot be bypassed; runner integration.\n\n[2026-11-03T11:22:04-05:00] Built on phase-2b/budget-gate; local ruff, mypy, pytest pass. Marked done after the task's test strategy ran.",
         "testStrategy": "pytest B39 over-budget call refused before sending; B40 thresholds fire at 50/80/100% and big-call flag; provider blocked at 100%.",
         "complexity": 5,
         "subtasks": [],
@@ -698,7 +698,7 @@
     ],
     "metadata": {
       "created": "2026-11-01T18:19:53-05:00",
-      "updated": "2026-11-03T11:19:29-05:00"
+      "updated": "2026-11-03T11:22:04-05:00"
     }
   }
 }

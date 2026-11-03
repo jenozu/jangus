@@ -100,10 +100,12 @@ class ProviderHub:
         providers: Mapping[str, ModelProvider],
         enabled: Collection[str],
         alert: AlertFn,
+        blocked: Callable[[str], bool] | None = None,
     ) -> None:
         self._providers = dict(providers)
         self._enabled = frozenset(enabled)
         self._alert = alert
+        self._blocked = blocked
         self.alerts_lost = 0  # alerts the sink failed to take; surfaced by status later
 
     def _raise_alert(self, kind: str, message: str) -> None:
@@ -118,6 +120,10 @@ class ProviderHub:
             message = f"provider {provider!r} is disabled or not configured"
             self._raise_alert("provider_disabled", message)
             raise RuntimeFault(FaultCode.PROVIDER_DISABLED, message)
+        if self._blocked is not None and self._blocked(provider):
+            message = f"provider {provider!r} is blocked until the owner acts"
+            self._raise_alert("provider_blocked", message)
+            raise RuntimeFault(FaultCode.PROVIDER_BLOCKED, message)
         try:
             return chosen.complete(request)
         except RuntimeFault as fault:
