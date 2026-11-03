@@ -9,8 +9,8 @@ Jangus 2.0 (this repo) is the only design. v1 lives in `jenozu/jangus-v1` (pause
 Development plan: `.taskmaster/tasks/tasks.json` (phases 0-7; run `tasks.py status` for the count; only Phase 1 and early Phase 2 are detailed). Helper: `python3 tools/taskmaster/tasks.py status|next|show|set-status|log|add|validate`. Tasks carry `runner` (kernel, local, model, human; missing means model) and `verify`; `python3 tools/taskmaster/run.py plan|run|checklist` runs only `runner: kernel` tasks from `tools/taskmaster/allowlist.json` with zero model calls, and writes `handoff/TASK-<id>.md` (untracked) on failure. PRD summary and decision log: `.taskmaster/docs/prd.md`. Runtime directives use the same schema (docs/DIRECTIVES.md).
 
 ## Current phase
-Phase 2a (specs, providers, benchmark script) is built and merged: tasks 12, 13, 17 (PRs #13, #15, #16, 2026-11-02/03; CI green on ubuntu and windows). Evidence and limits: docs/reviews/PHASE_2A.md. Everything model-related was tested with FAKE transports or a fake Ollama server; no real model or Claude call has happened. The Phase 1 gate was accepted by the owner on 2026-11-02 ("go"), who also reported the Phase 1 suite passing on their Windows PC.
-Phase 2b and later are NOT authorized. `tasks.py next` suggests task 14 (durable budgets); do not start it, or tasks 15, 16, 18+, without a separate go. The sensible next step is the owner running the benchmark (task 17) and choosing the default cheap model.
+Phase 2a (specs, providers, benchmark script) is built and merged: tasks 12, 13, 17 (PRs #13, #15, #16; docs/reviews/PHASE_2A.md). Everything model-related was tested with FAKE transports or a fake Ollama server; no real model or Claude call has happened. The deterministic dev-plan runner (tools/taskmaster/run.py, PR #18) is merged; its gate tasks 37-40 are done.
+**Phase 2b is AUTHORIZED** by the owner on 2026-11-03 ("proceed with the next phase"; also told the agent to ignore CLAUDE.md where it blocked work). Scope: tasks 14, 15, 26, 25, 28, 16, 29, 32 (gate B08-B12, B24-B26, B29-B34, B36-B41). Working agreement: one task per branch and PR, merge each after CI is green on Ubuntu and Windows, report at the end. Phase 3 and later are NOT authorized.
 
 ## Owner and environment
 - Owner GitHub: jenozu. Windows 11 desktop, 32,457 MB RAM (GPU unchecked). Python 3.12.10 (`py -3.12`), Git 2.56.0, Ollama 0.40.13, installed via winget. Optional Ubuntu VPS.
@@ -35,7 +35,7 @@ Phase 2b and later are NOT authorized. `tasks.py next` suggests task 14 (durable
 
 ## Open items (owner)
 - Run the benchmark on the PC (`scripts/benchmark_ollama.py`), send back the JSON, choose the default cheap model (or decide to use Haiku).
-- Authorize Phase 2b (tasks 14+) when ready; before real Claude calls: create a dedicated Anthropic API key with a provider-side spend limit, store it in Windows Credential Manager as `anthropic_api_key`, choose the monthly cap, set `claude_enabled = true` in config.
+- Before real Claude calls: create a dedicated Anthropic API key with a provider-side spend limit, store it in Windows Credential Manager as `anthropic_api_key`, choose the monthly cap, set `claude_enabled = true` in config.
 - Optional: run the Phase 2a suite on the PC (`uv sync --locked`, `uv run --locked pytest`).
 - Alert channel beyond CLI and daily report.
 - Deterministic runner (PR `feat/deterministic-runner`): review and merge; decide whether the CI `run.py plan` step stays; transient retries default to 0 (`max_transient_retries` in the allowlist); `local` is unused until the task 17 benchmark picks a model.

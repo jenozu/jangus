@@ -635,12 +635,12 @@
       {
         "title": "Regression gate: ruff check",
         "description": "Lint gate: ruff check passes. Run by tools/taskmaster/run.py with zero model calls.",
-        "status": "pending",
+        "status": "done",
         "priority": "low",
         "dependencies": [
           2
         ],
-        "details": "Added with the deterministic runner (DETERMINISTIC.md). Same input gives the same result; the command exit code is the check.",
+        "details": "Added with the deterministic runner (DETERMINISTIC.md). Same input gives the same result; the command exit code is the check.\n\n[2026-11-03T11:02:32-05:00] kernel run passed: exit 0, 4.43s, stdout sha256 82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18",
         "testStrategy": "`uv run --locked ruff check` exits 0.",
         "complexity": 1,
         "id": 37,
@@ -651,12 +651,12 @@
       {
         "title": "Regression gate: mypy",
         "description": "Type gate: mypy passes (strict on the kernel). Run by tools/taskmaster/run.py with zero model calls.",
-        "status": "pending",
+        "status": "done",
         "priority": "low",
         "dependencies": [
           2
         ],
-        "details": "Added with the deterministic runner (DETERMINISTIC.md). Same input gives the same result; the command exit code is the check.",
+        "details": "Added with the deterministic runner (DETERMINISTIC.md). Same input gives the same result; the command exit code is the check.\n\n[2026-11-03T11:02:34-05:00] kernel run passed: exit 0, 1.89s, stdout sha256 fa935e779fe5886f2480e415c7e46616bdedad407f9da1cca28e7d341d95f4d7",
         "testStrategy": "`uv run --locked mypy` exits 0.",
         "complexity": 1,
         "id": 38,
@@ -667,12 +667,12 @@
       {
         "title": "Regression gate: pytest",
         "description": "Test gate: the full pytest suite passes. Run by tools/taskmaster/run.py with zero model calls.",
-        "status": "pending",
+        "status": "done",
         "priority": "low",
         "dependencies": [
           2
         ],
-        "details": "Added with the deterministic runner (DETERMINISTIC.md). Same input gives the same result; the command exit code is the check.",
+        "details": "Added with the deterministic runner (DETERMINISTIC.md). Same input gives the same result; the command exit code is the check.\n\n[2026-11-03T11:02:39-05:00] kernel run passed: exit 0, 5.21s, stdout sha256 a90f050d2580e2f9766328393ed2301b4a049c7d34f8fce0cbc83920b2f1b07e",
         "testStrategy": "`uv run --locked pytest` exits 0.",
         "complexity": 1,
         "id": 39,
@@ -683,12 +683,12 @@
       {
         "title": "Regression gate: tasks.py validate",
         "description": "Task list gate: tasks.py validate reports no errors. Run by tools/taskmaster/run.py with zero model calls.",
-        "status": "pending",
+        "status": "done",
         "priority": "low",
         "dependencies": [
           2
         ],
-        "details": "Added with the deterministic runner (DETERMINISTIC.md). Same input gives the same result; the command exit code is the check.",
+        "details": "Added with the deterministic runner (DETERMINISTIC.md). Same input gives the same result; the command exit code is the check.\n\n[2026-11-03T11:02:39-05:00] kernel run passed: exit 0, 0.04s, stdout sha256 fb7eabfb0517a2cf611dbb754b3a16d976b811619640423af9c39f17429a0d26",
         "testStrategy": "`python3 tools/taskmaster/tasks.py validate` exits 0.",
         "complexity": 1,
         "id": 40,
@@ -699,7 +699,7 @@
     ],
     "metadata": {
       "created": "2026-11-01T18:19:53-05:00",
-      "updated": "2026-11-03T10:47:59-05:00"
+      "updated": "2026-11-03T11:02:39-05:00"
     }
   }
 }
