@@ -35,6 +35,7 @@ class FaultCode(StrEnum):
     PRICES_INVALID = "prices_invalid"
     PRICE_MISSING = "price_missing"
     PROVIDER_BLOCKED = "provider_blocked"
+    COST_EXPORT_INVALID = "cost_export_invalid"
 
 
 class RuntimeFault(Exception):  # noqa: N818 - name fixed by the task spec

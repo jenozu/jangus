@@ -12,9 +12,10 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 from jangus import __version__
-from jangus.agents.report import build_daily_report
+from jangus.agents.report import build_daily_report, build_usage_report
 from jangus.agents.spec import LoadedSpec, load_spec_file
 from jangus.agents.spec_registry import SpecApprovalRegistry
+from jangus.cli_cost import reconcile
 from jangus.config import JangusConfig, load_config
 from jangus.errors import FaultCode, RuntimeFault
 from jangus.kernel.alerts import read_alerts
@@ -44,6 +45,13 @@ def _build_parser() -> argparse.ArgumentParser:
     revoke.add_argument("name")
     sub.add_parser("tick", help="run the agents that are due now (called by Task Scheduler)")
     sub.add_parser("status", help="approved specs, recent alerts, halted directives")
+    cost = sub.add_parser("cost", help="cost report and monthly reconciliation")
+    cost_sub = cost.add_subparsers(dest="cost_command", required=True)
+    cost_report = cost_sub.add_parser("report", help="usage and spend from the ledger")
+    cost_report.add_argument("--month", help="YYYY-MM, default this month (local)")
+    reconcile = cost_sub.add_parser("reconcile", help="compare the ledger with a provider export")
+    reconcile.add_argument("export", type=Path, help="usage export file (CSV or JSON)")
+    reconcile.add_argument("--month", required=True, help="YYYY-MM the export covers")
     report = sub.add_parser("report", help="print the daily report written from the ledger")
     report.add_argument("--day", help="ISO date, default today (local)")
     return parser
@@ -165,6 +173,20 @@ def _status(cfg: JangusConfig) -> int:
         rt.close()
 
 
+def _cost(cfg: JangusConfig, args: argparse.Namespace) -> int:
+    rt = open_runtime(cfg)
+    try:
+        if args.cost_command == "report":
+            month = args.month or datetime.now().strftime("%Y-%m")  # noqa: DTZ005 - local month
+            print(build_usage_report(rt.ledger, month).render())
+            return 0
+        result = reconcile(rt.ledger, rt.alerts, args.export, args.month)
+        print(result.render())
+        return 1 if result.alerted else 0
+    finally:
+        rt.close()
+
+
 def _report(cfg: JangusConfig, day: str | None) -> int:
     rt = open_runtime(cfg)
     try:
@@ -181,8 +203,8 @@ def main(argv: list[str] | None = None, confirm: Callable[[str], str] = input) -
     if args.version:
         print(f"jangus {__version__}")
         return 0
-    if args.command not in ("spec", "tick", "status", "report"):
-        print("jangus: use `spec`, `tick`, `status` or `report`", file=sys.stderr)
+    if args.command not in ("spec", "tick", "status", "report", "cost"):
+        print("jangus: use `spec`, `tick`, `status`, `report` or `cost`", file=sys.stderr)
         return 2
     try:
         cfg = _load_cfg(args.config)
@@ -192,6 +214,8 @@ def main(argv: list[str] | None = None, confirm: Callable[[str], str] = input) -
             return _tick(cfg)
         if args.command == "status":
             return _status(cfg)
+        if args.command == "cost":
+            return _cost(cfg, args)
         return _report(cfg, args.day)
     except RuntimeFault as fault:
         print(f"jangus: {fault}", file=sys.stderr)

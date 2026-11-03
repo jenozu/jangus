@@ -569,13 +569,13 @@
         "id": 33,
         "title": "Cost report and monthly reconciliation CLI",
         "description": "`jangus cost report` and `jangus cost reconcile`.",
-        "status": "pending",
+        "status": "done",
         "priority": "medium",
         "dependencies": [
           25,
           28
         ],
-        "details": "src/jangus/cli_cost.py: report from ledger; reconcile against owner-supplied provider usage export (CSV/JSON), alert above 5% gap; docs for creating a dedicated API key with a provider-side spend limit.",
+        "details": "src/jangus/cli_cost.py: report from ledger; reconcile against owner-supplied provider usage export (CSV/JSON), alert above 5% gap; docs for creating a dedicated API key with a provider-side spend limit.\n\n[2026-11-03T11:46:03-05:00] Plan: cli_cost.py (parse owner-supplied CSV/JSON usage export with a cost column and optional date; ledger month total from model_call events; gap vs export, alert above 5% once per month), jangus cost report|reconcile, docs/COST_SETUP.md (dedicated key + provider-side limit).\n\n[2026-11-03T11:46:51-05:00] Built on phase-3/cost-cli; local ruff, mypy, pytest pass. Marked done after the task's test strategy ran.",
         "testStrategy": "pytest B47 with fixture export: gap above 5% raises alert; totals match ledger.",
         "complexity": 3,
         "subtasks": [],
@@ -698,7 +698,7 @@
     ],
     "metadata": {
       "created": "2026-11-01T18:19:53-05:00",
-      "updated": "2026-11-03T11:45:30-05:00"
+      "updated": "2026-11-03T11:46:51-05:00"
     }
   }
 }
