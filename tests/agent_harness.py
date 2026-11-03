@@ -43,7 +43,7 @@ max_tier: {max_tier}
 budget: {{calls: {calls}, tokens: {tokens}, wall_seconds: 600, spend_usd: 1.0}}
 {escalation}attempts: {{default_model: 2, step_up: 1, max_model_calls: {max_calls},
   max_proposals: {max_props}}}
-"""
+{max_input}"""
 
 
 ESCALATION = "escalation_model: {provider: claude, name: haiku-tag, effort: low}\n"
@@ -59,6 +59,7 @@ def make_spec(
     extra_tools: tuple[str, ...] = (),
     provider: str = "ollama",
     model: str = "qwen3:8b",
+    max_input_tokens: int | None = None,
 ) -> LoadedSpec:
     text = SPEC_YAML.format(
         calls=calls,
@@ -70,6 +71,7 @@ def make_spec(
         escalation=ESCALATION if escalation else "",
         provider=provider,
         model=model,
+        max_input=f"max_input_tokens: {max_input_tokens}\n" if max_input_tokens else "",
     )
     return parse_spec(text.encode())
 

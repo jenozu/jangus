@@ -18,16 +18,11 @@ from datetime import UTC, date, datetime
 from enum import StrEnum
 from typing import Any, Protocol
 
+from jangus.agents.context import ContextTooLarge, ResultItem, fit_user_prompt
 from jangus.agents.gate import CallGate
 from jangus.agents.metering import CallCharge, charge_for, estimate_tokens, record_model_call
 from jangus.agents.pricing import PriceTable, cost_micros
-from jangus.agents.prompt import (
-    PROMPT_VERSION,
-    result_block,
-    system_prompt,
-    tool_catalog,
-    user_prompt,
-)
+from jangus.agents.prompt import PROMPT_VERSION, system_prompt, tool_catalog
 from jangus.agents.proposals import REPLY_SCHEMA, Reply, ReplyError, parse_reply, proposal_hash
 from jangus.agents.providers.base import ModelRequest, ProviderHub
 from jangus.agents.spec import LoadedSpec
@@ -139,6 +134,7 @@ class Job:
     task_label: str = "task"
     task_type: str | None = None
     wall_seconds: int | None = None
+    max_input_tokens: int | None = None  # narrows the spec's limit; never loosens it
     extra_scopes: tuple[str, ...] = ()  # budget scopes charged in addition to the agent's
 
 
@@ -262,7 +258,7 @@ class Runner:
             )
         started = self._clock()
         wall_limit = job.wall_seconds if job.wall_seconds is not None else spec.budget.wall_seconds
-        results: list[str] = []
+        results: list[ResultItem] = []
         executed: list[ExecutedProposal] = []
         failures: list[str] = []
         calls = 0
@@ -284,10 +280,32 @@ class Runner:
             if choice is None:
                 outcome = RunOutcome.STOPPED
                 break
+            try:
+                user_text, trimmed = fit_user_prompt(
+                    system=system,
+                    instruction=job.instruction,
+                    inputs=job.inputs,
+                    results=results,
+                    failures=tracker.failure_reasons(),
+                    max_input_tokens=self._input_limit(job),
+                )
+            except ContextTooLarge:
+                failures.extend(tracker.end_round(["context_too_large"]))
+                self._alerts.raise_alert(
+                    "context_too_large",
+                    f"task {job.task_label}: input does not fit max_input_tokens; call refused",
+                    detail={"task": job.task_label, "limit": self._input_limit(job)},
+                )
+                outcome = RunOutcome.REFUSED
+                break
+            if trimmed:
+                self._ledger.append(
+                    {"kind": "context_trimmed", "run": run.id, "task": job.task_label}
+                )
             request = ModelRequest(
                 model=choice.model,
                 system=system,
-                user=user_prompt(job.instruction, job.inputs, results, tracker.failure_reasons()),
+                user=user_text,
                 max_tokens=choice.max_tokens,
                 json_schema=REPLY_SCHEMA,
                 cache_prefix=True,
@@ -367,6 +385,12 @@ class Runner:
         return RunReport(
             run.id, outcome, calls, tuple(executed), tuple(failures), done_claimed, note
         )
+
+    def _input_limit(self, job: Job) -> int | None:
+        spec_limit = self._loaded.spec.max_input_tokens
+        if job.max_input_tokens is None:
+            return spec_limit
+        return job.max_input_tokens if spec_limit is None else min(spec_limit, job.max_input_tokens)
 
     def _cache_key(self, job: Job, choice: ModelChoice, request: ModelRequest) -> CacheKey | None:
         if self._cache is None:
@@ -464,7 +488,7 @@ class Runner:
         ctx: AgentContext,
         reply: Reply,
         tracker: AttemptTracker,
-        results: list[str],
+        results: list[ResultItem],
         executed: list[ExecutedProposal],
         round_failures: list[str],
     ) -> RunOutcome | None:
@@ -483,7 +507,7 @@ class Runner:
                     }
                 )
                 results.append(
-                    result_block(index, proposal.tool, {"status": "refused", "reason": refusal})
+                    ResultItem(index, proposal.tool, {"status": "refused", "reason": refusal})
                 )
                 round_failures.append(refusal)
                 if refusal.startswith("limit:"):
@@ -502,7 +526,7 @@ class Runner:
                 )
             )
             results.append(
-                result_block(
+                ResultItem(
                     index,
                     proposal.tool,
                     {"status": res.status, "reason": reason, "result": res.result},
