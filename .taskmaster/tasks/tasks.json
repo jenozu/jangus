@@ -269,7 +269,7 @@
       {
         "title": "Propose-then-execute run loop",
         "description": "Fresh run: build prompt, get structured proposals, kernel validates and executes, return results as data.",
-        "status": "pending",
+        "status": "done",
         "priority": "high",
         "dependencies": [
           8,
@@ -277,7 +277,7 @@
           13,
           14
         ],
-        "details": "src/jangus/agents/runner.py with scripted fake model; external content wrapped as quoted data; loop ends on done/budget/error.\n\n[adapt 2026-11-01 cost discipline] Run loop must meter calls/tokens/spend per role in the ledger and use the spec's cheap model; no orchestrator call anywhere in the loop.\n\n[adapt 2026-11-01 attempt limits] Count failed attempts in the kernel (rejected/failed call, failed verification, unparseable reply, repeated proposal, no-progress cycle) and expose the count; model output cannot change counts, limits or model choice.\n\n[2026-11-01T18:28:43-05:00] Do task 26 right after 15; 16 uses it.",
+        "details": "src/jangus/agents/runner.py with scripted fake model; external content wrapped as quoted data; loop ends on done/budget/error.\n\n[adapt 2026-11-01 cost discipline] Run loop must meter calls/tokens/spend per role in the ledger and use the spec's cheap model; no orchestrator call anywhere in the loop.\n\n[adapt 2026-11-01 attempt limits] Count failed attempts in the kernel (rejected/failed call, failed verification, unparseable reply, repeated proposal, no-progress cycle) and expose the count; model output cannot change counts, limits or model choice.\n\n[2026-11-01T18:28:43-05:00] Do task 26 right after 15; 16 uses it.\n\n[2026-11-03T11:08:27-05:00] Plan: agents/proposals.py (strict reply parse, unknown keys ignored = B34), agents/prompt.py (stable system prefix, external content quoted as data), agents/metering.py (model_call ledger record per role), agents/runner.py (fresh run, AttemptTracker seam for task 26, budgets via BudgetBook). Scripted FakeModel in tests.\n\n[2026-11-03T11:10:25-05:00] Built on phase-2b/run-loop; local ruff, mypy, pytest pass. Marked done after the task's test strategy ran.",
         "testStrategy": "pytest B10, B12: second run receives nothing from the first; scripted proposals executed via the kernel only; ledger shows per-role usage (B30); agent text requesting a stronger model or higher limit has no effect (B34)",
         "complexity": 6,
         "id": 15,
@@ -699,7 +699,7 @@
     ],
     "metadata": {
       "created": "2026-11-01T18:19:53-05:00",
-      "updated": "2026-11-03T11:06:54-05:00"
+      "updated": "2026-11-03T11:10:25-05:00"
     }
   }
 }

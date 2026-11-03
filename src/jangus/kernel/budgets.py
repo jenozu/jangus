@@ -12,7 +12,7 @@ Charges are all-or-nothing across dimensions. Hitting a limit raises
 `spent`.
 """
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from decimal import ROUND_CEILING, ROUND_FLOOR, Decimal
 from enum import StrEnum
@@ -106,24 +106,35 @@ class BudgetBook:
 
     def charge(self, scope: str, amounts: Mapping[Dimension, int], *, reason: str) -> None:
         """Charge all dimensions or none. Raises budget_exceeded (and alerts once) at a cap."""
+        self.charge_all([scope], amounts, reason=reason)
+
+    def charge_all(
+        self, scopes: Sequence[str], amounts: Mapping[Dimension, int], *, reason: str
+    ) -> None:
+        """Charge the same amounts to several scopes (for example agent, job and day) together:
+        every budget is charged or none is."""
         wanted = {dim: amount for dim, amount in amounts.items() if amount != 0}
-        if not wanted:
+        if not wanted or not scopes:
             return
-        names = {budget_name(scope, dim): amount for dim, amount in wanted.items()}
+        names = {
+            budget_name(scope, dim): amount for scope in scopes for dim, amount in wanted.items()
+        }
         try:
             records = self._state.charge_budgets(names)
         except RuntimeFault as fault:
             if fault.code is FaultCode.BUDGET_EXCEEDED:
-                self._alert_exhausted(scope, wanted)
+                for scope in scopes:
+                    self._alert_exhausted(scope, wanted)
             raise
-        self._ledger.append(
-            {
-                "kind": "budget_charge",
-                "scope": scope,
-                "reason": reason,
-                "amounts": {dim.value: amount for dim, amount in wanted.items()},
-            }
-        )
+        for scope in scopes:
+            self._ledger.append(
+                {
+                    "kind": "budget_charge",
+                    "scope": scope,
+                    "reason": reason,
+                    "amounts": {dim.value: amount for dim, amount in wanted.items()},
+                }
+            )
         for rec in records:
             if rec.spent >= rec.limit_amount:
                 self._alerts.raise_alert(
