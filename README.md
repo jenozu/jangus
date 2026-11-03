@@ -2,7 +2,7 @@
 
 **An orchestrator that starts specialist agents to do your day-to-day work, without you driving every step, and without burning tokens.**
 
-> **Status: Phase 1 (kernel) built; in Phase 2 only task 12 (agent spec schema, loader, approval registry) is done.** The deterministic kernel passes scenarios B01-B07 using fake tools and no models. There are no model providers, agent runtime, scheduler or real tools yet, and nothing has been run on a real machine beyond CI. Everything below describes the intended system unless marked "planned". See [Status and roadmap](#status-and-roadmap).
+> **Status: Phase 2a built; Phase 2b not started.** The deterministic kernel passes scenarios B01-B07 with fake tools. Agent specs with a hash approval registry, Ollama and Claude providers, and a local-model benchmark script exist, but all model code has only been tested against fakes. There is no agent runtime, scheduler or real tool yet, and nothing has been run on a real machine beyond CI. Everything below describes the intended system unless marked "planned". See [Status and roadmap](#status-and-roadmap).
 
 ---
 
@@ -180,8 +180,8 @@ Rules: one task at a time; new ideas go to `.taskmaster/docs/parking-lot.md`, no
 |---|---|---|
 | 0 | Specs, ADR-001, task list | Done |
 | 1 | Kernel with fake tools | Built; B01-B07 pass with fake tools ([review](docs/reviews/PHASE_1.md)) |
-| 2a | Providers and local model benchmark | Not started |
-| 2b | Agent runtime, attempt policy, metering, budget gate, cache | Task 12 (spec loader, approvals) done; rest not started |
+| 2a | Providers and local model benchmark | Built and merged (fake transports only); benchmark awaits the owner's run on the PC ([review](docs/reviews/PHASE_2A.md)) |
+| 2b | Agent runtime, attempt policy, metering, budget gate, cache | Not started (spec loader and approvals, task 12, were built in 2a) |
 | 3 | File/backup agent, scheduler, 7-day soak | Not started |
 | 3b | Recipes, watchers, model-driven soak | Not started |
 | 4 | Orchestrator, approval CLI, alerting | Not started |

@@ -545,11 +545,25 @@
         "complexity": 1,
         "id": 35,
         "subtasks": []
+      },
+      {
+        "title": "Phase 2a wrap-up: MEMORY.md and README roadmap",
+        "description": "Docs-only: record tasks 12, 13, 17 done, owner steps, limits.",
+        "status": "done",
+        "priority": "low",
+        "dependencies": [
+          17
+        ],
+        "details": "[2026-11-03T08:41:30-05:00] Docs-only wrap-up; merged after green CI.",
+        "testStrategy": "MEMORY.md and README roadmap match docs/reviews/PHASE_2A.md",
+        "complexity": 1,
+        "id": 36,
+        "subtasks": []
       }
     ],
     "metadata": {
       "created": "2026-11-01T18:19:53-05:00",
-      "updated": "2026-11-03T08:39:15-05:00"
+      "updated": "2026-11-03T08:41:30-05:00"
     }
   }
 }
