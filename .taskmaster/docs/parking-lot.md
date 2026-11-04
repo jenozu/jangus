@@ -21,3 +21,10 @@ Ideas that are not part of the current plan. Review at the end of each phase: pr
 - Batch endpoints and measured prompt-cache savings (TOKEN_ECONOMY.md section 7.8) only after real usage data.
 - Move alert delivery beyond ledger entries (push/email) with the Phase 4 alert channel.
 - Cache hit rate and tokens saved in the daily report (the data is in `cache_hit` ledger records).
+
+## Added 2026-11-03 (Phase 3)
+- Cron uses local wall-clock time; a time-zone or DST change can shift or double a slot. Decide a policy before the soak if the PC travels.
+- A halted directive waits for the owner and is never retried by later ticks; there is no `jangus resume` or `jangus unblock` command yet.
+- `jangus tick` takes the folders from the spec's `required_paths`; a friendlier `jangus spec new` that writes and checks the two draft files together would reduce edit mistakes.
+- Reconciliation assumes export column names; adjust after seeing a real file.
+- Per-task verifiers for model tasks (carried over from Phase 2b) are still open.
