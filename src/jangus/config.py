@@ -108,9 +108,14 @@ class Caps(StrictModel):
 class JangusConfig(StrictModel):
     data_dir: Path = Field(strict=False)
     workspace_dir: Path = Field(strict=False)
-    model: ModelEndpoint
-    # The paid provider is off unless the owner turns it on here (no silent use of Claude).
+    # Optional local (Ollama) endpoint. The default cheap model is Claude Haiku over the direct
+    # API (ADR-002), so a local model is an opt-in extra: both this table and `ollama_enabled`
+    # must be present for the local provider to exist at all.
+    model: ModelEndpoint | None = None
+    # Each provider is off unless the owner turns it on here. Nothing is enabled by default and
+    # nothing switches between them on its own (no silent provider fallback).
     claude_enabled: bool = False
+    ollama_enabled: bool = False
     caps: Caps | None = None
     # Where approved agent specs and their standing directives live (default: <data_dir>/specs).
     specs_dir: Path | None = Field(default=None, strict=False)
@@ -128,6 +133,14 @@ class JangusConfig(StrictModel):
         if not value.is_absolute():
             raise ValueError(f"{FaultCode.PATH_INVALID.value}: path must be absolute")
         return value.resolve()
+
+    @model_validator(mode="after")
+    def _local_provider_needs_an_endpoint(self) -> "JangusConfig":
+        if self.ollama_enabled and self.model is None:
+            raise ValueError(
+                f"{FaultCode.CONFIG_INVALID.value}: ollama_enabled needs a [model] endpoint"
+            )
+        return self
 
     @model_validator(mode="after")
     def _separate_and_outside_checkout(self) -> "JangusConfig":

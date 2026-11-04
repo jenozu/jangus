@@ -40,7 +40,7 @@ Primary: the repository owner on a Windows 11 desktop (32 GB RAM) with an option
 | V2-FR04 | Durable state (SQLite) with idempotency keys and crash reconciliation | P1 |
 | V2-FR05 | Per-agent and global budgets: calls, tokens, wall time, and monthly spend cap. Budgets survive restarts | P2 |
 | V2-FR06 | Agent spec loader with strict schema; a spec is active only if its content hash is approved by the owner | P2 |
-| V2-FR07 | Model provider interface with local Ollama and Claude API; model selection is part of the spec; no silent fallback to a different or paid provider | P2 |
+| V2-FR07 | Model provider interface with the Claude API (the default cheap model is Haiku over the direct API) and an optional, off-by-default local Ollama provider; each provider is enabled only by explicit owner config; model selection is part of the spec; no silent fallback to a different or paid provider | P2 |
 | V2-FR08 | Propose-then-execute loop: agent returns structured proposed tool calls; kernel validates and executes; results return to the agent as data | P2 |
 | V2-FR09 | Agents run fresh per job; continuity only via approved memory and audit log | P2 |
 | V2-FR10 | Scheduler entry point (`jangus tick`) driven by Windows Task Scheduler; missed ticks do not stack unbounded work | P3 |
@@ -55,13 +55,13 @@ Primary: the repository owner on a Windows 11 desktop (32 GB RAM) with an option
 | V2-FR19 | Approved Obsidian memory retrieval (exact-hash approval, lower trust) | P7 |
 | V2-FR23 | Escalation-only orchestrator: it is called only for a new owner goal, a spec-drafting request, or a halted directive that needs judgment. Task completion, run completion, scheduled standing jobs, T3 queueing and the daily report never call it | P2-P4 |
 | V2-FR24 | Kernel-run tasks: a directive task may declare `runner: kernel` and execute scripted tool steps with zero model calls; model calls are used only where judgment is needed | P2 |
-| V2-FR25 | Model tiering: specialists default to Haiku-class or local models, Sonnet at low effort for harder work; the orchestrator tier is used only on escalation, with a daily escalation cap; at the cap the escalation is queued for the owner, never silently raised | P2 |
+| V2-FR25 | Model tiering: specialists default to Claude Haiku over the direct API (an optional local model only where the owner enabled one), Sonnet at low effort for harder work; the orchestrator tier is used only on escalation, with a daily escalation cap; at the cap the escalation is queued for the owner, never silently raised | P2 |
 | V2-FR26 | Per-role cost metering: tokens, calls and spend recorded per run and per role (kernel-run, specialist, orchestrator) and shown in the daily report | P2 |
 | V2-FR27 | Attempt policy: the kernel counts failed attempts (failed/rejected call, failed verification, unparseable reply, repeated proposal, no-progress cycle). Defaults: 2 on the default model, 1 step-up, then stop and alert | P2 |
 | V2-FR28 | Repeat detection: an identical (tool, args) proposal twice in one task is refused and counted | P2 |
 | V2-FR29 | Hard per-task limits (model calls, proposals, wall time); limits cannot be reset by retry, restart or re-issue | P2 |
 | V2-FR30 | One-step escalation ladder per spec (`escalation_model`); only the kernel climbs it; agents cannot pick models, raise limits or call the orchestrator | P2 |
-| V2-FR31 | Host placement: specs declare `host` (pc, vps, actions); the kernel refuses to run an agent where required paths or secrets are unavailable. Work runs as low-cost as possible (kernel-run, local model, VPS, Haiku, Sonnet, orchestrator) | P3-P7 |
+| V2-FR31 | Host placement: specs declare `host` (pc, vps, actions); the kernel refuses to run an agent where required paths or secrets are unavailable. Work runs as low-cost as possible (kernel-run, Haiku, Sonnet low, orchestrator; an optional local model on the PC or VPS is a rung the owner may enable below Haiku) | P3-P7 |
 | V2-FR32 | Token ledger: every model call records role, reason, model, measured input/output/cached tokens and cost; kernel-run tasks record zero | P2 |
 | V2-FR33 | Owner-maintained price table; unknown paid model refused; stale table alerts | P2 |
 | V2-FR34 | Pre-call worst-case budget check against task, directive, daily, orchestrator and monthly limits; refusal counts as a failed attempt | P2 |
@@ -84,8 +84,8 @@ Primary: the repository owner on a Windows 11 desktop (32 GB RAM) with an option
 | V2-NFR03 | Restart or new session never resets budgets, approvals, or failure counts | Fault injection |
 | V2-NFR04 | Secrets and private content never reach logs, exports, or non-permitted models | Canary tests |
 | V2-NFR05 | Unattended runs are bounded: no infinite loops, no unbounded spend, no unbounded queue growth | Budget and soak tests |
-| V2-NFR06 | The system works with the cloud model disabled (local-only degraded mode) for tiers T1 | Disabled-provider test |
-| V2-NFR08 | Token and spend use is the primary operating constraint: normal operation spends tokens only where a local or cheap model is insufficient; all spend is capped and metered | Cost report; soak token totals |
+| V2-NFR06 | The system keeps working with the paid provider disabled for T1 kernel work: `runner: kernel` tasks, recipes and watchers continue. Since 2026-11-04 (ADR-002) `runner: model` work needs the paid provider unless the owner enabled the optional local one | Disabled-provider test |
+| V2-NFR08 | Token and spend use is the primary operating constraint: normal operation spends tokens only where kernel-run work, a recipe, a watcher or the cache cannot answer, and uses the cheap model (Haiku) where it can; all spend is capped and metered | Cost report; soak token totals |
 | V2-NFR07 | Every side effect has correlated intent, outcome, verification or unresolved status | Timeline inspection |
 
 ## Success measures
@@ -98,7 +98,8 @@ Excluded until separately authorized: unrestricted shell or generated-code execu
 
 ## Risks and open decisions
 
-- Local model tool-use quality is unproven; benchmark before assigning an agent to a local model.
+- Cloud-only routine work means shop and email content is sent to Anthropic. Accepted by the owner on 2026-11-04 for both, mailbox included (ADR-002); revisit only if the kind of mail arriving changes.
+- Local model tool-use quality is unproven; benchmark before assigning an agent to the optional local provider.
 - Prompt injection through inbox and shop data is the main security risk; tier limits and data/instruction separation are the defense, not model judgment.
 - Claude API spend: set cap before first use; define behavior at cap (stop and alert).
 - Shopify/Printify/email API write semantics and idempotency vary per action; each action needs its own reconciliation rule.

@@ -1,6 +1,6 @@
 # ADR-001: v2 orchestrator and specialist agents under a deterministic kernel
 
-Status: ACCEPTED by the repository owner on 2026-11-01. Builds on v1 ADR-006 (deterministic execution); amends v1 rules R01, R03, R11 as listed below. Drafted as ADR-009 in the v1 repo.
+Status: ACCEPTED by the repository owner on 2026-11-01. **Amended 2026-11-04 by [ADR-002](002-claude-direct-default-model.md):** items 5, 9, 11 and the R01 amendment below are superseded in part. Claude Haiku through the direct Anthropic API is now the default cheap model, local Ollama is an optional provider that is off by default, and the placement ladder is kernel-run, Haiku, Sonnet low, orchestrator. The text below is left as the record of what was decided on 2026-11-01 and is not rewritten. Builds on v1 ADR-006 (deterministic execution); amends v1 rules R01, R03, R11 as listed below. Drafted as ADR-009 in the v1 repo.
 
 ## Context
 

@@ -28,3 +28,13 @@ Ideas that are not part of the current plan. Review at the end of each phase: pr
 - `jangus tick` takes the folders from the spec's `required_paths`; a friendlier `jangus spec new` that writes and checks the two draft files together would reduce edit mistakes.
 - Reconciliation assumes export column names; adjust after seeing a real file.
 - Per-task verifiers for model tasks (carried over from Phase 2b) are still open.
+
+## Added 2026-11-04 (Claude-direct default)
+- **OpenRouter as a model route: considered and REJECTED for now** (owner decision 2026-11-04, ADR-002). It came up as a cheaper or more flexible way to reach small models when local models were dropped. Reasons for rejecting it:
+  1. **It needs a new provider adapter.** Today there are exactly two providers behind one interface (`claude`, `ollama`); OpenRouter would be a third, with its own request/response and usage fields to map, its own errors, and its own tests.
+  2. **Its routing and fallback fight rule 7.** OpenRouter's selling point is upstream routing between providers and automatic fallback. Jangus must never silently switch provider or model (PRD non-goal, ADR-001 item 5), so that behaviour would have to be pinned off, which removes most of the benefit while leaving the risk that a future default turns it back on.
+  3. **An extra party sees the data.** Shop order data and, in Phase 6, email text would pass through OpenRouter in addition to the model vendor. That is a second trust decision on top of the one ADR-002 already accepts.
+  4. **Nothing here was checked against OpenRouter's current documentation.** The three points above are reasoning about the design, not verified behaviour; anyone promoting this idea must read their current docs on routing, fallback, data handling and usage reporting first.
+  Revisit only if the direct API's cost or availability becomes a real problem, and then with a spike that answers point 4 and shows fallback can be fully disabled.
+- If a faster PC or a GPU VPS appears, the optional local provider is the obvious cheap rung again: `scripts/benchmark_ollama.py` and the provider are still in the repo, and `ollama_enabled` plus a loopback endpoint is all it takes.
+- A per-agent "keep this local" rule, enforced by the kernel from the spec rather than by convention. Lower priority after 2026-11-04: the owner accepted the cloud trade-off for the mailbox too, so this is no longer a Phase 6 precondition. Still worth having if a later agent handles data that must not leave the machine.

@@ -8,8 +8,10 @@ checkout). Example:
       claude/haiku-tag: {input_per_mtok: 1.00, output_per_mtok: 5.00, cached_per_mtok: 0.10}
       ollama/qwen3:8b: free
 
-Keys are `provider/model`. Local models (provider `ollama`) cost nothing and need no entry;
-every other provider is paid, and a paid model with no entry is refused (fail closed).
+Keys are `provider/model`. The default cheap model is Claude Haiku over the direct API
+(ADR-002), so the common case is a paid entry. Local models (provider `ollama`, optional and
+off by default) cost nothing and need no entry; every other provider is paid, and a paid model
+with no entry is refused (fail closed).
 Costs are integer micro-dollars, rounded up so the ledger never under-reports.
 """
 

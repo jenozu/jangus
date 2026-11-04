@@ -393,7 +393,7 @@
         "dependencies": [
           21
         ],
-        "details": "Break down after task 21 is done. Covers B16-B19, B23.\n\n[adapt 2026-11-01 cost discipline] Orchestrator is escalation-only: kernel calls it for a new owner goal, spec draft request, or a halted directive with escalate=true, under `daily_escalations` cap; at the cap the escalation is queued for the owner.\n\n[2026-11-01T18:25:29-05:00] Depends on task 25 (metering/cap) in practice; task ids stay append-only. Re-check dependencies before starting 22.",
+        "details": "Break down after task 21 is done. Covers B16-B19, B23.\n\n[adapt 2026-11-01 cost discipline] Orchestrator is escalation-only: kernel calls it for a new owner goal, spec draft request, or a halted directive with escalate=true, under `daily_escalations` cap; at the cap the escalation is queued for the owner.\n\n[2026-11-01T18:25:29-05:00] Depends on task 25 (metering/cap) in practice; task ids stay append-only. Re-check dependencies before starting 22.\n\n[amend 2026-11-04 ADR-002] 'local-only degraded mode' in the Phase 4 gate now means kernel-run work, recipes and watchers continuing with the paid provider disabled; there is no local model in the default ladder unless the owner enables the optional one.",
         "testStrategy": "B16-B19 and B23 pass; calls beyond the cap are queued and none are made (B28)",
         "complexity": 8,
         "id": 22,
@@ -475,7 +475,7 @@
           19,
           26
         ],
-        "details": "Break down after task 21. Host capability declaration (paths, secrets, models); refuse mismatches; decide the VPS transport and authentication (ADR first); benchmark local model on the VPS before assigning it work. GitHub Actions evaluation lives in task 24.",
+        "details": "Break down after task 21. Host capability declaration (paths, secrets, models); refuse mismatches; decide the VPS transport and authentication (ADR first); benchmark local model on the VPS before assigning it work. GitHub Actions evaluation lives in task 24.\n\n[amend 2026-11-04 ADR-002] The VPS local-model benchmark is now optional, not part of this task's exit: the default cheap model is Claude Haiku over the direct API, so a VPS is only about host placement (paths, secrets, job identity after a dropped connection) unless the owner later chooses to enable a local model there. 'Benchmark local model on the VPS before assigning it work' applies only if the owner enables the optional local provider.",
         "testStrategy": "pytest B35: host mismatch refused; VPS run reconciles by job identity after a dropped connection.",
         "complexity": 6,
         "subtasks": [],
@@ -525,7 +525,7 @@
           16,
           26
         ],
-        "details": "Per docs/RECIPES.md: observe verified tool-call sequences, abstract parameters, candidate after K identical solves (default 3) with measured savings, draft to recipes/drafts/, owner approves SHA-256, execute as runner: kernel with preconditions/steps/verify from a fixed vocabulary (foreach, where, when, substitution), fallback once via ladder and mark stale, untrusted-content runs ineligible, T3 steps still queue. Expand into subtasks when next.",
+        "details": "Per docs/RECIPES.md: observe verified tool-call sequences, abstract parameters, candidate after K identical solves (default 3) with measured savings, draft to recipes/drafts/, owner approves SHA-256, execute as runner: kernel with preconditions/steps/verify from a fixed vocabulary (foreach, where, when, substitution), fallback once via ladder and mark stale, untrusted-content runs ineligible, T3 steps still queue. Expand into subtasks when next.\n\n[amend 2026-11-04 ADR-002] Recipes matter more now, not less: the cheap rung (Haiku) costs money, so a compiled recipe saves real spend rather than only local latency. Measured savings in a candidate are priced from the price table, not assumed free.",
         "testStrategy": "pytest B42-B45 (candidate, approval and scope narrowing, fallback and stale, T3 still queues).",
         "complexity": 7,
         "subtasks": [],
@@ -541,7 +541,7 @@
         "dependencies": [
           19
         ],
-        "details": "src/jangus/kernel/watchers.py: cursor-based checks (new items since cursor, file hash changed, rule matched) using registered T1 tools; stored cursors in state; directive start gated by watcher result.",
+        "details": "src/jangus/kernel/watchers.py: cursor-based checks (new items since cursor, file hash changed, rule matched) using registered T1 tools; stored cursors in state; directive start gated by watcher result.\n\n[amend 2026-11-04 ADR-002] Unchanged in substance; note that a watcher's 'no change' now avoids a paid call, so watchers are a spend control and not only a latency control.",
         "testStrategy": "pytest B46: no change means zero model calls and no directive start; change starts exactly one run.",
         "complexity": 4,
         "subtasks": [],
@@ -592,7 +592,7 @@
           20,
           26
         ],
-        "details": "Depends on a working backup agent. Uses the model chosen in task 17. Records tokens per run, cache hits, step-ups; compares with budget. Becomes a recipe candidate if stable.",
+        "details": "Depends on a working backup agent. Uses the model chosen in task 17. Records tokens per run, cache hits, step-ups; compares with budget. Becomes a recipe candidate if stable.\n\n[amend 2026-11-04 ADR-002] 'the chosen cheap model' and 'the model chosen in task 17' mean Claude Haiku over the direct Anthropic API (owner decision 2026-11-04), not a local Ollama model. The soak therefore measures real spend as well as tokens, and it cannot start before task 43 (model id and prices) and the [caps] table are in place.",
         "testStrategy": "Seven days, zero manual fixes, token totals within the budget set in the spec; report in docs/reviews/PHASE_3B.md.",
         "complexity": 4,
         "subtasks": [],
@@ -694,11 +694,60 @@
         "subtasks": [],
         "runner": "kernel",
         "verify": "python3 tools/taskmaster/tasks.py validate"
+      },
+      {
+        "title": "Claude Haiku is the default cheap model (corrective for tasks 13, 17, 25)",
+        "description": "Make the Claude-direct default real in config, the provider factory, the draft specs and the docs. Corrective task: tasks 13, 17 and 25 are done and must not be edited.",
+        "status": "done",
+        "priority": "high",
+        "dependencies": [
+          13,
+          25
+        ],
+        "details": "Per ADR-002 and the 2026-11-04 PRD decision log entry. Config: the local model endpoint becomes optional and a local provider is enabled only by explicit owner config (`ollama_enabled`), the way `claude_enabled` already works; no provider is enabled by accident and rule 7 (no silent fallback) is unchanged. Provider factory registers Ollama only when the owner configured it. Keep the Ollama provider, scripts/benchmark_ollama.py and all their tests working. Docs: PHASES (2a gate optional), ARCHITECTURE, TOKEN_ECONOMY, DIRECTIVES, BUILD_PLAN, PRD, README, COST_SETUP (Haiku as the default cheap model, dedicated key steps, provider-side limit, [caps], prices.yaml). The exact Haiku model id and prices are NOT written from memory: they are a marked placeholder for the owner (task 43).\n\n[2026-11-04T13:44:37-05:00] Plan: config gains ollama_enabled (default false) and makes the loopback [model] endpoint optional; providers/factory registers+enables ollama only when the owner configured both; claude stays behind claude_enabled. No kernel change, no model-calling code added to the kernel. Docs pass: PHASES/ARCHITECTURE/TOKEN_ECONOMY/DIRECTIVES/BUILD_PLAN/PRD/README/COST_SETUP. Haiku model id and prices left as a marked placeholder (task 43) because docs.claude.com could not be fetched in this session.\n\n[2026-11-04T13:50:24-05:00] Built: config [model] optional + ollama_enabled (default false, refused without an endpoint); providers/factory registers ollama only when configured and enables it only when the flag is set; claude unchanged behind claude_enabled. 4 new tests in test_providers.py; test_config's 'missing [model] is invalid' case replaced by two cases (a genuinely required field still rejected; a missing local endpoint now valid). Docs pass done (PHASES gate-changes table, ARCHITECTURE/TOKEN_ECONOMY/DIRECTIVES/PRD/BUILD_PLAN/README/COST_SETUP). Verified on Linux: ruff clean, mypy clean (45 files), 602 pytest passed, tasks.py validate exit 0. NOT verified: no real model or Claude call, nothing run on the owner's PC, Haiku model id and prices left as a marked placeholder (task 43) because docs.claude.com could not be fetched in this session.",
+        "testStrategy": "uv run --locked ruff check, mypy, pytest all green; tools/taskmaster/tasks.py validate passes; a config with no local endpoint loads and enables only the providers the owner turned on; Ollama provider and benchmark tests still pass.",
+        "complexity": 3,
+        "id": 41,
+        "subtasks": [],
+        "runner": "model",
+        "verify": "uv run --locked pytest"
+      },
+      {
+        "title": "Ollama benchmark and local provider are optional, not a blocker",
+        "description": "Record that task 17's benchmark no longer gates anything and that the local provider is an optional, off-by-default rung.",
+        "status": "done",
+        "priority": "medium",
+        "dependencies": [
+          17
+        ],
+        "details": "Per ADR-002. The Phase 2a exit gate 'owner chooses the default cheap model' is satisfied by the 2026-11-04 decision; the benchmark stays in the repo as a tool for a future machine (a faster PC or a VPS with a GPU) and is no longer required to continue. docs/PHASES.md states exactly what changed so no gate is weakened silently; MEMORY.md open items drop 'choose the default cheap model' as a blocker. Nothing is deleted: scripts/benchmark_ollama.py, src/jangus/agents/benchmark.py and their tests stay.\n\n[2026-11-04T13:44:37-05:00] Plan: PHASES.md 2a gate marked optional with date and reason; MEMORY open items updated; nothing deleted.\n\n[2026-11-04T13:50:24-05:00] Done: PHASES.md 'Gate changes' section records the 2a model-choice gate as satisfied 2026-11-04 and the benchmark run as optional, with a before/after table showing no other gate changed; MEMORY.md open items no longer list the benchmark as a blocker; benchmark code, script and tests kept and passing.",
+        "testStrategy": "docs/PHASES.md marks the 2a model choice gate optional with the reason and date; MEMORY.md no longer lists the benchmark as a blocker; benchmark tests still pass; tasks.py validate passes.",
+        "complexity": 1,
+        "id": 42,
+        "subtasks": [],
+        "runner": "model",
+        "verify": "python3 tools/taskmaster/tasks.py validate"
+      },
+      {
+        "title": "Owner: fill in the Haiku model id and prices",
+        "description": "OWNER TASK. Put the current Haiku model id and its prices into prices.yaml and the agent specs from the Anthropic console/docs.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          41
+        ],
+        "details": "The agent did not write a Haiku model id or price from memory (CLAUDE.md rule 14). docs/COST_SETUP.md and the draft specs carry a marked placeholder. Owner: read the current model id and per-million input/output/cached prices from the Anthropic console or https://docs.claude.com, write prices.yaml with an as_of date, and put the same id in the agent spec's model.name. A paid model with no price entry is already refused (fail closed), so nothing can run on a guess.",
+        "testStrategy": "jangus status / a specialist run on the owner's PC prices the call and does not raise PRICE_MISSING; prices.yaml as_of is within 60 days.",
+        "complexity": 1,
+        "id": 43,
+        "subtasks": [],
+        "runner": "human",
+        "verify": "manual"
       }
     ],
     "metadata": {
       "created": "2026-11-01T18:19:53-05:00",
-      "updated": "2026-11-03T11:46:51-05:00"
+      "updated": "2026-11-04T13:50:24-05:00"
     }
   }
 }
