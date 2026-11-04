@@ -1,0 +1,6 @@
+ERROR: 1: runner 'robot' is not one of kernel, local, model, human
+ERROR: 1: depends on later task 2 (tasks may depend only on lower ids)
+ERROR: 2: unknown status 'banana'
+ERROR: 2: runner 'kernel' needs a non-empty verify command
+warn: 2: no testStrategy
+warn: 3: complexity 8 but no subtasks (expand it before starting)

@@ -1,0 +1,69 @@
+I001 [*] Import block is un-sorted or un-formatted
+ --> pkg/m.py:1:1
+  |
+1 | import os,sys
+  | ^^^^^^^^^^^^^
+2 | def f(x: int) -> str:
+3 |     return x + 1
+  |
+help: Organize imports
+  |
+  - import os,sys
+1 + import os
+2 + import sys
+3 +
+4 +
+5 | def f(x: int) -> str:
+  |
+
+F401 [*] `os` imported but unused
+ --> pkg/m.py:1:8
+  |
+1 | import os,sys
+  |        ^^
+2 | def f(x: int) -> str:
+3 |     return x + 1
+  |
+help: Remove unused import
+  |
+  - import os,sys
+1 | def f(x: int) -> str:
+  |
+
+F401 [*] `sys` imported but unused
+ --> pkg/m.py:1:11
+  |
+1 | import os,sys
+  |           ^^^
+2 | def f(x: int) -> str:
+3 |     return x + 1
+  |
+help: Remove unused import
+  |
+  - import os,sys
+1 | def f(x: int) -> str:
+  |
+
+F841 Local variable `y` is assigned to but never used
+ --> pkg/m.py:5:5
+  |
+3 |     return x + 1
+4 | def g(a):
+5 |     y = undefined_name
+  |     ^
+6 |     return a
+  |
+help: Remove assignment to unused variable `y`
+
+F821 Undefined name `undefined_name`
+ --> pkg/m.py:5:9
+  |
+3 |     return x + 1
+4 | def g(a):
+5 |     y = undefined_name
+  |         ^^^^^^^^^^^^^^
+6 |     return a
+  |
+
+Found 5 errors.
+[*] 3 fixable with the `--fix` option (1 hidden fix can be enabled with the `--unsafe-fixes` option).
