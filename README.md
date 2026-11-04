@@ -2,7 +2,7 @@
 
 **An orchestrator that starts specialist agents to do your day-to-day work, without you driving every step, and without burning tokens.**
 
-> **Status: Phase 2b merged; Phase 3 code built (open PRs #29-#34, not merged) but its gate (a 7-day unattended soak on the owner's PC) has not been run.** The deterministic kernel passes scenarios B01-B07 with fake tools. Phase 2a added agent specs with a hash approval registry, Ollama and Claude providers and a local-model benchmark script; Phase 2b added the agent runtime (propose-then-execute loop, directive runner, attempt policy with the one-step escalation ladder, durable budgets, metering and price table, pre-call budget gate with spend alerts, result cache, context budget). All model code has only been tested against a scripted fake model: no real model call has happened. Phase 3 added the file tool pack, a scheduler (`jangus tick`), a daily report, cost reconciliation and a kernel-only nightly backup agent; none of it has run on a real machine beyond CI. Everything below describes the intended system unless marked "planned". See [Status and roadmap](#status-and-roadmap).
+> **Status: Phase 2b merged; Phase 3 code built (open PRs #29-#34, not merged) but its gate (a 7-day unattended soak on the owner's PC) has not been run.** The deterministic kernel passes scenarios B01-B07 with fake tools. Phase 2a added agent specs with a hash approval registry, Claude and Ollama providers and a benchmark script; Phase 2b added the agent runtime (propose-then-execute loop, directive runner, attempt policy with the one-step escalation ladder, durable budgets, metering and price table, pre-call budget gate with spend alerts, result cache, context budget). All model code has only been tested against a scripted fake model: no real model call has happened. Phase 3 added the file tool pack, a scheduler (`jangus tick`), a daily report, cost reconciliation and a kernel-only nightly backup agent; none of it has run on a real machine beyond CI. Everything below describes the intended system unless marked "planned". See [Status and roadmap](#status-and-roadmap).
 
 ---
 
@@ -49,8 +49,8 @@ Design goals, in priority order:
                            v
    +----------------+   directive    +--------------------+
    |  Orchestrator  | -------------> |  Specialist agent  |
-   | (escalation    |  (task list)   | (cheap or local    |
-   |  only, capped) |                |  model, or none)   |
+   | (escalation    |  (task list)   | (cheap model, or   |
+   |  only, capped) |                |  no model at all)  |
    +----------------+                +---------+----------+
             ^                                  | proposes tool calls
             | escalate only                    v
@@ -118,7 +118,7 @@ Token and spend use is the main operating constraint. The design spends tokens o
 4. **Result cache** keyed by input content hash.
 5. **Minimal context** per task, with kernel-side summarization of large outputs; the orchestrator sees kernel-written summaries, never raw logs.
 6. **Short structured outputs** with tight limits; prompt caching and batch endpoints where measured to save.
-7. **Cheapest model first**: local model, then Haiku-class, then Sonnet at low effort, then the orchestrator tier on escalation only.
+7. **Cheapest model first**: Claude Haiku over the direct API, then Sonnet at low effort, then the orchestrator tier on escalation only. An optional local model (Ollama) can be enabled as a free rung below Haiku, but it is off by default.
 
 And it is measured and capped:
 - Every model call is recorded with role, reason, model and **measured** input, output and cached tokens, priced from an owner-maintained table.
@@ -130,7 +130,11 @@ And it is measured and capped:
 Details: [docs/TOKEN_ECONOMY.md](docs/TOKEN_ECONOMY.md).
 
 ## Where work runs
-Work is placed as low-cost as possible, in this order: kernel-run (no model) → local model on your PC (Ollama) → local model on a VPS → Haiku-class API → Sonnet at low effort → orchestrator tier. Each agent spec declares a `host` (`pc`, `vps`, or `actions`) and the kernel refuses to run it where its files or secrets aren't available.
+Work is placed as low-cost as possible, in this order: kernel-run (no model) → Claude Haiku over the direct API → Sonnet at low effort → orchestrator tier. Each agent spec declares a `host` (`pc`, `vps`, or `actions`) and the kernel refuses to run it where its files or secrets aren't available.
+
+A local model (Ollama, on your PC or a VPS) is an **optional** rung below Haiku, off by default: it needs a loopback endpoint and `ollama_enabled` in your config. It was the default until 2026-11-04, when the owner found this PC runs these models too slowly ([ADR-002](docs/decisions/002-claude-direct-default-model.md)). The provider, the benchmark script and their tests are all still here. Nothing ever switches between a local and a paid provider on its own.
+
+Because routine work now runs in the cloud, data the agents handle — shop orders today, email text in Phase 6 — is sent to Anthropic. That is a deliberate trade-off recorded in ADR-002; enable the optional local provider for any agent whose data should stay on the machine.
 
 The system runs on your Windows PC first, started by Windows Task Scheduler (`jangus tick`, planned). Agents that need no local files (for example API-only shop monitoring) can later move to a VPS. GitHub Actions is an option to evaluate later, not a default, because its machines are wiped after each run (state and ledger durability, overlapping runs, secrets handling). That evaluation needs its own decision record first.
 
@@ -182,7 +186,7 @@ Rules: one task at a time; new ideas go to `.taskmaster/docs/parking-lot.md`, no
 |---|---|---|
 | 0 | Specs, ADR-001, task list | Done |
 | 1 | Kernel with fake tools | Built; B01-B07 pass with fake tools ([review](docs/reviews/PHASE_1.md)) |
-| 2a | Providers and local model benchmark | Built and merged (fake transports only); benchmark awaits the owner's run on the PC ([review](docs/reviews/PHASE_2A.md)) |
+| 2a | Providers and benchmark | Built and merged (fake transports only); the model choice was settled on 2026-11-04 (Claude Haiku, direct API) and the Ollama benchmark is now optional ([review](docs/reviews/PHASE_2A.md)) |
 | 2b | Agent runtime, attempt policy, metering, budget gate, cache | Built and merged (fake model only) ([review](docs/reviews/PHASE_2B.md)) |
 | 3 | File/backup agent, scheduler, 7-day soak | Code built on open PRs, soak NOT run ([review](docs/reviews/PHASE_3.md), [soak checklist](docs/SOAK.md)) |
 | 3b | Recipes, watchers, model-driven soak | Not started |
@@ -191,7 +195,7 @@ Rules: one task at a time; new ideas go to `.taskmaster/docs/parking-lot.md`, no
 | 6 | Inbox agent | Not started |
 | 7 | Memory, VPS, Actions evaluation | Not started |
 
-Acceptance is defined by 47 scenarios (B01-B47) in [docs/MVP.md](docs/MVP.md). Results will be recorded with the distinction between fake-model, real local-model and real Claude runs, and between simulated and hardware-tested behavior.
+Acceptance is defined by 47 scenarios (B01-B47) in [docs/MVP.md](docs/MVP.md). Results will be recorded with the distinction between fake-model, real local-model (optional provider) and real Claude runs, and between simulated and hardware-tested behavior.
 
 ## Documentation index
 | Document | Purpose |
@@ -218,7 +222,7 @@ Acceptance is defined by 47 scenarios (B01-B47) in [docs/MVP.md](docs/MVP.md). R
 
 **Can agents create other agents?** The orchestrator can draft a spec. It stays inert until you approve it, and the orchestrator can never approve its own drafts.
 
-**Will it work offline?** Local-model and kernel-run work does. Cloud models are optional and capped.
+**Will it work offline?** Kernel-run work, recipes and watchers do. Model work does not, unless you enable the optional local provider: since 2026-11-04 the default cheap model is Claude Haiku over the API. Paid calls are capped, metered and refused before they exceed a budget.
 
 ## License
 None, by owner decision (2026-11-01). All rights reserved by default; no license grant is implied. To be revisited before the repo is shared or accepts contributions.

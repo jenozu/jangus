@@ -3,7 +3,7 @@
 Status: DRAFT specification. Nothing here is implemented. Token and spend use is the primary operating constraint of Jangus (V2-NFR08).
 
 ## Principles
-1. The cheapest token is the one never spent: script it, cache it, or detect "nothing changed" without a model.
+1. The cheapest token is the one never spent: script it, cache it, or detect "nothing changed" without a model. Since 2026-11-04 ([ADR-002](decisions/002-claude-direct-default-model.md)) the cheap rung is Claude Haiku over the direct API rather than a free local model, so every routine call costs real money and this principle carries more weight, not less.
 2. Every model call is metered, attributed to a role and a reason, and checked against a budget before it is sent.
 3. Cost discipline is enforced by the kernel. No agent can raise a limit, pick a model, or hide a call.
 4. Estimates are labelled as estimates; measured usage comes from provider responses.
@@ -18,7 +18,7 @@ The kernel wraps every provider call and writes one ledger record:
 | `run_id`, `directive_id`, `task_id`, `attempt` | correlation |
 | `provider`, `model`, `effort` | what answered |
 | `input_tokens`, `output_tokens`, `cached_tokens` | **measured**, from the provider's usage fields (Anthropic response usage; Ollama prompt/eval counts) |
-| `cost_usd` | computed from the price table; 0 for local models |
+| `cost_usd` | computed from the price table; 0 only for the optional local provider |
 | `est_input_tokens` | the pre-call estimate, kept to calibrate the estimator |
 | `latency_ms`, `outcome` | for tuning |
 
@@ -56,7 +56,7 @@ Daily report (generated from the ledger by the kernel, no model): calls, tokens 
 6. **Minimal context**: each task gets only the inputs it needs, with a per-task `max_input_tokens`. Large tool outputs are summarized by the kernel (counts, diffs, top items) before the model sees them. The orchestrator receives kernel-written summaries, never raw logs.
 7. **Short structured output**: JSON proposals, tight `max_tokens`, no prose reasoning requested.
 8. **Provider features where available**: put the stable role/spec prefix first so prompt caching applies; use batch endpoints for non-urgent work (typically cheaper). The provider interface exposes both; each is used only after measurement shows a saving.
-9. **Local first**: local Ollama on the PC or VPS for routine judgment (see placement in ARCHITECTURE.md).
+9. **Optional local provider**: Ollama on the PC or a VPS is free and private, but it is off by default and is not the routine path (the owner's PC is too slow); it is a rung an owner can enable for specific agents (see placement in ARCHITECTURE.md).
 10. **Batching items**: classify many items in one call when latency does not matter.
 
 ## 8. What the kernel never does

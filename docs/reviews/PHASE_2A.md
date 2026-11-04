@@ -2,6 +2,8 @@
 
 Date: 2026-11-02/03. Scope: agent spec schema, loader and approval registry (task 12, PR #13); model providers (task 13, PR #15); local model benchmark script (task 17, this PR). Each merged to `main` only after CI was green on ubuntu-latest and windows-latest. Task 35 (README status fix, PR #12) was a docs-only corrective.
 
+> **Later note (2026-11-04):** this is a dated record of what was built and is left as written. The model decision it assumed has since changed: Claude Haiku over the direct Anthropic API is now the default cheap model and the local Ollama provider is optional and off by default ([ADR-002](../decisions/002-claude-direct-default-model.md), and the gate change in [PHASES.md](../PHASES.md)). The Ollama benchmark described here is no longer required to continue.
+
 ## What is real and what is fake
 
 | Piece | Evidence | Real hardware / service? |

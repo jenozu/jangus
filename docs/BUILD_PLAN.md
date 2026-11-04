@@ -2,6 +2,8 @@
 
 Status: DRAFT 2026-11-01. Claude works in this repo from the cloud sandbox (Linux). It can write code and tests, run them on Linux, and push branches and open PRs. It cannot run anything on the owner's Windows PC, reach local Ollama, or hold the owner's real credentials.
 
+Amended 2026-11-04 ([ADR-002](decisions/002-claude-direct-default-model.md)): the default cheap model is Claude Haiku over the direct Anthropic API, and the local Ollama provider is optional and off by default. The owner duties below that concerned picking a local model are now optional; the duties about the API key, the provider-side spend limit and `prices.yaml` are required before any specialist runs, not just before orchestration.
+
 ## Phase 0: accept the design
 - Claude: draft docs, ADR, CLAUDE.md, MEMORY.md, orchestrator draft spec (done).
 - Owner: read and accept or change ADR-001; choose a license; confirm package name; merge the docs.
@@ -12,7 +14,7 @@ Status: DRAFT 2026-11-01. Claude works in this repo from the cloud sandbox (Linu
 
 ## Phase 2: agent runtime (B08-B12)
 - Claude: spec schema and loader; approval registry (hash check); provider interface; Ollama and Claude providers (tested against mocks and recorded transcripts); budget and spend accounting that survives restart; propose-then-execute loop; scripted fake-model tests; benchmark script.
-- Owner: create a Claude API key and put it in Windows Credential Manager (never in chat or files); set the monthly spend cap; pull a local model with `ollama pull` and run the benchmark script, then send the JSON results; approve each agent spec by running the approval command.
+- Owner: create a dedicated Claude API key with a provider-side spend limit and put it in Windows Credential Manager (never in chat or files); set `[caps]` and write `prices.yaml` (COST_SETUP.md); approve each agent spec by running the approval command. Optional since 2026-11-04: pulling a local model with `ollama pull` and running the benchmark script.
 
 ## Phase 3: file/backup agent and scheduler (B13-B15)
 - Claude: file tool pack (`list/read/hash/copy_new/report`, plus T3 delete/overwrite); `jangus tick` with missed-tick coalescing; backup agent spec; a Task Scheduler setup script and instructions; daily report; soak-test checklist.

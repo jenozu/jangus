@@ -2,6 +2,8 @@
 
 Date: 2026-11-03. Scope: durable budgets, propose-then-execute run loop, attempt policy and ladder, directive runner, cost metering and price table, pre-call budget gate and spend alerts, result cache, context budget. Authorized by the owner on 2026-11-03 ("proceed with the next phase"). Built as stacked PRs #20-#27 on top of #19 (authorization record) because merging beyond #18 was not authorized in the session; **none of #19-#27 was merged by the agent**, so `main` does not contain this work until the owner merges them in order.
 
+> **Later note (2026-11-04):** this is a dated record of what was built and is left as written. The model decision it assumed has since changed: Claude Haiku over the direct Anthropic API is now the default cheap model and the local Ollama provider is optional and off by default ([ADR-002](../decisions/002-claude-direct-default-model.md), and the gate change in [PHASES.md](../PHASES.md)). The Ollama benchmark described here is no longer required to continue.
+
 Gate (docs/PHASES.md): B08-B12, B24-B26, B29-B34, B36-B41.
 
 ## What is real and what is fake

@@ -52,7 +52,7 @@ Every task has hard limits so nothing can loop. Defaults come from the agent spe
 
 **Ladder for `runner: model` tasks** (defaults, set in the spec's `attempts` block):
 1. Attempts 1-2 use the spec's default model.
-2. Attempt 3 is a single step-up on the spec's `escalation_model` (for example Haiku to Sonnet low effort), only if the spec names one and the budget allows. The step-up sees the failure reasons recorded by the kernel, nothing else.
+2. Attempt 3 is a single step-up on the spec's `escalation_model` (Haiku to Sonnet at low effort), only if the spec names one and the budget allows. The step-up sees the failure reasons recorded by the kernel, nothing else.
 3. If that fails, the task is set `deferred` with a reason, the directive halts, and an alert is queued for the owner. The orchestrator is called only if the directive has `escalate: true` and the daily cap is not reached.
 
 `runner: kernel` tasks have no step-up: a failed scripted step gets the tool's own transient-retry allowance, then the directive halts.
@@ -66,7 +66,7 @@ Every task has hard limits so nothing can loop. Defaults come from the agent spe
 2. **Standing jobs skip the orchestrator.** The scheduler instantiates an approved directive template directly for the assignee. The orchestrator is not involved unless the directive halts.
 3. **Kernel-run tasks.** A task may set `"runner": "kernel"` with a scripted list of tool steps (for example list, hash, copy_new, report). The kernel executes and verifies them with zero model calls. `"runner": "model"` (the default) is used only where judgment is needed, and then only the specialist's model is called, one task at a time with minimal context.
 4. **Escalation, not supervision.** Only these events may call the orchestrator: a new owner goal, a request to draft a spec, or a halted directive. A halted directive first goes to the owner's alert queue. The kernel calls the orchestrator for a halt only if the directive's `escalate` flag is true and the daily escalation cap is not reached. At the cap, the escalation waits in the queue for the owner.
-5. **Cheap models by default.** The assignee's spec sets the model: local Ollama or a Haiku-class model for routine judgment, Sonnet at low effort for harder tasks. The orchestrator tier is reserved for escalation.
+5. **Cheap models by default.** The assignee's spec sets the model: Claude Haiku over the direct Anthropic API for routine judgment (the default since 2026-11-04, ADR-002), Sonnet at low effort for harder tasks, and an optional local Ollama model only where the owner has enabled one. The orchestrator tier is reserved for escalation. Because the cheap rung now costs money, `runner: kernel` tasks, recipes and watchers come before any of it.
 6. **Metered.** Every call is recorded per role (kernel-run, specialist, orchestrator) with tokens and spend, so the cost of supervision is visible and can be capped.
 
 ## Recipes, caching and watchers

@@ -17,11 +17,11 @@ Models think; the kernel acts. An agent can only return *proposed* tool calls as
 | Orchestrator | A privileged *agent spec* with tools `agent.start`, `approval.request`, `spec.draft`, `report.write` | Approving, tier changes |
 | Scheduler | `jangus tick` finds due agents, starts runs, coalesces missed ticks | Run logic |
 | Approval queue | Holds T3 actions; CLI list/show/approve/reject | Auto-approval |
-| Model providers | Ollama (loopback) and Claude API behind one interface | Fallback decisions |
+| Model providers | Claude API (the default) and Ollama (loopback, optional and off by default) behind one interface | Fallback decisions |
 | Memory (later) | Approved Obsidian notes, lower-trust data | Authority |
 | Remote worker (later) | Runs agents needing no local files | Local files |
 
-One Python application plus SQLite to start. One local inference at a time. The orchestrator is not a special code path with extra power; it is an agent whose spec lists only four tools.
+One Python application plus SQLite to start. One local inference at a time if a local model is enabled at all (it is off by default; see Placement). The orchestrator is not a special code path with extra power; it is an agent whose spec lists only four tools.
 
 ## Tool registry
 
@@ -43,7 +43,7 @@ Effective tier = max(tool tier, any elevation by a rule such as "target outside 
 schema_version: 1
 name: backup-maintainer
 role: "You maintain verified backups of the folders listed in your task."
-model: {provider: ollama, name: <exact tag>, max_tokens: 1024}
+model: {provider: claude, name: <current Haiku model id>, max_tokens: 1024}   # default cheap model; provider: ollama only if the owner enabled the optional local provider
 tools: [file.list, file.read, file.hash, file.copy_new, report.write]
 max_tier: T2
 secrets: []
@@ -73,7 +73,7 @@ Supervision tokens are the main avoidable cost, so the design keeps expensive mo
 |---|---|---|
 | Kernel | none | Always: status, verification, reports, scheduling, approvals queue |
 | Specialist, `runner: kernel` task | none | Scripted steps, zero tokens |
-| Specialist, `runner: model` task | Haiku-class or local; Sonnet at low effort for harder work | One task at a time, minimal context |
+| Specialist, `runner: model` task | Claude Haiku over the direct API; Sonnet at low effort for harder work | One task at a time, minimal context |
 | Orchestrator | Highest tier used | Only on escalation: new owner goal, spec drafting, halted directive with `escalate: true`, under a daily cap |
 
 The orchestrator is never called to confirm completion, to read a finished run, or to write the daily report. Standing jobs start from the scheduler. Cost per role is metered in the ledger and shown in the daily report. At the escalation cap the request waits for the owner; the system never raises the cap or switches model on its own.
@@ -98,9 +98,13 @@ Full specification: [TOKEN_ECONOMY.md](TOKEN_ECONOMY.md).
 The cheapest token is the one never spent, so work is placed as low on this list as it can go:
 
 1. **Kernel-run tasks** (no model): anywhere the kernel runs.
-2. **Local model on the PC** (Ollama): routine judgment, free, private, can reach local files.
-3. **Local model on the VPS** (if it has the memory or a GPU): always-on, for work that needs no PC files. Needs a benchmark; model size and speed are unknown.
-4. **Haiku-class API**, then **Sonnet at low effort**: only where local models are not reliable enough, or as the single step-up.
+2. **Claude Haiku over the direct Anthropic API**: the default cheap model for routine judgment (owner decision 2026-11-04, [ADR-002](decisions/002-claude-direct-default-model.md)). It costs money, so rung 1 and everything in TOKEN_ECONOMY section 7 come first.
+3. **Sonnet at low effort**: harder work, and the single step-up on the attempt ladder.
+4. **Orchestrator tier**: escalation only, under a daily cap.
+
+**Optional rung, off by default: a local model.** Ollama on the PC or a VPS is free and private and can reach local files, and the provider, the benchmark script and their tests are all still here. It is not in the default ladder because the owner's PC runs these models too slowly to be useful. Enabling one is explicit owner config (a loopback `[model]` endpoint plus `ollama_enabled`) and makes it a rung below Haiku for the agents whose specs name it. Nothing switches between a local and a paid provider on its own, in either direction: a failing or capped provider stops and alerts.
+
+**Consequence of a cloud default:** routine work is no longer local, so shop order data and (Phase 6) email text leave the PC for Anthropic. ADR-002 records this as an accepted trade-off; an owner who needs a job kept on the machine enables the optional local provider for that agent.
 5. **Orchestrator tier**: escalation only, under a daily cap.
 
 `host:` in the agent spec says where an agent runs, and the kernel checks that the host has the paths and secrets the spec needs. Agents that need local files stay on the PC. Agents that only call web APIs (shop monitoring, for example) can move to the VPS.
