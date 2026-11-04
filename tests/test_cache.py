@@ -55,9 +55,9 @@ def test_a_hit_costs_no_budget(tmp_path: Path) -> None:
     h = cached(tmp_path)
     h.provider.script += two_replies()
     h.runner.run(job("j1"))
-    spent = h.budgets.status("agent:file-agent")[Dimension.CALLS].spent
+    spent = h.budgets.status(h.runner.today_scope())[Dimension.CALLS].spent
     h.runner.run(job("j2"))
-    assert h.budgets.status("agent:file-agent")[Dimension.CALLS].spent == spent
+    assert h.budgets.status(h.runner.today_scope())[Dimension.CALLS].spent == spent
 
 
 def test_changing_the_input_misses(tmp_path: Path) -> None:

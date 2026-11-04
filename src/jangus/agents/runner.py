@@ -165,8 +165,10 @@ class _Stop(Exception):  # noqa: N818 - internal control flow
         self.outcome = outcome
 
 
-def agent_scope(name: str) -> str:
-    return f"agent:{name}"
+def agent_scope(name: str, day: date) -> str:
+    """The agent's budget scope for one day. A spec's budget is a daily budget, so each day
+    is a new scope and nothing is reset in place."""
+    return f"agent:{name}:{day.isoformat()}"
 
 
 class Runner:
@@ -213,25 +215,28 @@ class Runner:
         return AgentContext(
             allowed_tools=allowed,
             max_tier=spec.max_tier,
-            budget=f"{agent_scope(spec.name)}/actions",
+            budget=f"{self.today_scope()}/actions",
             secrets_allowed=frozenset(spec.secrets),
         )
 
-    def ensure_budgets(self) -> None:
-        """Define the agent's scope from its approved spec (spent amounts are kept)."""
+    def today_scope(self) -> str:
+        """Today's agent scope, defined from the approved spec (spent amounts are kept)."""
         spec = self._loaded.spec
+        scope = agent_scope(spec.name, self._today())
         b = spec.budget
         self._budgets.define(
-            agent_scope(spec.name), Limits.from_spec(b.calls, b.tokens, b.wall_seconds, b.spend_usd)
+            scope, Limits.from_spec(b.calls, b.tokens, b.wall_seconds, b.spend_usd)
         )
-        self._state.set_budget(
-            f"{agent_scope(spec.name)}/actions", b.calls * spec.attempts.max_proposals
-        )
+        self._state.set_budget(f"{scope}/actions", b.calls * spec.attempts.max_proposals)
+        return scope
+
+    def ensure_budgets(self) -> None:
+        self.today_scope()
 
     def run(self, job: Job, attempts: AttemptTracker | None = None) -> RunReport:
         spec = self._loaded.spec
         tracker = attempts if attempts is not None else LimitsOnlyAttempts(self._loaded)
-        scope = agent_scope(spec.name)
+        scope = self.today_scope()
         scopes = [scope, *job.extra_scopes]
         if self._gate is not None:
             scopes += self._gate.period_scopes()

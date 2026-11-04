@@ -1,0 +1,21 @@
+# DRAFT agent spec: inert until the owner approves its exact bytes (`jangus spec approve`).
+#
+# Before approving, edit `required_paths` to your real folders. The file tools may touch ONLY
+# these folders, so approving this spec approves them. The first path is read, the second is
+# where verified copies are written; they must match the paths in the directive file next to it.
+#
+# This agent is kernel-only (provider "none"): the nightly backup is scripted kernel tasks,
+# so it makes no model call and costs no tokens.
+schema_version: 1
+name: backup-maintainer
+role: "You maintain verified backups. This agent runs only scripted kernel tasks."
+model: {provider: none, name: kernel-only, max_tokens: 1}
+tools: [file.copy_new_tree]
+max_tier: T2
+secrets: []
+memory_scope: []
+triggers: [{cron: "0 2 * * *"}]
+budget: {calls: 10, tokens: 0, wall_seconds: 3600, spend_usd: 0}
+attempts: {default_model: 1, step_up: 0, max_model_calls: 1, max_proposals: 12}
+host: pc
+required_paths: ["D:/Documents", "E:/Backup"]

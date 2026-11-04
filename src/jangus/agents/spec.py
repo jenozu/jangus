@@ -28,7 +28,7 @@ from jangus.errors import FaultCode, RuntimeFault
 from jangus.kernel.registry import Tier
 
 MAX_SPEC_BYTES = 64 * 1024
-Provider = Literal["ollama", "claude"]
+Provider = Literal["ollama", "claude", "none"]  # "none": kernel-only agent, never calls a model
 Host = Literal["pc", "vps", "actions"]
 Effort = Literal["low", "medium", "high"]
 

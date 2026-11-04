@@ -51,7 +51,9 @@ def test_call_whose_worst_case_exceeds_the_agent_budget_is_refused_before_sendin
     report = h.runner.run(Job("j1", "x"))
     assert report.outcome is RunOutcome.REFUSED
     assert h.escalation.requests == []  # refused before anything was sent
-    assert any(f.startswith("over_budget:agent:file-agent/tokens") for f in report.failures)
+    assert any(
+        f.startswith(f"over_budget:{h.runner.today_scope()}/tokens") for f in report.failures
+    )
     assert "call_refused" in codes(h) and h.events("call_refused")
 
 

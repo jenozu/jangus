@@ -120,7 +120,7 @@ def test_priced_paid_model_runs_and_cost_is_recorded_and_charged(tmp_path: Path)
     h.runner.run(Job("j1", "x"))
     call = h.events("model_call")[0]
     assert call["cost_usd_micros"] == 100 * 15 + 20 * 75  # opus-tag: $15 in, $75 out per Mtok
-    assert h.budgets.status("agent:file-agent")[Dimension.USD_MICROS].spent == 3000
+    assert h.budgets.status(h.runner.today_scope())[Dimension.USD_MICROS].spent == 3000
 
 
 def test_local_model_costs_zero_without_an_entry(tmp_path: Path) -> None:
@@ -131,8 +131,8 @@ def test_local_model_costs_zero_without_an_entry(tmp_path: Path) -> None:
 
 
 def test_spend_cap_stops_a_paid_run(tmp_path: Path) -> None:
-    h = Harness(tmp_path, spec=paid_spec(), prices=default_prices())
-    h.budgets.define_one("agent:file-agent", Dimension.USD_MICROS, 2000)  # below one call's cost
+    spec = make_spec(provider="claude", model="opus-tag", escalation=False, spend_usd=0.002)
+    h = Harness(tmp_path, spec=spec, prices=default_prices())  # one call costs $0.003
     h.escalation.script += [reply(("file.read", {"path": "/work/x"})), reply(done=True)]
     report = h.runner.run(Job("j1", "x"))
     assert report.outcome is RunOutcome.BUDGET and len(h.escalation.requests) == 1
@@ -182,7 +182,7 @@ def test_report_totals_match_the_ledger_and_the_budgets(tmp_path: Path) -> None:
     )
     assert sum(r["calls"] for r in report.by_role.values()) == report.totals["calls"]
     assert sum(r["tokens"] for r in report.by_run.values()) == report.totals["tokens"]
-    spent = h.budgets.status("agent:file-agent")
+    spent = h.budgets.status(h.runner.today_scope())
     assert spent[Dimension.TOKENS].spent == report.totals["tokens"]
     assert spent[Dimension.CALLS].spent == report.totals["calls"]
     assert report.by_agent["file-agent"]["calls"] == 3

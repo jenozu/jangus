@@ -354,14 +354,14 @@
       {
         "title": "Backup agent spec and directive template",
         "description": "First specialist: verified backups from a standing directive.",
-        "status": "pending",
+        "status": "done",
         "priority": "high",
         "dependencies": [
           16,
           18,
           19
         ],
-        "details": "agents/backup-maintainer.yaml + directives/templates/nightly-backup.json; owner names folders at approval time.\n\n[adapt 2026-11-01 cost discipline] Backup agent's spec may use provider `none` (kernel-only): nightly backup directive is entirely `runner: kernel` tasks, so it costs zero tokens.",
+        "details": "agents/backup-maintainer.yaml + directives/templates/nightly-backup.json; owner names folders at approval time.\n\n[adapt 2026-11-01 cost discipline] Backup agent's spec may use provider `none` (kernel-only): nightly backup directive is entirely `runner: kernel` tasks, so it costs zero tokens.\n\n[2026-11-03T11:43:48-05:00] Plan: per-day agent budget scopes (found: lifetime agent budgets would exhaust a nightly agent and break the 7-day soak); spec provider 'none' for kernel-only agents; agents/drafts/backup-maintainer.yaml + .directive.json (two kernel tasks: copy_new_tree, confirm pass); e2e tests through run_standing_directive and Scheduler: zero model calls, corrupted destination halts, escape rejected, idempotent rerun.\n\n[2026-11-03T11:45:30-05:00] Built on phase-3/backup-agent; local ruff, mypy, pytest pass. Marked done after the task's test strategy ran.",
         "testStrategy": "Scripted fake-model run completes the template directive; kernel verifies every copy; nightly backup runs end to end with zero model calls",
         "complexity": 4,
         "id": 20,
@@ -377,7 +377,7 @@
         "dependencies": [
           20
         ],
-        "details": "scripts/install_task.ps1 + docs/SOAK.md checklist. Owner logs any manual fix.",
+        "details": "scripts/install_task.ps1 + docs/SOAK.md checklist. Owner logs any manual fix.\n\n[2026-11-03T11:45:09-05:00] Drafted scripts/install_task.ps1 and docs/SOAK.md (untested on Windows). Task stays pending: the soak is the owner's.",
         "testStrategy": "Seven consecutive days, zero manual fixes, zero unresolved effects (B15) recorded in docs/reviews/PHASE_3.md.",
         "complexity": 3,
         "id": 21,
@@ -698,7 +698,7 @@
     ],
     "metadata": {
       "created": "2026-11-01T18:19:53-05:00",
-      "updated": "2026-11-03T11:42:21-05:00"
+      "updated": "2026-11-03T11:45:30-05:00"
     }
   }
 }
