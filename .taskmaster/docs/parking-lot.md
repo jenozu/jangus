@@ -21,3 +21,6 @@ Ideas that are not part of the current plan. Review at the end of each phase: pr
 - Batch endpoints and measured prompt-cache savings (TOKEN_ECONOMY.md section 7.8) only after real usage data.
 - Move alert delivery beyond ledger entries (push/email) with the Phase 4 alert channel.
 - Cache hit rate and tokens saved in the daily report (the data is in `cache_hit` ledger records).
+
+## Added 2026-11-04 (DeepSeek Harness review)
+- Building on DeepSeek Harness (`dsh`, deepseek-ai/deepseek-harness). Reviewed in docs/reviews/DSH_HARNESS_REVIEW.md; recommendation: borrow ideas only, no dependency. Options (b) separate tool and (c) agent runtime conflict with rules 1, 7, 12 and need an ADR plus owner approval. Candidate ideas, each for its own phase: "model-visible means logged" as a tested invariant; read-only-by-default posture for file tools; keyless recorded-session replay tests for LLM agents; tool catalog generated from tool schemas. Owner to decide.
