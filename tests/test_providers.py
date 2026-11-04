@@ -412,3 +412,51 @@ def test_real_transport_posts_ignores_proxy_env_and_refuses_redirects(
     send = urllib_transport(use_proxy_env=False)
     redirected = send(HttpRequest(f"http://127.0.0.1:{server}/redirect", {}, b"{}", 5))
     assert redirected.status == 302  # not followed
+
+
+# ---- ADR-002: the local provider is optional and off by default -----------------
+
+
+def no_model_cfg(tmp_path: Path, **extra: Any):  # type: ignore[no-untyped-def]
+    """A Claude-direct install: no local endpoint configured at all."""
+    return parse_config(
+        {
+            "data_dir": str(tmp_path / "data"),
+            "workspace_dir": str(tmp_path / "work"),
+            **extra,
+        }
+    )
+
+
+def test_config_loads_without_a_local_model_endpoint(tmp_path: Path) -> None:
+    assert no_model_cfg(tmp_path).model is None
+
+
+def test_ollama_enabled_without_an_endpoint_is_refused(tmp_path: Path) -> None:
+    fault = fault_of(lambda: no_model_cfg(tmp_path, ollama_enabled=True))
+    assert fault.code is FaultCode.CONFIG_INVALID
+
+
+def test_ollama_is_off_unless_the_owner_enables_it(tmp_path: Path) -> None:
+    """A configured endpoint is not consent: `ollama_enabled` is what turns it on."""
+    ollama_t = FakeTransport(ok(OLLAMA_OK))
+    secrets = MemoryBackend({"anthropic_api_key": KEY})
+
+    off = build_hub(cfg(tmp_path), secrets, Recorder(), ollama_t, FakeTransport())
+    assert fault_of(lambda: off.complete("ollama", req())).code is FaultCode.PROVIDER_DISABLED
+    assert ollama_t.requests == []
+
+    on = build_hub(cfg(tmp_path, ollama_enabled=True), secrets, Recorder(), ollama_t, None)
+    assert on.complete("ollama", req()).text == '{"proposals": []}'
+
+
+def test_no_endpoint_means_no_local_provider_to_call(tmp_path: Path) -> None:
+    hub = build_hub(
+        no_model_cfg(tmp_path, claude_enabled=True),
+        MemoryBackend({"anthropic_api_key": KEY}),
+        Recorder(),
+        None,
+        FakeTransport(ok(CLAUDE_OK)),
+    )
+    assert fault_of(lambda: hub.complete("ollama", req())).code is FaultCode.PROVIDER_DISABLED
+    assert hub.complete("claude", req()).text == "hello world"

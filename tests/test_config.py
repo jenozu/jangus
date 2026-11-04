@@ -49,9 +49,16 @@ def test_wrong_type_not_coerced(valid: dict[str, Any]) -> None:
     assert fault_code(valid) is FaultCode.CONFIG_INVALID
 
 
-def test_missing_field_rejected(valid: dict[str, Any]) -> None:
-    del valid["model"]
+def test_missing_required_field_rejected(valid: dict[str, Any]) -> None:
+    del valid["data_dir"]
     assert fault_code(valid) is FaultCode.CONFIG_INVALID
+
+
+def test_local_model_endpoint_is_optional(valid: dict[str, Any]) -> None:
+    """ADR-002: the default cheap model is Claude over the direct API, so a
+    Claude-direct install configures no local endpoint at all."""
+    del valid["model"]
+    assert parse_config(valid).model is None
 
 
 @pytest.mark.parametrize(
