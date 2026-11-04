@@ -37,4 +37,4 @@ Exactly what changed, and what did not:
 
 No gate was weakened: B01–B47 still have to pass, the seven-day unattended soak (B15) is still Phase 3's exit, and a business agent still needs a clean unattended week before the next one is added. What changed is which model answers a `runner: model` task, and that a measurement nobody can act on no longer blocks the build.
 
-Two prerequisites follow from the decision, because the cheap rung is no longer free: Phase 3b cannot start before `[caps]`, `prices.yaml` and a dedicated provider-limited key exist (COST_SETUP.md, task 43), and the privacy trade-off in ADR-002 must be re-read before Phase 6 points the inbox agent at a real mailbox.
+One prerequisite follows from the decision, because the cheap rung is no longer free: Phase 3b cannot start before `[caps]`, `prices.yaml` and a dedicated provider-limited key exist (COST_SETUP.md, task 43). The privacy trade-off in ADR-002 was accepted by the owner on 2026-11-04 for the mailbox as well, so it does not gate Phase 6.

@@ -98,7 +98,7 @@ Excluded until separately authorized: unrestricted shell or generated-code execu
 
 ## Risks and open decisions
 
-- Cloud-only routine work means shop and email content is sent to Anthropic (accepted trade-off, ADR-002); re-read it before the inbox agent reads a real mailbox.
+- Cloud-only routine work means shop and email content is sent to Anthropic. Accepted by the owner on 2026-11-04 for both, mailbox included (ADR-002); revisit only if the kind of mail arriving changes.
 - Local model tool-use quality is unproven; benchmark before assigning an agent to the optional local provider.
 - Prompt injection through inbox and shop data is the main security risk; tier limits and data/instruction separation are the defense, not model judgment.
 - Claude API spend: set cap before first use; define behavior at cap (stop and alert).

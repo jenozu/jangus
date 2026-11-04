@@ -134,7 +134,7 @@ Work is placed as low-cost as possible, in this order: kernel-run (no model) →
 
 A local model (Ollama, on your PC or a VPS) is an **optional** rung below Haiku, off by default: it needs a loopback endpoint and `ollama_enabled` in your config. It was the default until 2026-11-04, when the owner found this PC runs these models too slowly ([ADR-002](docs/decisions/002-claude-direct-default-model.md)). The provider, the benchmark script and their tests are all still here. Nothing ever switches between a local and a paid provider on its own.
 
-Because routine work now runs in the cloud, data the agents handle — shop orders today, email text in Phase 6 — is sent to Anthropic. That is a deliberate trade-off recorded in ADR-002; enable the optional local provider for any agent whose data should stay on the machine.
+Because routine work now runs in the cloud, data the agents handle — shop orders today, email text in Phase 6 — is sent to Anthropic. That is a deliberate trade-off the owner accepted on 2026-11-04 (ADR-002), the mailbox included. Enable the optional local provider for any agent whose data should stay on the machine.
 
 The system runs on your Windows PC first, started by Windows Task Scheduler (`jangus tick`, planned). Agents that need no local files (for example API-only shop monitoring) can later move to a VPS. GitHub Actions is an option to evaluate later, not a default, because its machines are wiped after each run (state and ledger durability, overlapping runs, secrets handling). That evaluation needs its own decision record first.
 

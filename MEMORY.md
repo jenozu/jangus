@@ -21,7 +21,7 @@ Phase 3b and later are NOT authorized (tasks 30, 31, 34 and beyond). Task 27 (VP
 1. First jobs: shop/order monitoring, inbox triage with drafts, file/backup maintenance.
 2. Deterministic kernel is the only actor; agents propose.
 3. Tiers T1/T2/T3; owner can promote specific actions T3 to T2 (owner-signed, logged, reversible).
-4. Models: **Claude Haiku through the direct Anthropic API is the default cheap model** for routine specialist work; Claude API for orchestration/hard judgment; monthly spend cap; no silent fallback. Local Ollama stays in the code as an **optional provider, off by default** (needs a loopback `[model]` endpoint plus `ollama_enabled`). *Amended 2026-11-04 (ADR-002); was "hybrid: local Ollama for routine" — the owner's PC runs local models too slowly.* Known trade-off: routine work now sends shop and (later) email content to Anthropic.
+4. Models: **Claude Haiku through the direct Anthropic API is the default cheap model** for routine specialist work; Claude API for orchestration/hard judgment; monthly spend cap; no silent fallback. Local Ollama stays in the code as an **optional provider, off by default** (needs a loopback `[model]` endpoint plus `ollama_enabled`). *Amended 2026-11-04 (ADR-002); was "hybrid: local Ollama for routine" — the owner's PC runs local models too slowly.* Known trade-off, accepted by the owner on 2026-11-04: routine work now sends shop and (later) email content to Anthropic. The owner judged the mailbox non-sensitive, so this does not gate Phase 6; revisit only if the kind of mail arriving changes.
 5. PC first with Windows Task Scheduler (`jangus tick`); VPS later.
 6. Agents run fresh per job.
 7. Orchestrator drafts specs; inert until owner approves.
@@ -37,7 +37,7 @@ Phase 3b and later are NOT authorized (tasks 30, 31, 34 and beyond). Task 27 (VP
 ## Open items (owner)
 - **Fill in the Haiku model id and prices** (task 43): read the current id and per-million prices from the Anthropic Console or https://docs.claude.com, write `prices.yaml` with an `as_of` date, and use the same id in the agent spec's `model.name`. Nothing with `runner: model` can run until this is done (an unpriced paid model is refused). The agent wrote no id or price from memory.
 - Optional, no longer a blocker: run `scripts/benchmark_ollama.py` on the PC if you ever want the local provider back (a faster machine or a GPU VPS). The benchmark no longer gates any phase (2026-11-04 decision).
-- Accepted trade-off to revisit before Phase 6: with cloud-only routine work, shop orders and email text go to Anthropic. Decide then whether the inbox agent needs the optional local provider instead.
+- Settled 2026-11-04, no longer an open item: the owner accepts that shop orders and email text go to Anthropic and judges the mailbox non-sensitive, so Phase 6 is not gated on it. Recorded in ADR-002.
 - Before real Claude calls (now needed for routine work, not just orchestration): create a dedicated Anthropic API key with a provider-side spend limit, store it in Windows Credential Manager as `anthropic_api_key`, set `[caps]`, and set `claude_enabled = true` in config. See docs/COST_SETUP.md.
 - Optional: run the Phase 2a suite on the PC (`uv sync --locked`, `uv run --locked pytest`).
 - Alert channel beyond CLI and daily report.
