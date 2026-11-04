@@ -16,7 +16,14 @@ from tests.agent_harness import Harness, make_spec, reply
 
 # One call to opus-tag costs 15 per 1000 input tokens and 75 per 1000 output tokens.
 BIG_USAGE = Usage(input_tokens=1000, output_tokens=1000)  # 15_000 + 75_000 = 90_000 micros
-CAPS = Caps(daily_usd=0.20, monthly_usd=5.0)  # $0.20 = 200_000 micros
+
+
+def usd_caps(daily: float, monthly: float, **kw: float) -> Caps:
+    """Caps for a $100 plan, so a percentage equals a dollar amount."""
+    return Caps(plan_limit_usd=100, daily_percent=daily, monthly_percent=monthly, **kw)
+
+
+CAPS = usd_caps(0.20, 5.0)  # $0.20 = 200_000 micros
 
 
 def paid_spec(**kw: object) -> object:
@@ -63,11 +70,15 @@ def test_refusal_counts_as_a_failed_attempt_and_is_never_downgraded(tmp_path: Pa
 def test_each_scope_limit_refuses_an_over_budget_call(tmp_path: Path, scope_name: str) -> None:
     caps = {
         "directive": CAPS,
-        "day": Caps(daily_usd=0.01, monthly_usd=5.0),  # 10_000 micros < worst case
-        "month": Caps(daily_usd=0.20, monthly_usd=0.01),
+        "day": usd_caps(0.01, 5.0),  # 10_000 micros < worst case
+        "month": usd_caps(5.0, 5.0),
     }[scope_name]
     h = paid(tmp_path, caps=caps)
     extra: tuple[str, ...] = ()
+    if scope_name == "month":  # the month is nearly used up, the day is fresh
+        assert h.gate is not None
+        h.gate.period_scopes()
+        h.budgets.charge("month:2026-11", {Dimension.USD_MICROS: 4_990_000}, reason="earlier spend")
     if scope_name == "directive":
         h.budgets.define("directive:d1", Limits(5, 100, 60_000, 5_000_000))  # tokens too small
         extra = ("directive:d1",)
@@ -88,7 +99,7 @@ def test_call_within_every_limit_is_sent(tmp_path: Path) -> None:
 
 
 def test_paid_call_without_owner_spend_caps_is_refused(tmp_path: Path) -> None:
-    h = Harness(tmp_path, spec=paid_spec(), caps=Caps(daily_usd=1, monthly_usd=1))
+    h = Harness(tmp_path, spec=paid_spec(), caps=usd_caps(1, 1))
     h.gate._caps = None  # type: ignore[union-attr]  # noqa: SLF001 - config with no caps
     h.escalation.script.append(reply(done=True))
     report = h.runner.run(Job("j1", "x"))
@@ -115,7 +126,7 @@ def test_alerts_fire_at_50_and_80_percent_once_each(tmp_path: Path) -> None:
 
 
 def test_provider_is_blocked_at_100_percent_until_the_owner_acts(tmp_path: Path) -> None:
-    h = paid(tmp_path, caps=Caps(daily_usd=0.18, monthly_usd=5.0))  # exactly two calls
+    h = paid(tmp_path, caps=usd_caps(0.18, 5.0))  # exactly two calls
     h.escalation.script += [reply(("file.read", {"path": "/work/a"})), reply(done=True)]
     h.runner.run(Job("j1", "x"))
     assert "spend_100pct" in codes(h) and h.gate.blocked("claude")  # type: ignore[union-attr]
@@ -142,11 +153,11 @@ def test_provider_is_blocked_at_100_percent_until_the_owner_acts(tmp_path: Path)
 
 
 def test_block_survives_a_restart_and_is_enforced_by_the_hub(tmp_path: Path) -> None:
-    h = paid(tmp_path, caps=Caps(daily_usd=0.18, monthly_usd=5.0))
+    h = paid(tmp_path, caps=usd_caps(0.18, 5.0))
     h.escalation.script += [reply(("file.read", {"path": "/work/a"})), reply(done=True)]
     h.runner.run(Job("j1", "x"))
     h.state.close()
-    h2 = paid(tmp_path, caps=Caps(daily_usd=0.18, monthly_usd=5.0))
+    h2 = paid(tmp_path, caps=usd_caps(0.18, 5.0))
     assert h2.gate.blocked("claude")  # type: ignore[union-attr]
     with pytest.raises(RuntimeFault) as info:  # even code that skips the gate cannot call it
         h2.hub.complete("claude", ModelRequest(model="m", system="s", user="u", max_tokens=1))
@@ -155,22 +166,22 @@ def test_block_survives_a_restart_and_is_enforced_by_the_hub(tmp_path: Path) -> 
 
 
 def test_local_provider_is_not_blocked_by_paid_spend(tmp_path: Path) -> None:
-    h = paid(tmp_path, caps=Caps(daily_usd=0.18, monthly_usd=5.0))
+    h = paid(tmp_path, caps=usd_caps(0.18, 5.0))
     h.escalation.script += [reply(("file.read", {"path": "/work/a"})), reply(done=True)]
     h.runner.run(Job("j1", "x"))
     assert not h.gate.blocked("ollama")  # type: ignore[union-attr]
 
 
 def test_monthly_cap_alerts_too(tmp_path: Path) -> None:
-    h = paid(tmp_path, caps=Caps(daily_usd=5.0, monthly_usd=0.18))
+    h = paid(tmp_path, caps=usd_caps(0.18, 0.18))
     h.escalation.script += [reply(("file.read", {"path": "/work/a"})), reply(done=True)]
     h.runner.run(Job("j1", "x"))
     alerts = [a for a in read_alerts(h.ledger) if a.code == "spend_100pct"]
-    assert alerts and alerts[0].detail["scope"] == "month:2026-11"
+    assert "month:2026-11" in {a.detail["scope"] for a in alerts}
 
 
 def test_big_call_flag(tmp_path: Path) -> None:
-    h = paid(tmp_path, caps=Caps(daily_usd=5.0, monthly_usd=50.0, big_call_tokens=1500))
+    h = paid(tmp_path, caps=usd_caps(5.0, 50.0, big_call_tokens=1500))
     h.escalation.script.append(reply(done=True))
     h.runner.run(Job("j1", "x"))  # 2000 tokens in one call
     assert "big_call" in codes(h)
@@ -199,7 +210,7 @@ def test_estimator_drift_is_flagged_once_per_model(tmp_path: Path) -> None:
 
 
 def test_daily_scope_rolls_over_with_the_date(tmp_path: Path) -> None:
-    h = paid(tmp_path, caps=Caps(daily_usd=0.18, monthly_usd=5.0))
+    h = paid(tmp_path, caps=usd_caps(0.18, 5.0))
     h.escalation.script += [reply(("file.read", {"path": "/work/a"})), reply(done=True)]
     h.runner.run(Job("j1", "x"))
     assert h.budgets.exhausted("day:2026-11-03") == [Dimension.USD_MICROS]
@@ -210,11 +221,30 @@ def test_daily_scope_rolls_over_with_the_date(tmp_path: Path) -> None:
     assert h.budgets.exhausted("day:2026-11-04") == []
 
 
-def test_caps_config_is_strict() -> None:
+def test_caps_are_percentages_of_the_plan_limit() -> None:
+    caps = Caps(plan_limit_usd=200, monthly_percent=80, daily_percent=5)
+    assert caps.monthly_usd == 160.0 and caps.daily_usd == 10.0
+    assert caps.big_call_usd == 2.5  # 25% of the daily cap by default
+    assert caps.big_call_tokens == 20_000
+
+
+def test_caps_default_to_staying_below_the_limit() -> None:
+    caps = Caps(plan_limit_usd=100)
+    assert caps.monthly_usd == 80.0 and caps.daily_usd == 5.0
+
+
+def test_caps_can_never_exceed_the_plan() -> None:
     from pydantic import ValidationError
 
-    with pytest.raises(ValidationError):
-        Caps(daily_usd=-1, monthly_usd=1)
-    with pytest.raises(ValidationError):
-        Caps(daily_usd=1, monthly_usd=1, surprise=1)  # type: ignore[call-arg]
-    assert Caps(daily_usd=1, monthly_usd=10).big_call_tokens == 20_000
+    for bad in (
+        {"plan_limit_usd": 100, "monthly_percent": 101},
+        {"plan_limit_usd": 100, "monthly_percent": 0},
+        {"plan_limit_usd": 100, "daily_percent": 101},
+        {"plan_limit_usd": 100, "monthly_percent": 10, "daily_percent": 20},  # daily > monthly
+        {"plan_limit_usd": 0},
+        {"plan_limit_usd": -5},
+        {"plan_limit_usd": 100, "surprise": 1},
+        {"monthly_percent": 50},  # no plan limit given: not guessed
+    ):
+        with pytest.raises(ValidationError):
+            Caps(**bad)  # type: ignore[arg-type]

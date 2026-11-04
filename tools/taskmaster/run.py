@@ -11,6 +11,12 @@ Commands:
   plan                       list pending kernel tasks in dependency order (runs nothing)
   run [--from ID|--only ID]  run the verify commands; stop at the first failure
   checklist [--out PATH]     write the generated DETERMINISTIC.md
+  show TASK [--run N] [--failure K] [--context 20]
+                             print raw log lines (at most 200) for a recorded run
+  prune [--days 14] [--dry-run]
+                             delete raw logs older than the retention period
+
+Every step saves its full output under runs/ and prints one small JSON envelope (REDUCE.md).
 
 Exit codes: 0 ok, 1 a check failed or a command was refused, 2 usage or config error.
 """
@@ -24,7 +30,9 @@ import subprocess
 import sys
 from pathlib import Path
 
-import tasks  # sibling module (tools/taskmaster/tasks.py)
+import extractors  # sibling modules (tools/taskmaster/): pure extractors, output reduction
+import reduction
+import tasks
 
 HERE = Path(__file__).resolve().parent
 DEFAULT_ROOT = HERE.parent.parent
@@ -124,6 +132,13 @@ def resolve_cwd(root: Path, item: dict) -> Path:
     return cwd
 
 
+def check_extract(item: dict) -> str:
+    name = item.get("extract", extractors.DEFAULT_EXTRACTOR)
+    if not isinstance(name, str) or name not in extractors.REGISTRY:
+        raise Refused(f"unknown extractor '{name}' (known: {', '.join(extractors.names())})")
+    return name
+
+
 def prepare(item: dict, root: Path, cfg: dict) -> dict:
     """Parse and check one task's verify step without running anything."""
     argv = parse_command(item.get("verify"))
@@ -134,6 +149,7 @@ def prepare(item: dict, root: Path, cfg: dict) -> dict:
         "timeout": item.get("verifyTimeoutSeconds", cfg["timeout"]),
         "expected_exit": item.get("verifyExpectedExit", 0),
         "retries": cfg["retries"],
+        "extract": check_extract(item),
     }
 
 
@@ -177,12 +193,15 @@ def run_step(step: dict) -> dict:
         "stdout_sha256": hashlib.sha256(out).hexdigest(),
         "stdout_tail": tail(out),
         "stderr_tail": tail(err),
+        "_stdout": out,  # full output for the reducer; never written to runs.jsonl
+        "_stderr": err,
     }
 
 
 def record_run(path: Path, task_id, command: str, result: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    row = {"task": task_id, "command": command, **result}
+    row = {"task": task_id, "command": command,
+           **{k: v for k, v in result.items() if not k.startswith("_")}}
     with path.open("a", encoding="utf-8", newline="\n") as f:
         f.write(json.dumps(row, ensure_ascii=False) + "\n")
 
@@ -281,16 +300,21 @@ def fail(a, item, command, reason, result) -> int:
     say(f"command: {command}")
     if result:
         say(f"exit code: {result['exit_code']} (expected {result['expected_exit']})")
-        say(f"--- last {TAIL_LINES} lines of stdout ---")
-        for ln in result["stdout_tail"]:
-            say(ln)
-        say(f"--- last {TAIL_LINES} lines of stderr ---")
-        for ln in result["stderr_tail"]:
-            say(ln)
+        say("details: see the envelope above; full output: run.py show " + str(item["id"]))
     path = write_handoff(Path(a.handoff_dir), item, command, reason, result)
     say(f"handoff written: {path}")
     say("stopped: later tasks were not run; status unchanged")
     return 1
+
+
+def failure_reason(result: dict, envelope: dict) -> str:
+    if result["error"]:
+        return result["error"]
+    if not result["passed"]:
+        return "check failed"
+    if envelope["status"] == "error":
+        return f"extractor failed: {envelope.get('error', '')}"
+    return "extractor reported failed checks"
 
 
 def mark_done(a, item, result, was_done: bool) -> None:
@@ -346,8 +370,11 @@ def cmd_run(a) -> int:
         except Refused as e:
             return fail(a, item, command, f"refused: {e}", None)
         record_run(Path(a.runs_log), tid, command, result)
-        if not result["passed"]:
-            return fail(a, item, command, result["error"] or "check failed", result)
+        envelope, line = reduction.reduce_step(item, result, root=root,
+                                               runs_dir=Path(a.runs_dir), extract=step["extract"])
+        say(line)
+        if envelope["status"] != "pass":
+            return fail(a, item, command, failure_reason(result, envelope), result)
         try:
             mark_done(a, item, result, was_done)
         except SystemExit:
@@ -356,6 +383,30 @@ def cmd_run(a) -> int:
         say(f"ok {tid} {item.get('title', '')}  ({result['seconds']}s)")
         passed += 1
     say(f"{passed} passed, {skipped} skipped")
+    return 0
+
+
+def cmd_show(a) -> int:
+    try:
+        lines, warnings = reduction.show(Path(a.root), Path(a.runs_dir), a.task, a.run,
+                                         a.failure, a.context)
+    except reduction.ReductionError as e:
+        raise ConfigError(str(e)) from e
+    for w in warnings:
+        print(w, file=sys.stderr)
+    for ln in lines:
+        say(ln)
+    return 0
+
+
+def cmd_prune(a) -> int:
+    try:
+        r = reduction.prune(Path(a.root), Path(a.runs_dir), a.days, a.dry_run)
+    except reduction.ReductionError as e:
+        raise ConfigError(str(e)) from e
+    verb = "would delete" if r["dry_run"] else "deleted"
+    say(f"{verb} {r['files']} raw log(s); {r['entries']} index entr(ies) "
+        f"older than {a.days} days; {r['kept']} kept")
     return 0
 
 
@@ -396,7 +447,7 @@ def cmd_checklist(a) -> int:
 # ---------- entry point ----------
 
 def build_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(description=__doc__,
+    p = argparse.ArgumentParser(description=__doc__, allow_abbrev=False,  # show has --run
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--root", default=str(DEFAULT_ROOT), help="repo root (default: this repo)")
     p.add_argument("--file", help="tasks.json (default: <root>/.taskmaster/tasks/tasks.json)")
@@ -404,6 +455,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--allowlist", default=str(DEFAULT_ALLOWLIST))
     p.add_argument("--handoff-dir", help="default: <root>/handoff")
     p.add_argument("--runs-log", help="default: <root>/.taskmaster/runs/runs.jsonl")
+    p.add_argument("--runs-dir", help="raw logs, index and envelopes (default: <root>/runs)")
     sub = p.add_subparsers(dest="cmd", required=True)
     sub.add_parser("plan").set_defaults(fn=cmd_plan)
     sp = sub.add_parser("run")
@@ -415,6 +467,17 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument("--out", help="default: <root>/DETERMINISTIC.md")
     sp.add_argument("--force", action="store_true", help="overwrite a file that is not generated")
     sp.set_defaults(fn=cmd_checklist)
+    sp = sub.add_parser("show", help="print raw lines of a recorded run, at most 200")
+    sp.add_argument("task", help="task id")
+    sp.add_argument("--run", type=int, help="run number (default: the latest)")
+    sp.add_argument("--failure", type=int, help="show lines around the Kth failure (from 1)")
+    sp.add_argument("--context", type=int, default=reduction.SHOW_DEFAULT_CONTEXT,
+                    help="lines on each side of the failure (default 20)")
+    sp.set_defaults(fn=cmd_show)
+    sp = sub.add_parser("prune", help="delete raw logs older than the retention period")
+    sp.add_argument("--days", type=int, default=reduction.RETENTION_DAYS)
+    sp.add_argument("--dry-run", action="store_true", help="count only, delete nothing")
+    sp.set_defaults(fn=cmd_prune)
     return p
 
 
@@ -424,6 +487,7 @@ def main(argv=None) -> int:
     a.file = a.file or str(root / ".taskmaster" / "tasks" / "tasks.json")
     a.handoff_dir = a.handoff_dir or str(root / "handoff")
     a.runs_log = a.runs_log or str(root / ".taskmaster" / "runs" / "runs.jsonl")
+    a.runs_dir = a.runs_dir or str(root / "runs")
     try:
         return a.fn(a)
     except ConfigError as e:

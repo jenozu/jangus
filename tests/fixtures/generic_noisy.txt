@@ -1,0 +1,9 @@
+building widgets
+step 1 ok
+step 2 ok
+Traceback (most recent call last):
+  File "build.py", line 10, in <module>
+    run()
+ValueError: bad widget
+step 3 skipped
+FAILED to link

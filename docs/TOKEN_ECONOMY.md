@@ -30,7 +30,9 @@ A call with no usage data from the provider is recorded as `usage_unknown` and c
 ## 3. Pre-call budget check
 Before sending, the kernel estimates input tokens (bytes/3 until calibrated against measured values), adds `max_tokens`, prices the worst case, and refuses the call if it would exceed any of: the task limit, the directive budget, the agent's daily budget, the daily orchestrator cap, or the monthly cap. A refused call counts as a failed attempt and raises an alert; it is never silently downgraded to another model.
 
-## 4. Alerts
+## 4. Spend caps and alerts
+**Caps are percentages of the owner's plan.** The config `[caps]` table holds `plan_limit_usd` (what the plan or the provider-side limit allots per month) plus `monthly_percent` (default 80) and `daily_percent` (default 5), both of the plan limit and both at most 100; the daily cap cannot exceed the monthly one. Jangus therefore stops short of the limit, never at it. Without a `[caps]` table no paid call is allowed. The dedicated key's provider-side limit remains the independent backstop.
+
 Thresholds on daily and monthly spend and on orchestrator calls: 50%, 80% and 100%. At 100% the provider is blocked until the owner acts. Also:
 - **Big-call flag**: any single call over `big_call_tokens` (default 20,000) or `big_call_usd`.
 - **Runaway flag**: a task using over 3x the median tokens of its type.

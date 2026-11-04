@@ -7,6 +7,7 @@ RuntimeFault.
 """
 
 import tomllib
+from decimal import Decimal
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
@@ -68,12 +69,40 @@ class ModelEndpoint(StrictModel):
 
 
 class Caps(StrictModel):
-    """Owner-set spend caps. Without them no paid model call is allowed (fail closed)."""
+    """Spend caps as percentages of what the owner's plan allots (fail closed without them).
 
-    daily_usd: float = Field(ge=0)
-    monthly_usd: float = Field(ge=0)
+    `plan_limit_usd` is the monthly amount the plan or the provider-side spend limit allows.
+    The monthly cap is `monthly_percent` of it and the daily cap is `daily_percent` of it, so
+    Jangus stops short of the limit instead of at it. Percentages cannot exceed 100, and the
+    daily cap cannot exceed the monthly one. The provider-side limit stays the real backstop.
+    """
+
+    plan_limit_usd: float = Field(gt=0)
+    monthly_percent: float = Field(default=80, gt=0, le=100)
+    daily_percent: float = Field(default=5, gt=0, le=100)
     big_call_tokens: int = Field(default=20_000, gt=0)
-    big_call_usd: float = Field(default=1.0, ge=0)
+    big_call_percent_of_daily: float = Field(default=25, gt=0, le=100)
+
+    @model_validator(mode="after")
+    def _daily_within_monthly(self) -> "Caps":
+        if self.daily_percent > self.monthly_percent:
+            raise ValueError("daily_percent cannot be more than monthly_percent")
+        return self
+
+    def _share(self, percent: float, of: float) -> float:
+        return float(Decimal(str(of)) * Decimal(str(percent)) / Decimal(100))
+
+    @property
+    def monthly_usd(self) -> float:
+        return self._share(self.monthly_percent, self.plan_limit_usd)
+
+    @property
+    def daily_usd(self) -> float:
+        return self._share(self.daily_percent, self.plan_limit_usd)
+
+    @property
+    def big_call_usd(self) -> float:
+        return self._share(self.big_call_percent_of_daily, self.daily_usd)
 
 
 class JangusConfig(StrictModel):

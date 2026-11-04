@@ -18,6 +18,7 @@ build/
 *.sqlite
 *.sqlite3
 ledger/
+# runs/ also holds the runner's raw logs, index and envelopes (REDUCE.md)
 runs/
 workspaces/
 .env

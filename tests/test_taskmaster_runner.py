@@ -400,23 +400,22 @@ def test_checklist_will_not_overwrite_a_hand_written_file(repo):
 # ---------- no model code on the run path ----------
 
 
-def test_run_path_imports_no_model_or_provider_code():
-    tree = ast.parse((TOOLS / "run.py").read_text(encoding="utf-8"))
+SIBLINGS = {"tasks", "extractors", "reduction"}  # tools/taskmaster modules on the run path
+
+
+def imported_modules(path: Path) -> set[str]:
     modules = set()
-    for node in ast.walk(tree):
+    for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
         if isinstance(node, ast.Import):
             modules |= {n.name.split(".")[0] for n in node.names}
         elif isinstance(node, ast.ImportFrom) and node.module:
             modules.add(node.module.split(".")[0])
-    allowed = set(sys.stdlib_module_names) | {"tasks"}
-    assert modules <= allowed, f"non-stdlib imports: {sorted(modules - allowed)}"
-    assert not any(m.startswith("jangus") for m in modules)
-    # tasks.py is on the run path too: it must be stdlib-only as well
-    tree = ast.parse((TOOLS / "tasks.py").read_text(encoding="utf-8"))
-    names = set()
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Import):
-            names |= {n.name.split(".")[0] for n in node.names}
-        elif isinstance(node, ast.ImportFrom) and node.module:
-            names.add(node.module.split(".")[0])
-    assert names <= set(sys.stdlib_module_names)
+    return modules
+
+
+def test_run_path_imports_no_model_or_provider_code():
+    allowed = set(sys.stdlib_module_names) | SIBLINGS
+    for name in ("run.py", "tasks.py", "extractors.py", "reduction.py"):
+        modules = imported_modules(TOOLS / name)
+        assert modules <= allowed, f"{name}: non-stdlib imports: {sorted(modules - allowed)}"
+        assert not any(m.startswith("jangus") for m in modules)
