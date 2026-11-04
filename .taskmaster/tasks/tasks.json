@@ -698,13 +698,13 @@
       {
         "title": "Claude Haiku is the default cheap model (corrective for tasks 13, 17, 25)",
         "description": "Make the Claude-direct default real in config, the provider factory, the draft specs and the docs. Corrective task: tasks 13, 17 and 25 are done and must not be edited.",
-        "status": "in-progress",
+        "status": "done",
         "priority": "high",
         "dependencies": [
           13,
           25
         ],
-        "details": "Per ADR-002 and the 2026-11-04 PRD decision log entry. Config: the local model endpoint becomes optional and a local provider is enabled only by explicit owner config (`ollama_enabled`), the way `claude_enabled` already works; no provider is enabled by accident and rule 7 (no silent fallback) is unchanged. Provider factory registers Ollama only when the owner configured it. Keep the Ollama provider, scripts/benchmark_ollama.py and all their tests working. Docs: PHASES (2a gate optional), ARCHITECTURE, TOKEN_ECONOMY, DIRECTIVES, BUILD_PLAN, PRD, README, COST_SETUP (Haiku as the default cheap model, dedicated key steps, provider-side limit, [caps], prices.yaml). The exact Haiku model id and prices are NOT written from memory: they are a marked placeholder for the owner (task 43).\n\n[2026-11-04T13:44:37-05:00] Plan: config gains ollama_enabled (default false) and makes the loopback [model] endpoint optional; providers/factory registers+enables ollama only when the owner configured both; claude stays behind claude_enabled. No kernel change, no model-calling code added to the kernel. Docs pass: PHASES/ARCHITECTURE/TOKEN_ECONOMY/DIRECTIVES/BUILD_PLAN/PRD/README/COST_SETUP. Haiku model id and prices left as a marked placeholder (task 43) because docs.claude.com could not be fetched in this session.",
+        "details": "Per ADR-002 and the 2026-11-04 PRD decision log entry. Config: the local model endpoint becomes optional and a local provider is enabled only by explicit owner config (`ollama_enabled`), the way `claude_enabled` already works; no provider is enabled by accident and rule 7 (no silent fallback) is unchanged. Provider factory registers Ollama only when the owner configured it. Keep the Ollama provider, scripts/benchmark_ollama.py and all their tests working. Docs: PHASES (2a gate optional), ARCHITECTURE, TOKEN_ECONOMY, DIRECTIVES, BUILD_PLAN, PRD, README, COST_SETUP (Haiku as the default cheap model, dedicated key steps, provider-side limit, [caps], prices.yaml). The exact Haiku model id and prices are NOT written from memory: they are a marked placeholder for the owner (task 43).\n\n[2026-11-04T13:44:37-05:00] Plan: config gains ollama_enabled (default false) and makes the loopback [model] endpoint optional; providers/factory registers+enables ollama only when the owner configured both; claude stays behind claude_enabled. No kernel change, no model-calling code added to the kernel. Docs pass: PHASES/ARCHITECTURE/TOKEN_ECONOMY/DIRECTIVES/BUILD_PLAN/PRD/README/COST_SETUP. Haiku model id and prices left as a marked placeholder (task 43) because docs.claude.com could not be fetched in this session.\n\n[2026-11-04T13:50:24-05:00] Built: config [model] optional + ollama_enabled (default false, refused without an endpoint); providers/factory registers ollama only when configured and enables it only when the flag is set; claude unchanged behind claude_enabled. 4 new tests in test_providers.py; test_config's 'missing [model] is invalid' case replaced by two cases (a genuinely required field still rejected; a missing local endpoint now valid). Docs pass done (PHASES gate-changes table, ARCHITECTURE/TOKEN_ECONOMY/DIRECTIVES/PRD/BUILD_PLAN/README/COST_SETUP). Verified on Linux: ruff clean, mypy clean (45 files), 602 pytest passed, tasks.py validate exit 0. NOT verified: no real model or Claude call, nothing run on the owner's PC, Haiku model id and prices left as a marked placeholder (task 43) because docs.claude.com could not be fetched in this session.",
         "testStrategy": "uv run --locked ruff check, mypy, pytest all green; tools/taskmaster/tasks.py validate passes; a config with no local endpoint loads and enables only the providers the owner turned on; Ollama provider and benchmark tests still pass.",
         "complexity": 3,
         "id": 41,
@@ -715,12 +715,12 @@
       {
         "title": "Ollama benchmark and local provider are optional, not a blocker",
         "description": "Record that task 17's benchmark no longer gates anything and that the local provider is an optional, off-by-default rung.",
-        "status": "in-progress",
+        "status": "done",
         "priority": "medium",
         "dependencies": [
           17
         ],
-        "details": "Per ADR-002. The Phase 2a exit gate 'owner chooses the default cheap model' is satisfied by the 2026-11-04 decision; the benchmark stays in the repo as a tool for a future machine (a faster PC or a VPS with a GPU) and is no longer required to continue. docs/PHASES.md states exactly what changed so no gate is weakened silently; MEMORY.md open items drop 'choose the default cheap model' as a blocker. Nothing is deleted: scripts/benchmark_ollama.py, src/jangus/agents/benchmark.py and their tests stay.\n\n[2026-11-04T13:44:37-05:00] Plan: PHASES.md 2a gate marked optional with date and reason; MEMORY open items updated; nothing deleted.",
+        "details": "Per ADR-002. The Phase 2a exit gate 'owner chooses the default cheap model' is satisfied by the 2026-11-04 decision; the benchmark stays in the repo as a tool for a future machine (a faster PC or a VPS with a GPU) and is no longer required to continue. docs/PHASES.md states exactly what changed so no gate is weakened silently; MEMORY.md open items drop 'choose the default cheap model' as a blocker. Nothing is deleted: scripts/benchmark_ollama.py, src/jangus/agents/benchmark.py and their tests stay.\n\n[2026-11-04T13:44:37-05:00] Plan: PHASES.md 2a gate marked optional with date and reason; MEMORY open items updated; nothing deleted.\n\n[2026-11-04T13:50:24-05:00] Done: PHASES.md 'Gate changes' section records the 2a model-choice gate as satisfied 2026-11-04 and the benchmark run as optional, with a before/after table showing no other gate changed; MEMORY.md open items no longer list the benchmark as a blocker; benchmark code, script and tests kept and passing.",
         "testStrategy": "docs/PHASES.md marks the 2a model choice gate optional with the reason and date; MEMORY.md no longer lists the benchmark as a blocker; benchmark tests still pass; tasks.py validate passes.",
         "complexity": 1,
         "id": 42,
@@ -747,7 +747,7 @@
     ],
     "metadata": {
       "created": "2026-11-01T18:19:53-05:00",
-      "updated": "2026-11-04T13:44:38-05:00"
+      "updated": "2026-11-04T13:50:24-05:00"
     }
   }
 }
