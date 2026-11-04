@@ -92,3 +92,74 @@ def build_usage_report(ledger: Ledger, day: str | None = None) -> UsageReport:
         sorted(per_task.items(), key=lambda kv: (-kv[1], kv[0]))[:5],
         totals,
     )
+
+
+@dataclass(frozen=True)
+class DailyReport:
+    day: str
+    usage: UsageReport
+    attempts: dict[str, int]
+    step_ups: int
+    halted: list[dict[str, Any]]
+    completed: int
+    ticks: int
+    cache_hits: int
+    estimated_tokens_saved: int
+    alerts: dict[str, int]
+
+    def render(self) -> str:
+        lines = [f"Daily report {self.day}", self.usage.render()]
+        lines.append(
+            f"Directives: {self.completed} completed, {len(self.halted)} halted; "
+            f"ticks: {self.ticks}"
+        )
+        for halt in self.halted:
+            lines.append(f"  HALTED {halt.get('directive')}: {halt.get('reason')}")
+        failed = ", ".join(f"{k}={v}" for k, v in sorted(self.attempts.items())) or "none"
+        lines.append(f"Failed attempts per task: {failed}; step-ups: {self.step_ups}")
+        lines.append(
+            f"Cache hits: {self.cache_hits} (estimated {self.estimated_tokens_saved} tokens saved; "
+            "an estimate, not a measurement)"
+        )
+        alerts = ", ".join(f"{k}x{v}" for k, v in sorted(self.alerts.items())) or "none"
+        lines.append(f"Alerts: {alerts}")
+        return "\n".join(lines)
+
+
+def build_daily_report(ledger: Ledger, day: str) -> DailyReport:
+    """Everything here is read from the ledger for one ISO date; no model is involved."""
+    usage = build_usage_report(ledger, day)
+    attempts: dict[str, int] = defaultdict(int)
+    halted: list[dict[str, Any]] = []
+    alerts: dict[str, int] = defaultdict(int)
+    completed = ticks = cache_hits = 0
+    for entry in ledger.entries():
+        if not entry.ts.startswith(day):
+            continue
+        event = entry.event
+        kind = event.get("kind")
+        if kind == "attempt_failed":
+            attempts[str(event["task"])] += 1
+        elif kind == "directive_halted":
+            halted.append(event)
+        elif kind == "directive_completed":
+            completed += 1
+        elif kind == "tick":
+            ticks += 1
+        elif kind == "cache_hit":
+            cache_hits += 1
+        elif kind == "alert":
+            alerts[str(event["code"])] += 1
+    per_call = usage.totals["tokens"] // usage.totals["calls"] if usage.totals["calls"] else 0
+    return DailyReport(
+        day,
+        usage,
+        dict(attempts),
+        usage.step_ups,
+        halted,
+        completed,
+        ticks,
+        cache_hits,
+        cache_hits * per_call,
+        dict(alerts),
+    )

@@ -338,12 +338,12 @@
       {
         "title": "Scheduler tick and daily report",
         "description": "`jangus tick` runs due agents, coalesces missed ticks; status and daily report.",
-        "status": "pending",
+        "status": "done",
         "priority": "high",
         "dependencies": [
           15
         ],
-        "details": "src/jangus/cli.py + scheduler.py; cron-like triggers from specs; one run lock.\n\n[adapt 2026-11-01 cost discipline] Scheduler launches standing directive templates directly for the assignee (orchestrator not involved). Daily report is built deterministically from the ledger, including per-role cost.\n\n[adapt 2026-11-01 attempt limits] Daily report adds per-task attempt counts, step-ups and halted directives.\n\n[adapt 2026-11-01 token economy] Daily report built from the ledger: per role/agent/task type, orchestrator calls with reasons, step-ups, cache hits, recipe runs, estimated tokens saved (labelled), top 5 costliest tasks.",
+        "details": "src/jangus/cli.py + scheduler.py; cron-like triggers from specs; one run lock.\n\n[adapt 2026-11-01 cost discipline] Scheduler launches standing directive templates directly for the assignee (orchestrator not involved). Daily report is built deterministically from the ledger, including per-role cost.\n\n[adapt 2026-11-01 attempt limits] Daily report adds per-task attempt counts, step-ups and halted directives.\n\n[adapt 2026-11-01 token economy] Daily report built from the ledger: per role/agent/task type, orchestrator calls with reasons, step-ups, cache hits, recipe runs, estimated tokens saved (labelled), top 5 costliest tasks.\n\n[2026-11-03T11:41:12-05:00] Plan: kernel/lock.py (exclusive lock file, stale reclaim); scheduler.py (5-field cron, latest_due coalesces missed slots to one run, per-trigger baseline and done slot in state, approved-spec check, run lock, ledger tick events); daily report from the ledger; runtime.py composition root; CLI tick/status/report; config specs_dir. Stacked on the file-tools branch (runtime wires the file tools).\n\n[2026-11-03T11:42:21-05:00] Built on phase-3/scheduler-stacked; local ruff, mypy, pytest pass. Marked done after the task's test strategy ran.",
         "testStrategy": "pytest B13: missed ticks coalesce; overlapping tick does not double-run; daily report totals match the ledger (B30); B30 and B37 totals match",
         "complexity": 5,
         "id": 19,
@@ -698,7 +698,7 @@
     ],
     "metadata": {
       "created": "2026-11-01T18:19:53-05:00",
-      "updated": "2026-11-03T11:38:26-05:00"
+      "updated": "2026-11-03T11:42:21-05:00"
     }
   }
 }
